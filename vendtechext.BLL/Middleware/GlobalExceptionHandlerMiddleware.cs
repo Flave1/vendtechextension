@@ -42,9 +42,6 @@ namespace vendtechext.BLL.Middleware
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            //var errorService = new ErrorlogService();
-            //context.Request.Headers.TryGetValue("X-Client", out var clientKey);
-            //errorService.LogExceptionToDatabase(exception, clientKey);
 
             var response = new APIResponse
             {
