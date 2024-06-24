@@ -1,0 +1,8 @@
+dotnet user-secrets initialize
+dotnet user-secrets init
+
+set ConnectionStrings
+dotnet user-secrets set ConnectionStrings:Chinook "Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Chinook"
+
+scaffold
+dotnet ef dbcontext scaffold "Name=ConnectionStrings:dev" Microsoft.EntityFrameworkCore.SqlServer -o Model

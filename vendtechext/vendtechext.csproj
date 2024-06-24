@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>d9852196-29b6-465f-a3f5-539a57a93b10</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.6" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\vendtechext.BLL\vendtechext.BLL.csproj" />
+    <ProjectReference Include="..\vendtechext.DAL\vendtechext.DAL.csproj" />
+  </ItemGroup>
+
+</Project>
