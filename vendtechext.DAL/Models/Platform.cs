@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace vendtechext.DAL.Models;
 
@@ -31,11 +30,13 @@ public partial class Platform
     public int? PlatformApiConnId { get; set; }
 
     public int? PlatformApiConnBackupId { get; set; }
-    [NotMapped]
-    public virtual PlatformApiConnection PlatformApiConn { get; set; }
-    [NotMapped]
-    public virtual PlatformApiConnection PlatformApiConnBackup { get; set; }
-    [NotMapped]
+
+    public virtual ICollection<ElectricityTrxLog> ElectricityTrxLogs { get; set; } = new List<ElectricityTrxLog>();
+
+    public virtual PlatformApiConnection? PlatformApiConn { get; set; }
+
+    public virtual PlatformApiConnection? PlatformApiConnBackup { get; set; }
+
     public virtual ICollection<PlatformApiConnection> PlatformApiConnections { get; set; } = new List<PlatformApiConnection>();
 
     public virtual ICollection<PlatformPacParam> PlatformPacParams { get; set; } = new List<PlatformPacParam>();

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace vendtechext.DAL.Models;
 
-
 public partial class Cmspage
 {
     public int PageId { get; set; }

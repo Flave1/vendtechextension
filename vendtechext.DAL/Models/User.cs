@@ -97,6 +97,8 @@ public partial class User
 
     public virtual ICollection<Deposit> Deposits { get; set; } = new List<Deposit>();
 
+    public virtual ICollection<ElectricityTrxLog> ElectricityTrxLogs { get; set; } = new List<ElectricityTrxLog>();
+
     public virtual ICollection<EmailConfirmationRequest> EmailConfirmationRequests { get; set; } = new List<EmailConfirmationRequest>();
 
     public virtual User? Fkvendor { get; set; }

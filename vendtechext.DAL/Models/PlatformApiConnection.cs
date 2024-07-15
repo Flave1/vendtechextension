@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace vendtechext.DAL.Models;
 
@@ -19,13 +18,13 @@ public partial class PlatformApiConnection
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
-    [NotMapped]
+
     public virtual Platform Platform { get; set; } = null!;
 
     public virtual PlatformApi? PlatformApi { get; set; }
 
     public virtual ICollection<PlatformPacParam> PlatformPacParams { get; set; } = new List<PlatformPacParam>();
-    [NotMapped]
+
     public virtual ICollection<Platform> PlatformPlatformApiConnBackups { get; set; } = new List<Platform>();
 
     public virtual ICollection<Platform> PlatformPlatformApiConns { get; set; } = new List<Platform>();

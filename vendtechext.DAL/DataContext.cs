@@ -1,17 +1,16 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using vendtechext.DAL.Models;
 
-namespace vendtechext.DAL;
+namespace vendtechext.DAL.Models;
 
-public partial class DataContext : DbContext
+public partial class StagingDevContext : DbContext
 {
-    public DataContext()
+    public StagingDevContext()
     {
     }
 
-    public DataContext(DbContextOptions<StagingDevContext> options)
+    public StagingDevContext(DbContextOptions<StagingDevContext> options)
         : base(options)
     {
     }
@@ -45,6 +44,8 @@ public partial class DataContext : DbContext
     public virtual DbSet<DepositLog> DepositLogs { get; set; }
 
     public virtual DbSet<DepositOtp> DepositOtps { get; set; }
+
+    public virtual DbSet<ElectricityTrxLog> ElectricityTrxLogs { get; set; }
 
     public virtual DbSet<EmailConfirmationRequest> EmailConfirmationRequests { get; set; }
 
@@ -348,6 +349,93 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Otp)
                 .HasMaxLength(50)
                 .HasColumnName("OTP");
+        });
+
+        modelBuilder.Entity<ElectricityTrxLog>(entity =>
+        {
+            entity.HasKey(e => e.ElectricityTrxLogsId);
+
+            entity.Property(e => e.AccountNumber)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CostOfUnits)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.Customer)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.CustomerAddress)
+                .HasMaxLength(200)
+                .IsUnicode(false);
+            entity.Property(e => e.DateAndTimeFinalised).IsUnicode(false);
+            entity.Property(e => e.DateAndTimeLinked).IsUnicode(false);
+            entity.Property(e => e.DateAndTimeSold).IsUnicode(false);
+            entity.Property(e => e.DebitRecovery)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.MeterNumber)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.MeterToken1)
+                .HasMaxLength(22)
+                .IsUnicode(false);
+            entity.Property(e => e.MeterToken2)
+                .HasMaxLength(22)
+                .IsUnicode(false);
+            entity.Property(e => e.MeterToken3)
+                .HasMaxLength(22)
+                .IsUnicode(false);
+            entity.Property(e => e.QueryStatusCount).HasDefaultValue(0);
+            entity.Property(e => e.ReceiptNumber)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.RequestDate).HasColumnType("datetime");
+            entity.Property(e => e.RtsuniqueId)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("RTSUniqueID");
+            entity.Property(e => e.SerialNumber)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.ServiceCharge)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.StatusResponse).IsUnicode(false);
+            entity.Property(e => e.Tariff)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.TaxCharge)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.TenderedAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TransactionAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TransactionId).HasMaxLength(50);
+            entity.Property(e => e.Units)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.VendStatus)
+                .HasMaxLength(200)
+                .IsUnicode(false);
+            entity.Property(e => e.VendStatusDescription)
+                .HasMaxLength(200)
+                .IsUnicode(false);
+            entity.Property(e => e.VoucherSerialNumber)
+                .HasMaxLength(200)
+                .IsUnicode(false);
+            entity.Property(e => e.Vprovider)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("VProvider");
+
+            entity.HasOne(d => d.PlatForm).WithMany(p => p.ElectricityTrxLogs)
+                .HasForeignKey(d => d.PlatFormId)
+                .HasConstraintName("FK_ElectricityTrxLogs_Platform");
+
+            entity.HasOne(d => d.User).WithMany(p => p.ElectricityTrxLogs)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ElectricityTrxLogs_Users");
         });
 
         modelBuilder.Entity<EmailConfirmationRequest>(entity =>

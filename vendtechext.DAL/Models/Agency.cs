@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace vendtechext.DAL.Models;
 
@@ -21,9 +20,9 @@ public partial class Agency
     public long? Representative { get; set; }
 
     public virtual Commission? Commission { get; set; }
-    [NotMapped]
+
     public virtual User? RepresentativeNavigation { get; set; }
-    [NotMapped]
+
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 
     public virtual ICollection<Vendor> Vendors { get; set; } = new List<Vendor>();
