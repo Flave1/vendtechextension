@@ -2,11 +2,11 @@
 
 namespace signalrserver.HubConnection
 {
-    public class MessageHub : Hub<IMessageHub>
+    public class CustomersHub : Hub<IMessageHub>
     {
-        public Task SendBalanceUpdate(string user, string message)
+        public Task SendBalanceUpdate(string message)
         {
-            return Clients.User(user).SendBalanceUpdate(message, user);
+            return Clients.User(message).SendBalanceUpdate(message);
         }
 
         public async Task AddToGroup(string groupName)

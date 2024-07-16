@@ -6,8 +6,10 @@
         public MessageBody()
         {
             UserId = string.Empty;
+            Message = string.Empty;
         }
         public string UserId { get; set; }
+        public string Message { get; set; }
     }
 
     public class APIResponse

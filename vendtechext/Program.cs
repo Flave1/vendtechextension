@@ -42,7 +42,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors("AllowSpecificOrigin");
 
-app.MapHub<MessageHub>("/hub");
+app.MapHub<CustomersHub>("/customerHub");
+app.MapHub<AdminHub>("/adminHub");
 
 app.MapControllers();
 app.Run();
