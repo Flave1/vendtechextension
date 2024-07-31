@@ -1,0 +1,125 @@
+{
+  "Status": "Success",
+  "Content": {
+    "Data": {
+      "Data": [
+        {
+          "Barcode": 1234567890,
+          "DateAndTime": "2024-07-31T21:14:09.8032202+01:00",
+          "DealerBalance": 5000,
+          "Denomination": 100,
+          "ErrorMsg": null,
+          "Id": 1,
+          "Instructions": "Sample instructions",
+          "PinNumber": "1234",
+          "PinNumber2": "5678",
+          "PinNumber3": "91011",
+          "PowerHubVoucher": {
+            "AccountCredit": 1000,
+            "AccountNumber": "123456789",
+            "CostOfUnits": "50.00",
+            "CustAccNo": "CUST1234",
+            "CustAddress": "123 Sample Street",
+            "CustCanVend": "Yes",
+            "CustContactNo": "555-1234",
+            "CustDaysLastPurchase": "30",
+            "CustLocalRef": "Local123",
+            "CustMsno": "MS1234",
+            "CustMinVendAmt": "10",
+            "CustName": "John Doe",
+            "Customer": "CustomerX",
+            "DebtRecoveryAmt": 200,
+            "DebtRecoveryBalance": 100,
+            "MeterNumber": "MTR1234",
+            "PayAccDesc": "Payment Account Description",
+            "PayAccNo": "PAY1234",
+            "PayAmount": "500.00",
+            "PayBalance": "0.00",
+            "PayReceiptNo": "REC1234",
+            "Pin1": "PIN1",
+            "Pin2": "PIN2",
+            "Pin3": "PIN3",
+            "RtsUniqueId": "RTS1234",
+            "ReceiptNumber": "RECEIPT1234",
+            "Sgc": "SGC1234",
+            "ServiceCharge": "10.00",
+            "Tariff": "TARIFF1234",
+            "TaxCharge": "5.00",
+            "TenderedAmount": "505.00",
+            "TransactionAmount": "500.00",
+            "Units": "100",
+            "VatNumber": 123456789
+          },
+          "Provider": "Sample Provider",
+          "SerialNumber": "SN123456",
+          "Tym2SellVoucher": {
+            "Account": "Account123",
+            "ClientId": "Client123",
+            "CostOfUnits": "50.00",
+            "Customer": "CustomerY",
+            "GovermentLevy": 5,
+            "KeyChangeDetected": false,
+            "KeyChangeToken1": "Key1",
+            "KeyChangeToken2": "Key2",
+            "ReceiptNumber": "Receipt123",
+            "StandingCharge": 2,
+            "StsMeter": "STS123",
+            "TenderedAmount": "55.00",
+            "Units": "10",
+            "Vat": "5.00",
+            "VatNo": "VAT123",
+            "VoucherTextDecodeFailed": false
+          },
+          "VoucherProfit": 50,
+          "XmlResponse": "<xml>response</xml>"
+        }
+      ],
+      "DataName": "SampleData",
+      "Error": "None",
+      "ErrorCode": 0
+    },
+    "ProcessOption": "Option1"
+  },
+  "ErrorLog": [
+    "No errors"
+  ],
+  "RequestModel": {
+    "Auth": {
+      "UserName": "vRtjY3Tns/m4mPdGwcOnpQ==",
+      "Password": "wUFj4GiAX/2ka1DYNhRMxw=="
+    },
+    "Request": "ProcessPrePaidVendingV1",
+    "Parameters": [
+      {
+        "ValueKind": 1
+      },
+      {
+        "ValueKind": 3
+      },
+      {
+        "ValueKind": 3
+      },
+      {
+        "ValueKind": 3
+      },
+      {
+        "ValueKind": 3
+      },
+      {
+        "ValueKind": 3
+      },
+      {
+        "ValueKind": 3
+      },
+      {
+        "ValueKind": 4
+      },
+      {
+        "ValueKind": 3
+      },
+      {
+        "ValueKind": 3
+      }
+    ]
+  }
+}

@@ -8,16 +8,16 @@ namespace vendtechext.BLL.DTO
 
         public string Request { get; set; }
 
-        public List<object> Parameters { get; set; }
+        public object[] Parameters { get; set; }
     }
 
-    public partial class RTSAuthModel
+    public class RTSAuthModel
     {
         public string UserName { get; set; }
         public string Password { get; set; }
     }
 
-    public partial class RTSResponse
+    public class RTSResponse
     {
         public string Status { get; set; }
 
@@ -35,8 +35,9 @@ namespace vendtechext.BLL.DTO
         public string ProcessOption { get; set; }
     }
 
-  
-    public partial class DataResponse
+
+
+    public class DataResponse
     {
         public Datum[] Data { get; set; } = new Datum[0];
 
@@ -47,7 +48,7 @@ namespace vendtechext.BLL.DTO
         public long ErrorCode { get; set; }
     }
 
-    public partial class Datum
+    public class Datum
     {
         public long Barcode { get; set; }
 
@@ -83,7 +84,7 @@ namespace vendtechext.BLL.DTO
     }
 
 
-    public partial class PowerHubVoucher
+    public class PowerHubVoucher
     {
         public long AccountCredit { get; set; }
 
@@ -153,7 +154,7 @@ namespace vendtechext.BLL.DTO
         public long VatNumber { get; set; }
     }
 
-    public partial class Tym2SellVoucher
+    public class Tym2SellVoucher
     {
         public string Account { get; set; }
 
@@ -186,5 +187,54 @@ namespace vendtechext.BLL.DTO
         public string VatNo { get; set; }
 
         public bool VoucherTextDecodeFailed { get; set; }
+    }
+
+    public class QueryContent
+    {
+        public string SerialNumber { get; set; }
+
+        public long TransactionId { get; set; }
+
+        public long? StatusRequestCount { get; set; }
+
+        public bool Finalised { get; set; } = false;
+
+        public bool Sold { get; set; }
+
+        public string DateAndTimeSold { get; set; }
+
+        public Nullable<DateTime> DateAndTimeCreated { get; set; }
+
+        public string DateAndTimeFinalised { get; set; }
+
+        public string DateAndTimeLinked { get; set; }
+
+        public Nullable<DateTime> DateAndTimeRequested { get; set; }
+
+        public string Provider { get; set; }
+
+        public string VoucherSerialNumber { get; set; }
+
+        public string Denomination { get; set; }
+
+        public string VoucherPin { get; set; }
+
+        public string MeterNumber { get; set; }
+
+        public string Units { get; set; }
+
+        public string Tariff { get; set; }
+
+        public string Customer { get; set; }
+
+        public string CustomerAccNo { get; set; }
+
+        public string ServiceCharge { get; set; }
+
+        public string TaxCharge { get; set; }
+
+        public string StatusDescription { get; set; }
+
+        public string Status { get; set; }
     }
 }

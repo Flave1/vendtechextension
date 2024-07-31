@@ -6,9 +6,10 @@ namespace vendtechext.BLL.Services
 {
     public class ErrorlogService : IErrorlogService
     {
-        public readonly DataContext dataContext; public ErrorlogService()
+        public readonly DataContext dataContext; 
+        public ErrorlogService(DataContext dataContext)
         {
-                dataContext = new DataContext();
+                this.dataContext = dataContext;
         }
         public void LogExceptionToDatabase(Exception exc, string clientkey)
         {

@@ -20,7 +20,7 @@ namespace vendtechext.TEST.Sales
             var content = new StringContent(validJson, Encoding.UTF8, "application/json");
 
             // Act
-            var response = await _client.PostAsync("/edsa/v2/purchase", content);
+            var response = await _client.PostAsync("/edsa/v2/purchase/json", content);
 
             // Assert
             response.EnsureSuccessStatusCode();

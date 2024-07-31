@@ -1,4 +1,6 @@
-﻿namespace vendtechext.BLL.Common
+﻿using System.ComponentModel;
+
+namespace vendtechext.BLL.Common
 {
     public enum PlatformTypeEnum
     {
@@ -12,9 +14,11 @@
     public enum TransactionStatus
     {
         InProgress = 0,
-        Pending = 1,
-        Successful = 2,
+        [Description("Success")]
+        Success = 1,
+        Pending = 2,
         Failed = 3,
         Error = 4,
     }
+
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using vendtechext.BLL.DTO;
+using vendtechext.BLL.Interfaces;
 
 namespace vendtechext.Controllers
 {
@@ -8,31 +9,27 @@ namespace vendtechext.Controllers
     public class RtsElectricitySalesController : ControllerBase
     {
         private readonly ILogger<RtsElectricitySalesController> _logger;
+        private readonly IRTSSalesService salesService;
 
-        public RtsElectricitySalesController(ILogger<RtsElectricitySalesController> logger)
+        public RtsElectricitySalesController(ILogger<RtsElectricitySalesController> logger, IRTSSalesService salesService)
         {
             _logger = logger;
+            this.salesService = salesService;
         }
 
+        [HttpPost("json", Name = "json")]
+        public IActionResult ValidJson([FromBody] RTSRequestmodel request)
+        {
+            _logger.LogInformation(1, null, "");
+            return Ok(request);
+        }
 
         [HttpPost("", Name = "")]
-        public IActionResult purchase([FromBody] RTSRequestmodel request)
+        public async Task<IActionResult> PurchaseJson([FromBody] RTSRequestmodel request)
         {
-
-            //if (HttpContext.Items.TryGetValue("RequestModel", out var requestModelObj) && requestModelObj is RequestModel requestModel)
-            //{
-            //    // Now you have the requestModel populated with JSON parameters
-            //    // Do something with requestModel
-            //    return Ok(requestModel);
-            //}
-            //else
-            //{
-            //    return BadRequest("Invalid request model");
-            //}
-
-
-            _logger.LogInformation(1, null, "This is it");
-            return Ok(request);
+            var result = await salesService.PurchaseElectricity(request);
+            _logger.LogInformation(1, null, "");
+            return Ok(result);
         }
     }
 }

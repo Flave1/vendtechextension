@@ -32,7 +32,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSignalR();
 
 builder.Services.AddScoped<IB2bAccountService, B2bAccountService>();
-builder.Services.AddTransient<IErrorlogService, ErrorlogService>();
+builder.Services.AddScoped<IErrorlogService, ErrorlogService>();
+builder.Services.AddScoped<IRTSSalesService, RTSSalesService>();
 
 var app = builder.Build();
 
