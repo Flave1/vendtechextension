@@ -35,7 +35,7 @@ namespace vendtechext.BLL.Services
            
             var rtsResponse = result.Item1;
             string rtsReponseAsJson = result.Item2;
-            string requestModelAsStrings = JsonConvert.SerializeObject(request, Formatting.Indented);
+            string requestModelAsStrings = request.ToString();
 
             //Check for Finalized 
             //here
@@ -163,7 +163,8 @@ namespace vendtechext.BLL.Services
             trans.DebitRecovery = "0";
             trans.CostOfUnits = "0";
             trans.TransactionId = Utils.NewTransactionId();
-
+            trans.Request = rtsReponseAsJson;
+            trans.Response = response.ToString();
             dtcxt.TransactionDetails.Add(trans);
             await dtcxt.SaveChangesAsync();
 
@@ -191,9 +192,9 @@ namespace vendtechext.BLL.Services
                                 Denomination = 100,
                                 Id = 1,
                                 Instructions = "Sample instructions",
-                                PinNumber = "1234",
-                                PinNumber2 = "5678",
-                                PinNumber3 = "91011",
+                                PinNumber = "17222353360943207043",
+                                PinNumber2 = "17222353360943207043",
+                                PinNumber3 = "17222353360943207043",
                                 Provider = "Sample Provider",
                                 SerialNumber = "SN123456",
                                 VoucherProfit = 50,
@@ -221,14 +222,14 @@ namespace vendtechext.BLL.Services
                                     PayAmount = "500.00",
                                     PayBalance = "0.00",
                                     PayReceiptNo = "REC1234",
-                                    Pin1 = "PIN1",
-                                    Pin2 = "PIN2",
-                                    Pin3 = "PIN3",
+                                    Pin1 = "17222353360943207043",
+                                    Pin2 = "17222353360943207043",
+                                    Pin3 = "17222353360943207043",
                                     RtsUniqueId = "RTS1234",
                                     ReceiptNumber = "RECEIPT1234",
                                     Sgc = "SGC1234",
                                     ServiceCharge = "10.00",
-                                    Tariff = "TARIFF1234",
+                                    Tariff = "12.0",
                                     TaxCharge = "5.00",
                                     TenderedAmount = "505.00",
                                     TransactionAmount = "500.00",
