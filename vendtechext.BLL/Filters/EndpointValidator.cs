@@ -1,19 +1,34 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection;
+using vendtechext.BLL.Interfaces;
+using System.Linq;
+using Microsoft.AspNetCore.Http;
+
 namespace vendtechext.BLL.Middlewares
 {
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Filters;
-    using Microsoft.Extensions.DependencyInjection;
-    using vendtechext.BLL.Interfaces;
 
     public class EndpointValidatorAttribute : Attribute, IAuthorizationFilter
-    { 
+    {
 
         public bool AllowMultiple => false;
-         
+
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
+            // Check if the action or controller has the [AllowAnonymous] attribute
+            var hasAllowAnonymous = context.ActionDescriptor.EndpointMetadata
+                .Any(em => em.GetType() == typeof(AllowAnonymousAttribute));
+
+            // If [AllowAnonymous] is present, skip authorization
+            if (hasAllowAnonymous)
+            {
+                return;
+            }
+
+            // Perform your authorization logic as usual
             var credentialService = context.HttpContext.RequestServices.GetRequiredService<IB2bAccountService>();
 
             if (!context.HttpContext.Request.Headers.TryGetValue("X-Api-Key", out var extractedApiKey))
@@ -22,20 +37,18 @@ namespace vendtechext.BLL.Middlewares
                 return;
             }
 
-            if (!context.HttpContext.Request.Headers.TryGetValue("X-Client", out var extractedClient))
-            {
-                context.Result = new UnauthorizedResult();
-                return;
-            }
-
+          
             var apiKey = extractedApiKey.First();
-            var clientKey = extractedClient.First();
+            var integratorId = credentialService.GetIntegratorId(apiKey).Result;
 
-            if (!credentialService.ValidateUser(clientKey, apiKey))
+            if (integratorId == "not_found")
             {
                 context.Result = new UnauthorizedResult();
                 return;
             }
+            //Pass ClientKey to controller
+            context.HttpContext.Items["IntegratorId"] = integratorId;
         }
+
     }
 }

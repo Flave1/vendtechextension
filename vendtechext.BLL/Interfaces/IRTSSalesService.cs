@@ -6,6 +6,6 @@ namespace vendtechext.BLL.Interfaces
 {
     public interface IRTSSalesService
     {
-        Task<RTSResponse> PurchaseElectricity(RTSRequestmodel request);
+        Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, string integratorid);
     }
 }

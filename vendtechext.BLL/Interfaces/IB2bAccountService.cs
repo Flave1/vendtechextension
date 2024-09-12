@@ -1,9 +1,15 @@
-﻿using vendtechext.DAL;
+﻿using vendtechext.BLL.DTO;
+using vendtechext.DAL;
 
 namespace vendtechext.BLL.Interfaces
 {
     public interface IB2bAccountService
     {
-        bool ValidateUser(string apiKey, string clientKey);
+        Task<BusinessUserQueryDTO> GetIntegrator(string apiKey);
+        Task CreateBusinessAccount(BusinessUserCommandDTO model);
+        Task UpdateBusinessAccount(BusinessUserCommandDTO model);
+        Task DeleteBusinessAccount(Guid Id);
+        Task DeleteBusinessAccount(string email);
+        Task<string> GetIntegratorId(string apiKey);
     }
 }

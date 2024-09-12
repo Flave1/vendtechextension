@@ -39,7 +39,7 @@ namespace vendtechext.TEST.VendtechMainTests.mobile_tests
         //[InlineData(currentAppVersion, validDevicetoken, validPasscode, "EXPECTED_MESSAGE")]//Test Account Diabled
         //[InlineData(currentAppVersion, validDevicetoken, validPasscode, ACCOUNT_DISABLED)]//Test wrong passcode
         //[InlineData(currentAppVersion, validDevicetoken, validPasscode, "EXPECTED_MESSAGE")]//Test new customer login
-        public async Task Post_SignInV2_ReturnsExpectedResult(string appVersion, string deviceToken, string? passCode, string expectedResult)
+        public async Task Post_SignInV2_ReturnsExpectedResult(string appVersion, string deviceToken, string passCode, string expectedResult)
         {
 
             // Arrange

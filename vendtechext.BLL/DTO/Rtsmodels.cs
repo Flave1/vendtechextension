@@ -4,7 +4,7 @@ namespace vendtechext.BLL.DTO
 {
     public class RTSRequestmodel
     {
-        public RTSAuthModel Auth { get; set; }
+        //public RTSAuthModel Auth { get; set; }
 
         public string Request { get; set; }
 
@@ -25,7 +25,7 @@ namespace vendtechext.BLL.DTO
 
         public string[] ErrorLog { get; set; }
 
-        public RTSRequestmodel RequestModel { get; set; } = new RTSRequestmodel();
+        public ElectricitySaleRequest RequestModel { get; set; } = new ElectricitySaleRequest();
     }
 
     public partial class Content
@@ -34,8 +34,6 @@ namespace vendtechext.BLL.DTO
 
         public string ProcessOption { get; set; }
     }
-
-
 
     public class DataResponse
     {

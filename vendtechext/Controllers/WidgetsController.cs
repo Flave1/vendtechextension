@@ -20,8 +20,6 @@ namespace vendtechext.Controllers
             this.hubContext = hubContext;
         }
 
-
-
         [HttpPost("updatewigdetsales", Name = "updatewigdetsales")]
         public IActionResult UpdateWigdetSales([FromBody] MessageBody request)
         {

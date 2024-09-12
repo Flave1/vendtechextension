@@ -5,6 +5,8 @@ using System.Net;
 using Newtonsoft.Json;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Interfaces;
+using vendtechext.BLL.DTO;
+using vendtechext.BLL.Exceptions;
 namespace vendtechext.BLL.Middleware
 {
     public class GlobalExceptionHandlerMiddleware
@@ -22,24 +24,12 @@ namespace vendtechext.BLL.Middleware
         {
             try
             {
-
-                //httpContext.Request.EnableBuffering();
-                //var requestBodyStream = new StreamReader(httpContext.Request.Body);
-                //var requestBody = await requestBodyStream.ReadToEndAsync();
-         
-                //httpContext.Request.Body.Position = 0;
-
-                //var requestModel = JsonSerializer.Deserialize<RTSRequestmodel>(requestBody, new JsonSerializerOptions
-                //{
-                //    PropertyNameCaseInsensitive = true
-                //});
-
-                //httpContext.Items["RequestModel"] = requestModel;
-
-
-
                 await _next(httpContext);
-
+            }
+            catch (BadRequestException ex)
+            {
+                _logger.LogError(ex, "Bad request error.");
+                HandleExceptionAsync(httpContext, ex, ex.Message);
             }
             catch (JsonException ex)
             {
@@ -66,7 +56,6 @@ namespace vendtechext.BLL.Middleware
                 _logger.LogError(ex, "An unhandled exception occurred.");
                 httpContext.Request.Headers.TryGetValue("X-Client", out var clientKey);
                 var errorlogService = httpContext.RequestServices.GetRequiredService<IErrorlogService>();
-                errorlogService.LogExceptionToDatabase(ex, clientKey);
                 HandleExceptionAsync(httpContext, ex, "Internal Server Error from the middleware server.");
             }
         }
@@ -74,17 +63,23 @@ namespace vendtechext.BLL.Middleware
         private void HandleExceptionAsync(HttpContext context, Exception exception, string message = null)
         {
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            if (exception is BadRequestException)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            }
+            else
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            }
 
-            var response = Response.Instance
-                    .WithStatus("failed")
-                    .WithStatusCode(context.Response.StatusCode)
-                    .WithMessage(message)
-                    .WithDetail(exception.Message)
-                    .GenerateResponse();
+            APIResponse response = Response.Instance
+                .WithStatus("failed")
+                .WithStatusCode(context.Response.StatusCode)
+                .WithMessage(message)
+                .WithDetail(exception.Message)
+                .GenerateResponse();
 
             var jsonResponse = JsonConvert.SerializeObject(response);
-
             context.Response.WriteAsync(jsonResponse);
         }
     }

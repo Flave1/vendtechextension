@@ -2,6 +2,6 @@
 {
     public interface IErrorlogService
     {
-        void LogExceptionToDatabase(Exception exc, string clientkey);
+        //void LogExceptionToDatabase(Exception exc, string clientkey);
     }
 }

@@ -1,12 +1,11 @@
 ﻿using Azure.Core;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Configurations;
 using vendtechext.BLL.DTO;
 using vendtechext.BLL.Interfaces;
-using vendtechext.DAL;
+using vendtechext.DAL.Common;
+using vendtechext.DAL.DomainBuilders;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.BLL.Services
@@ -21,157 +20,72 @@ namespace vendtechext.BLL.Services
             this.dtcxt = dtcxt;
         }
 
-        public async Task<RTSResponse> PurchaseElectricity(RTSRequestmodel request)
+        public async Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, string integratorid)
         {
-
-            //Validate Client and Extract Vendor Information
-            VendorInformation vendor = GetVendor(request);
-
             //Create Transaction Log
-            ElectricityTrxLog transactionLog = await CreateTransactionLog(vendor, request);
+            Transaction transactionLog = await CreateTransactionLog(request, integratorid);
 
             //Send to RTS
             var result = await ProcessTransaction(request, transactionLog);
-           
+
             var rtsResponse = result.Item1;
             string rtsReponseAsJson = result.Item2;
             string requestModelAsStrings = request.ToString();
 
-            //Check for Finalized 
+            //Check for Finalized
             //here
-            //Check for Finalized 
+            //Check for Finalized
 
             //Update Transaction Log
-            UpdateTransactionLog(rtsResponse.Content.Data.Data.FirstOrDefault(), transactionLog, rtsReponseAsJson);
+            await UpdateTransactionLog(rtsResponse.Content.Data.Data.FirstOrDefault(), transactionLog);
 
 
-            //Create new Sale
-            await CreateNewSaleTransanction(rtsResponse, rtsReponseAsJson, vendor);
-
-            return rtsResponse;
+            return Response.Instance.WithStatus("success").WithStatusCode(200).WithMessage("Meter Purchase Successful").WithType(transactionLog).GenerateResponse();
         }
 
-        private async Task<ElectricityTrxLog> CreateTransactionLog(VendorInformation client, RTSRequestmodel request)
+        private async Task<Transaction> CreateTransactionLog(ElectricitySaleRequest request, string integratorId)
         {
-            var trans = new ElectricityTrxLog();
-            trans.PlatFormId = (int)PlatformTypeEnum.ELECTRICITY;
-            trans.UserId = client.VendorId;
-            trans.MeterNumber = request.Parameters[6].ToString();
-            trans.MeterToken1 = "";
-            trans.IsDeleted = false;
-            trans.Status = (int)TransactionStatus.Pending;
-            trans.CreatedAt = DateTime.UtcNow;
-            trans.AccountNumber = "";
-            trans.Customer = "";
-            trans.ReceiptNumber = "";
-            trans.RequestDate = DateTime.UtcNow;
-            trans.SerialNumber = "";
-            trans.ServiceCharge = "";
-            trans.Tariff = "";
-            trans.TaxCharge = "";
-            trans.TenderedAmount = Convert.ToDecimal(request.Parameters[5].ToString());
-            trans.TransactionAmount = Convert.ToDecimal(request.Parameters[5].ToString());
-            trans.Units = "";
-            trans.Vprovider = "";
-            trans.Finalised = false;
-            trans.StatusRequestCount = 0;
-            trans.Sold = false;
-            trans.DateAndTimeSold = "";
-            trans.DateAndTimeFinalised = "";
-            trans.DateAndTimeLinked = "";
-            trans.VoucherSerialNumber = "";
-            trans.VendStatus = "";
-            trans.VendStatusDescription = "";
-            trans.StatusResponse = "";
-            trans.DebitRecovery = "0";
-            trans.CostOfUnits = "0";
-            
-            trans.TransactionId = Utils.GetElectricityLastTrxId();
-            dtcxt.ElectricityTrxLogs.Add(trans);
-            await dtcxt.SaveChangesAsync();
+            var trans = new TransactionsBuilder()
+                .WithTransactionStatus(TransactionStatus.Pending)
+                .WithTransactionId(request.TransactionId)
+                .WithMeterNumber(request.MeterNumber)
+                .WithIntegratorId(integratorId)
+                .WithCreatedAt(DateTime.Now)
+                .WithAmount(request.Amount)
+                .Build();
 
+            dtcxt.Transactions.Add(trans);
+            await dtcxt.SaveChangesAsync();
             return trans;
         }
 
-        private void UpdateTransactionLog(Datum response_data, ElectricityTrxLog trans, string rtsReponseAsJson)
+        private async Task UpdateTransactionLog(Datum response_data, Transaction trans)
         {
-            trans.CostOfUnits = response_data.PowerHubVoucher.CostOfUnits;
-            trans.MeterToken1 = response_data?.PowerHubVoucher.Pin1?.ToString() ?? string.Empty;
-            trans.MeterToken2 = response_data?.PowerHubVoucher?.Pin2?.ToString() ?? string.Empty;
-            trans.MeterToken3 = response_data?.PowerHubVoucher?.Pin3?.ToString() ?? string.Empty;
-            trans.Status = (int)TransactionStatus.Success;
-            trans.AccountNumber = response_data.PowerHubVoucher?.AccountNumber ?? string.Empty;
-            trans.Customer = response_data.PowerHubVoucher?.Customer ?? string.Empty;
-            trans.ReceiptNumber = response_data?.PowerHubVoucher.ReceiptNumber ?? string.Empty;
-            trans.SerialNumber = response_data?.SerialNumber ?? string.Empty;
-            trans.RtsuniqueId = response_data.PowerHubVoucher.RtsUniqueId;
-            trans.ServiceCharge = response_data?.PowerHubVoucher?.ServiceCharge;
-            trans.Tariff = response_data.PowerHubVoucher?.Tariff;
-            trans.TaxCharge = response_data?.PowerHubVoucher?.TaxCharge;
-            trans.Units = response_data?.PowerHubVoucher?.Units;
-            trans.CustomerAddress = response_data?.PowerHubVoucher?.CustAddress;
-            trans.Finalised = true;
-            trans.Vprovider = response_data.Provider;
-            trans.StatusRequestCount = 0;
-            trans.Sold = true;
-            trans.VoucherSerialNumber = response_data?.SerialNumber;
-            trans.VendStatus = "";
-            trans.StatusResponse = rtsReponseAsJson;
-        }
-        private async Task CreateNewSaleTransanction(RTSResponse response, string rtsReponseAsJson, VendorInformation vendor)
-        {
-            var platform = dtcxt.Platforms.FirstOrDefault(d => d.PlatformType == (int)PlatformTypeEnum.ELECTRICITY);
-            var rtsResponse = response.Content.Data.Data.FirstOrDefault();
-            var trans = new TransactionDetail();
-            trans.PlatFormId = (int)platform.PlatformId;
-            trans.UserId = vendor.VendorId;
-            trans.MeterId = null;
-            trans.Posid = vendor.POSId;
-            trans.MeterNumber1 = vendor.MeterNumber;
-            trans.MeterToken1 = rtsResponse.PinNumber;
-            trans.MeterToken1 = rtsResponse.PinNumber2;
-            trans.MeterToken1 = rtsResponse.PinNumber3;
-            trans.Amount = vendor.Amount;
-            trans.IsDeleted = false;
-            trans.Status = (int)TransactionStatus.Success;
-            trans.CreatedAt = DateTime.UtcNow;
-            trans.AccountNumber = rtsResponse.PowerHubVoucher?.AccountNumber ?? string.Empty; ;
-            trans.CurrentDealerBalance = rtsResponse.DealerBalance;
-            trans.Customer = rtsResponse.PowerHubVoucher?.Customer ?? string.Empty; ;
-            trans.ReceiptNumber = rtsResponse.PowerHubVoucher.ReceiptNumber ?? string.Empty;
-            trans.RequestDate = DateTime.UtcNow;
-            trans.RtsuniqueId = rtsResponse.PowerHubVoucher.RtsUniqueId;
-            trans.SerialNumber = rtsResponse?.SerialNumber ?? string.Empty; ;
-            trans.ServiceCharge = rtsResponse?.PowerHubVoucher?.ServiceCharge; ;
-            trans.Tariff = rtsResponse.PowerHubVoucher?.Tariff;
-            trans.TaxCharge = rtsResponse?.PowerHubVoucher?.TaxCharge;
-            trans.TenderedAmount = vendor.Amount;
-            trans.TransactionAmount = vendor.Amount;
-            trans.Units = rtsResponse?.PowerHubVoucher?.Units;
-            trans.Vprovider = "";
-            trans.CustomerAddress = rtsResponse?.PowerHubVoucher?.CustAddress;
-            trans.Finalised = true;
-            trans.StatusRequestCount = 0;
-            trans.Sold = true;
-            trans.DateAndTimeSold = "";
-            trans.DateAndTimeFinalised = "";
-            trans.DateAndTimeLinked = "";
-            trans.VoucherSerialNumber = "";
-            trans.VendStatus = "";
-            trans.VendStatusDescription = "";
-            trans.StatusResponse = "";
-            trans.DebitRecovery = "0";
-            trans.CostOfUnits = "0";
-            trans.TransactionId = Utils.NewTransactionId();
-            trans.Request = rtsReponseAsJson;
-            trans.Response = response.ToString();
-            dtcxt.TransactionDetails.Add(trans);
+            var response = response_data?.PowerHubVoucher;
+            new TransactionsBuilder(trans)
+                .WithTransactionStatus(TransactionStatus.Success)
+                .WithSerialNumber(response_data.SerialNumber)
+                .WithAccountNumber(response.AccountNumber)
+                .WithReceiptNumber(response.ReceiptNumber)
+                .WithServiceCharge(response.ServiceCharge)
+                .WithCustomerAddress(response.CustAddress)
+                .WithCostOfUnits(response.CostOfUnits)
+                .WithRTSUniqueID(response.RtsUniqueId)
+                .WithVProvider(response_data.Provider)
+                .WithTaxCharge(response.TaxCharge)
+                .WithMeterToken1(response.Pin1)
+                .WithMeterToken2(response.Pin2)
+                .WithMeterToken3(response.Pin3)
+                .WithTariff(response.Tariff)
+                .WithUnits(response.Units)
+                .WithFinalised(true)
+                .WithSold(true)
+                .Build();
+
             await dtcxt.SaveChangesAsync();
-
-            //return trans;
         }
-
-        private static RTSResponse GenerateMockSuccessResponse(RTSRequestmodel model)
+       
+        private static RTSResponse GenerateMockSuccessResponse(ElectricitySaleRequest model)
         {
             // Here you would generate your mock data
             RTSResponse response = new RTSResponse
@@ -270,40 +184,12 @@ namespace vendtechext.BLL.Services
             return response;
         }
 
-        private static string WriteResponseToFile(RTSResponse response, string transactionId)
-        {
-            string json = JsonConvert.SerializeObject(response, Formatting.Indented);
-            File.WriteAllText($"{transactionId}.json", json);
-            Console.WriteLine($"Response written to file {transactionId}.json");
-            return json;
-        }
-
-        private async Task<(RTSResponse, string)> ProcessTransaction(RTSRequestmodel request, ElectricityTrxLog log)
+        private async Task<(RTSResponse, string)> ProcessTransaction(ElectricitySaleRequest request, Transaction log)
         {
             RTSResponse response = GenerateMockSuccessResponse(request);
-            string rtsReponseAsJson = await Task.Run(() => WriteResponseToFile(response, log.TransactionId));
+            string rtsReponseAsJson = await Task.Run(() => Utils.WriteResponseToFile(response, log.TransactionId));
             return (response, rtsReponseAsJson);
         }
 
-        private VendorInformation GetVendor(RTSRequestmodel request)
-        {
-            var clientInfor = dtcxt.B2bUserAccesses
-                .Where(d => request.Auth.UserName.Equals(d.Clientkey) && request.Auth.Password.Equals(d.Apikey))
-                .Include(d => d.User).FirstOrDefault();
-            
-            if (clientInfor == null)
-                throw new Exception("Unable to validate information");
-
-            //Get Vendtech btb vendor
-
-
-            return new VendorInformation
-            {
-                POSId = 20034,
-                VendorId = clientInfor.UserId,
-                MeterNumber = request.Parameters[6].ToString(),
-                Amount = Convert.ToDecimal(request.Parameters[5].ToString())
-            };
-        }
     }
 }
