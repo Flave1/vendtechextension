@@ -1,25 +1,23 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Net;
-using System.Net.Http;
-using System.Text.Json;
-using vendtechext.BLL.DTO;
+using Newtonsoft.Json;
+using vendtechext.BLL.Common;
 using vendtechext.BLL.Interfaces;
-using vendtechext.BLL.Services;
+using vendtechext.BLL.DTO;
+using vendtechext.BLL.Exceptions;
 namespace vendtechext.BLL.Middleware
 {
     public class GlobalExceptionHandlerMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
-        private readonly IErrorlogService _errorlog;
 
-        public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger, IErrorlogService errorlog)
+        public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
         {
             _next = next;
             _logger = logger;
-            _errorlog = errorlog;
         }
 
         public async Task InvokeAsync(HttpContext httpContext)
@@ -28,35 +26,61 @@ namespace vendtechext.BLL.Middleware
             {
                 await _next(httpContext);
             }
+            catch (BadRequestException ex)
+            {
+                _logger.LogError(ex, "Bad request error.");
+                HandleExceptionAsync(httpContext, ex, ex.Message);
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "JSON deserialization error.");
+                HandleExceptionAsync(httpContext, ex, "Invalid JSON format.");
+            }
+            catch (ArgumentNullException ex)
+            {
+                _logger.LogError(ex, "JSON deserialization error: input is null.");
+                HandleExceptionAsync(httpContext, ex, "Request body is null.");
+            }
+            catch (NotSupportedException ex)
+            {
+                _logger.LogError(ex, "JSON deserialization error: unsupported type.");
+                HandleExceptionAsync(httpContext, ex, "Unsupported type for deserialization.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "JSON deserialization error: invalid operation.");
+                HandleExceptionAsync(httpContext, ex, "Invalid operation during deserialization.");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unhandled exception occurred.");
                 httpContext.Request.Headers.TryGetValue("X-Client", out var clientKey);
-                _errorlog.LogExceptionToDatabase(ex, clientKey);
-                await HandleExceptionAsync(httpContext, ex);
+                var errorlogService = httpContext.RequestServices.GetRequiredService<IErrorlogService>();
+                HandleExceptionAsync(httpContext, ex, "Internal Server Error from the middleware server.");
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private void HandleExceptionAsync(HttpContext context, Exception exception, string message = null)
         {
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-            //var errorService = new ErrorlogService();
-            //context.Request.Headers.TryGetValue("X-Client", out var clientKey);
-            //errorService.LogExceptionToDatabase(exception, clientKey);
-
-            var response = new APIResponse
+            if (exception is BadRequestException)
             {
-                Status = "failed",
-                StatusCode = context.Response.StatusCode,
-                Message = "Internal Server Error from the middleware server.",
-                Detailed = exception.Message // Don't expose exception details in production
-            };
-            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            var jsonResponse = JsonSerializer.Serialize(response, options);
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            }
+            else
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            }
 
-            return context.Response.WriteAsync(jsonResponse);
+            APIResponse response = Response.Instance
+                .WithStatus("failed")
+                .WithStatusCode(context.Response.StatusCode)
+                .WithMessage(message)
+                .WithDetail(exception.Message)
+                .GenerateResponse();
+
+            var jsonResponse = JsonConvert.SerializeObject(response);
+            context.Response.WriteAsync(jsonResponse);
         }
     }
 }

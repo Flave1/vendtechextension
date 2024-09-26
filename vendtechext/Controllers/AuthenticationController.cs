@@ -28,5 +28,6 @@ namespace vendtechext.Controllers
         {
             throw new Exception("Test exception");
         }
+
     }
 }

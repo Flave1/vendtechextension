@@ -28,7 +28,6 @@ namespace vendtechext.TEST.Authentication
             // Arrange
             var requestBody = new { UserId = "test_user_id" };
             var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-
             // Set headers
             _client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
             _client.DefaultRequestHeaders.Add("X-Client", clientKey);
@@ -38,11 +37,6 @@ namespace vendtechext.TEST.Authentication
 
             // Assert
             Assert.Equal(expectedStatusCode, response.StatusCode);
-
-            if (response.IsSuccessStatusCode)
-            {
-
-            }
         }
     }
 
