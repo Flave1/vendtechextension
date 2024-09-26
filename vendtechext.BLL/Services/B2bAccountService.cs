@@ -18,7 +18,7 @@ namespace vendtechext.BLL.Services
 
         async Task<BusinessUserQueryDTO> IB2bAccountService.GetIntegrator(string apiKey)
         {
-            return await dbcxt.BusinessUsers.Where(d => d.ApiKey == apiKey).Select(f => new BusinessUserQueryDTO
+            return await dbcxt.Integrators.Where(d => d.ApiKey == apiKey).Select(f => new BusinessUserQueryDTO
             {
                 ApiKey = apiKey,
                 BusinessName = f.BusinessName,
@@ -31,7 +31,7 @@ namespace vendtechext.BLL.Services
         }
         async Task<string> IB2bAccountService.GetIntegratorId(string apiKey)
         {
-            var integrator = await dbcxt.BusinessUsers.FirstOrDefaultAsync(d => d.ApiKey == apiKey);
+            var integrator = await dbcxt.Integrators.FirstOrDefaultAsync(d => d.ApiKey == apiKey);
             if(integrator == null)
                 return "not_found";
             return integrator.Id.ToString();
@@ -39,13 +39,13 @@ namespace vendtechext.BLL.Services
 
         async Task IB2bAccountService.CreateBusinessAccount(BusinessUserCommandDTO model)
         {
-            if (dbcxt.BusinessUsers.Any(d => d.Email.Trim().ToLower() == model.Email.Trim().ToLower()))
+            if (dbcxt.Integrators.Any(d => d.Email.Trim().ToLower() == model.Email.Trim().ToLower()))
                 throw new BadRequestException("Business Account with Email already  exist");
 
-            if (dbcxt.BusinessUsers.Any(d => d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
+            if (dbcxt.Integrators.Any(d => d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
                 throw new BadRequestException("Business Account with name already  exist");
 
-            BusinessUsers account = new BusinessUsersBuilder()
+            Integrator account = new IntegratorsBuilder()
                 .WithApiKey(AesEncryption.Encrypt(model.BusinessName + model.Email + model.Phone))
                 .WithBusinessName(model.BusinessName)
                 .WithFirstName(model.FirstName)
@@ -54,24 +54,24 @@ namespace vendtechext.BLL.Services
                 .WithEmail(model.Email)
                 .Build();
 
-            dbcxt.BusinessUsers.Add(account);
+            dbcxt.Integrators.Add(account);
             await dbcxt.SaveChangesAsync();
         }
 
         async Task IB2bAccountService.UpdateBusinessAccount(BusinessUserCommandDTO model)
         {
-            var account = dbcxt.BusinessUsers.FirstOrDefault(d => d.Id == model.Id);
+            var account = dbcxt.Integrators.FirstOrDefault(d => d.Id == model.Id);
             if (account == null)
             {
                 throw new BadRequestException("Business Account not found");
             }
-            if (dbcxt.BusinessUsers.Any(d => d.Id != model.Id && d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower() 
+            if (dbcxt.Integrators.Any(d => d.Id != model.Id && d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower() 
             || d.Email.Trim().ToLower() == model.Email.Trim().ToLower()))
             {
                 throw new BadRequestException("Business Account with name already  exist");
             }
 
-            account = new BusinessUsersBuilder(account)
+            account = new IntegratorsBuilder(account)
                 .WithBusinessName(model.BusinessName)
                 .WithFirstName(model.FirstName)
                 .WithLastName(model.LastName)
@@ -84,25 +84,25 @@ namespace vendtechext.BLL.Services
 
         async Task IB2bAccountService.DeleteBusinessAccount(Guid Id)
         {
-            var account = dbcxt.BusinessUsers.FirstOrDefault(d => d.Id == Id);
+            var account = dbcxt.Integrators.FirstOrDefault(d => d.Id == Id);
             if (account == null)
             {
                 throw new BadRequestException("Business Account not found");
             }
 
-            dbcxt.BusinessUsers.Remove(account);
+            dbcxt.Integrators.Remove(account);
             await dbcxt.SaveChangesAsync();
         }
 
         async Task IB2bAccountService.DeleteBusinessAccount(string email)
         {
-            var account = dbcxt.BusinessUsers.FirstOrDefault(d => d.Email.ToLower() == email.ToLower());
+            var account = dbcxt.Integrators.FirstOrDefault(d => d.Email.ToLower() == email.ToLower());
             if (account == null)
             {
                 throw new BadRequestException("Business Account not found");
             }
 
-            dbcxt.BusinessUsers.Remove(account);
+            dbcxt.Integrators.Remove(account);
             await dbcxt.SaveChangesAsync();
         }
 

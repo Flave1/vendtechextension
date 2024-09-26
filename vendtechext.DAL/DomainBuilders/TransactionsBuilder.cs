@@ -33,12 +33,12 @@ namespace vendtechext.DAL.DomainBuilders
             _transaction.TransactionId = transactionId;
             return this;
         }
-
-        public TransactionsBuilder WithRequestDate(DateTime requestDate)
+        public TransactionsBuilder WithTerminalId(string terminalId)
         {
-            _transaction.RequestDate = requestDate;
+            _transaction.TerminalId = terminalId;
             return this;
         }
+
 
         public TransactionsBuilder WithCreatedAt(DateTime createdAt)
         {
@@ -67,12 +67,6 @@ namespace vendtechext.DAL.DomainBuilders
         public TransactionsBuilder WithCurrentDealerBalance(decimal? currentDealerBalance)
         {
             _transaction.CurrentDealerBalance = currentDealerBalance;
-            return this;
-        }
-
-        public TransactionsBuilder WithTenderedAmount(decimal? tenderedAmount)
-        {
-            _transaction.TenderedAmount = tenderedAmount;
             return this;
         }
 

@@ -1,8 +1,8 @@
-﻿using Azure.Core;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.EntityFrameworkCore;
+using signalrserver.Models.DTO;
 using vendtechext.BLL.Common;
-using vendtechext.BLL.Configurations;
 using vendtechext.BLL.DTO;
+using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
@@ -10,81 +10,97 @@ using vendtechext.DAL.Models;
 
 namespace vendtechext.BLL.Services
 {
-    public class RTSSalesService: IRTSSalesService
+    public class ElectricitySalesService: IElectricitySalesService
     {
-        private readonly DataContext dtcxt;
-        private readonly RTSInformation rts;
-        public RTSSalesService(DataContext dtcxt, IOptions<RTSInformation> rts)
+        private readonly DataContext _dataContext;
+        private readonly RequestExecutionContext executionContext;
+        public ElectricitySalesService(DataContext dtcxt, RequestExecutionContext executionContext)
         {
-            this.rts = rts.Value;
-            this.dtcxt = dtcxt;
+            _dataContext = dtcxt;
+            this.executionContext = executionContext;
         }
 
         public async Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, string integratorid)
         {
-            //Create Transaction Log
+            //await InternalValidation(request, integratorid);
+
+            var vtechSalesService = new VendtechTransactionsService();
+            var tranx = await vtechSalesService.CreateRecordBeforeVend(request.MeterNumber, request.Amount);
+
+            request.TransactionId = tranx.TransactionId;
             Transaction transactionLog = await CreateTransactionLog(request, integratorid);
 
-            //Send to RTS
-            var result = await ProcessTransaction(request, transactionLog);
-
-            var rtsResponse = result.Item1;
-            string rtsReponseAsJson = result.Item2;
-            string requestModelAsStrings = request.ToString();
-
-            //Check for Finalized
-            //here
-            //Check for Finalized
-
-            //Update Transaction Log
-            await UpdateTransactionLog(rtsResponse.Content.Data.Data.FirstOrDefault(), transactionLog);
-
-
-            return Response.Instance.WithStatus("success").WithStatusCode(200).WithMessage("Meter Purchase Successful").WithType(transactionLog).GenerateResponse();
+            var executionResult = await ExecuteTransaction(request);
+            if (executionResult.Status == "success")
+            {
+                executionResult.SuccessResponse.UpdateResponse(transactionLog);
+                await UpdateSuccessTransactionLog(executionResult, transactionLog);
+                return Response.Instance.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.SuccessResponse.VendStatus).WithType(executionResult).GenerateResponse();
+            }
+            else
+            {
+                await UpdateFailedTransactionLog(executionResult, transactionLog);
+                return Response.Instance.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+            }
         }
 
         private async Task<Transaction> CreateTransactionLog(ElectricitySaleRequest request, string integratorId)
         {
             var trans = new TransactionsBuilder()
+                .WithTransactionId(UniqueIDGenerator.NewTransactionId())
                 .WithTransactionStatus(TransactionStatus.Pending)
-                .WithTransactionId(request.TransactionId)
+                .WithTerminalId(request.TransactionId)
                 .WithMeterNumber(request.MeterNumber)
                 .WithIntegratorId(integratorId)
                 .WithCreatedAt(DateTime.Now)
                 .WithAmount(request.Amount)
                 .Build();
 
-            dtcxt.Transactions.Add(trans);
-            await dtcxt.SaveChangesAsync();
+            _dataContext.Transactions.Add(trans);
+            await _dataContext.SaveChangesAsync();
             return trans;
         }
 
-        private async Task UpdateTransactionLog(Datum response_data, Transaction trans)
+        private async Task UpdateSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
-            var response = response_data?.PowerHubVoucher;
             new TransactionsBuilder(trans)
+                .WithCustomerAddress(executionResult.SuccessResponse.CustomerAddress)
+                .WithAccountNumber(executionResult.SuccessResponse.AccountNumber)
+                .WithReceiptNumber(executionResult.SuccessResponse.ReceiptNumber)
+                .WithServiceCharge(executionResult.SuccessResponse.ServiceCharge)
+                .WithSerialNumber(executionResult.SuccessResponse.SerialNumber)
+                .WithMeterToken1(executionResult.SuccessResponse.MeterToken1)
+                .WithMeterToken2(executionResult.SuccessResponse.MeterToken1)
+                .WithMeterToken3(executionResult.SuccessResponse.MeterToken1)
+                .WithCostOfUnits(executionResult.SuccessResponse.CostOfUnits)
+                .WithRTSUniqueID(executionResult.SuccessResponse.RTSUniqueID)
+                .WithTaxCharge(executionResult.SuccessResponse.TaxCharge)
+                .WithVProvider(executionResult.SuccessResponse.VProvider)
                 .WithTransactionStatus(TransactionStatus.Success)
-                .WithSerialNumber(response_data.SerialNumber)
-                .WithAccountNumber(response.AccountNumber)
-                .WithReceiptNumber(response.ReceiptNumber)
-                .WithServiceCharge(response.ServiceCharge)
-                .WithCustomerAddress(response.CustAddress)
-                .WithCostOfUnits(response.CostOfUnits)
-                .WithRTSUniqueID(response.RtsUniqueId)
-                .WithVProvider(response_data.Provider)
-                .WithTaxCharge(response.TaxCharge)
-                .WithMeterToken1(response.Pin1)
-                .WithMeterToken2(response.Pin2)
-                .WithMeterToken3(response.Pin3)
-                .WithTariff(response.Tariff)
-                .WithUnits(response.Units)
+                .WithTariff(executionResult.SuccessResponse.Tariff)
+                .WithUnits(executionResult.SuccessResponse.Units)
+                .WithResponse(executionResult.Response)
+                .WithRequest(executionResult.Request) 
                 .WithFinalised(true)
                 .WithSold(true)
                 .Build();
 
-            await dtcxt.SaveChangesAsync();
+            await _dataContext.SaveChangesAsync();
         }
-       
+
+        private async Task UpdateFailedTransactionLog(ExecutionResult executionResult, Transaction trans)
+        {
+            new TransactionsBuilder(trans)
+                .WithVendStatusDescription(executionResult.FailedResponse.ErrorDetail)
+                .WithStatusResponse(executionResult.FailedResponse.ErrorMessage)
+                .WithTransactionStatus(TransactionStatus.Failed)
+                .WithResponse(executionResult.Response)
+                .WithRequest(executionResult.Request)
+                .Build();
+
+            await _dataContext.SaveChangesAsync();
+        }
+
         private static RTSResponse GenerateMockSuccessResponse(ElectricitySaleRequest model)
         {
             // Here you would generate your mock data
@@ -112,7 +128,7 @@ namespace vendtechext.BLL.Services
                                 Provider = "Sample Provider",
                                 SerialNumber = "SN123456",
                                 VoucherProfit = 50,
-                                XmlResponse = "<xml>response</xml>",
+                                XmlResponse = "<xml>executionResult</xml>",
                                 PowerHubVoucher = new PowerHubVoucher
                                 {
                                     AccountCredit = 1000,
@@ -184,12 +200,25 @@ namespace vendtechext.BLL.Services
             return response;
         }
 
-        private async Task<(RTSResponse, string)> ProcessTransaction(ElectricitySaleRequest request, Transaction log)
+        private async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRequest request)
         {
-            RTSResponse response = GenerateMockSuccessResponse(request);
-            string rtsReponseAsJson = await Task.Run(() => Utils.WriteResponseToFile(response, log.TransactionId));
-            return (response, rtsReponseAsJson);
+            executionContext.BuildRequest(request.Amount, request.MeterNumber, request.TransactionId);
+            await executionContext.ExecuteRequest();
+            await executionContext.ProcessResponse();
+
+            ExecutionResult executionResult = executionContext.salesResponse;
+            executionResult.InitializeRequestAndResponse(executionContext);
+
+            return executionResult;
         }
 
+        private async Task InternalValidation(ElectricitySaleRequest request, string integrator)
+        {
+            //Check for balance
+
+            //check if transactionid exist for this terminal
+            if (await _dataContext.Transactions.AnyAsync(d => d.IntegratorId == integrator && d.TransactionId == request.TransactionId))
+                throw new BadRequestException("Transaction ID already exist for this terminal.");
+        }
     }
 }

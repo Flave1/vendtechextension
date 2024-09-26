@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\vendtechext.Hangfire\vendtechext.Hangfire.csproj" />
     <ProjectReference Include="..\vendtechext\vendtechext.csproj" />
   </ItemGroup>
 

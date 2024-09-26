@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
 using vendtechext.BLL.DTO;
 
-public class BusinessUsersValidator : AbstractValidator<BusinessUserCommandDTO>
+public class IntegratorValidator : AbstractValidator<BusinessUserCommandDTO>
 {
-    public BusinessUsersValidator()
+    public IntegratorValidator()
     {
         RuleFor(user => user.FirstName)
             .NotNull().WithMessage("Name cannot be null")

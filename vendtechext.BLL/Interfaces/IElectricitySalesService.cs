@@ -1,10 +1,8 @@
-﻿using Newtonsoft.Json;
-using vendtechext.BLL.DTO;
-using vendtechext.DAL.Models;
+﻿using vendtechext.BLL.DTO;
 
 namespace vendtechext.BLL.Interfaces
 {
-    public interface IRTSSalesService
+    public interface IElectricitySalesService
     {
         Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, string integratorid);
     }

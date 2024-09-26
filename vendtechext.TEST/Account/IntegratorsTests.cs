@@ -1,17 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Moq;
+﻿using Moq;
 using Newtonsoft.Json;
 using System.Net;
-using System.Net.Http;
-using System.Numerics;
 using System.Text;
-using vendtechext.BLL.Common;
 using vendtechext.BLL.DTO;
 using vendtechext.BLL.Interfaces;
-using vendtechext.DAL.Models;
 using Xunit;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace vendtechext.TEST.Account
 {
@@ -28,7 +21,7 @@ namespace vendtechext.TEST.Account
         }
 
         [Theory]
-        [InlineData("John", "Doe", "password123", "12345678", "Test Business", "johndoe@example.com", HttpStatusCode.OK)]
+        [InlineData("Victor", "Doe", "password123", "12345678", "VENDETCHSL", "vendtechsl@example.com", HttpStatusCode.OK)]
         //[InlineData("John", "Doe", "password123", "1234567890", "Test Business", "johndoe@example.com", HttpStatusCode.BadRequest)]
         public async Task Test_account_Creation(string firstName, string lastName, string password, string phone, string businessName, string email, HttpStatusCode expectedStatusCode)
         {

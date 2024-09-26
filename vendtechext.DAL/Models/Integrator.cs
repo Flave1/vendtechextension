@@ -2,7 +2,7 @@
 
 namespace vendtechext.DAL.Models
 {
-    public class BusinessUsers
+    public class Integrator
     {
         [Key]
         public Guid Id { get; set; }

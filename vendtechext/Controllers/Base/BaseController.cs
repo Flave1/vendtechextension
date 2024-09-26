@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace vendtechext.Controllers
+namespace vendtechext.Controllers.Base
 {
     public class BaseController : ControllerBase
     {

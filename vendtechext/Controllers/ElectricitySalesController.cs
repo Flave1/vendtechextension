@@ -2,24 +2,25 @@
 using vendtechext.BLL.DTO;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Middlewares;
+using vendtechext.Controllers.Base;
 
 namespace vendtechext.Controllers
 {
     [ApiController]
     [Route("sales/v1/")]
-    [EndpointValidator]
+    //[EndpointValidator]
     public class ElectricitySalesController : BaseController
     {
-        private readonly IRTSSalesService service;
+        private readonly IElectricitySalesService service;
 
-        public ElectricitySalesController(ILogger<ElectricitySalesController> logger, IRTSSalesService salesService): base(logger)
+        public ElectricitySalesController(ILogger<ElectricitySalesController> logger, IElectricitySalesService salesService): base(logger)
         {
             this.service = salesService;
         }
 
         [HttpPost("json", Name = "json")]
         public IActionResult ValidJson([FromBody] RTSRequestmodel request)
-        {
+        {       
             _logger.LogInformation(1, null, "");
             return Ok(request);
         }
@@ -34,7 +35,7 @@ namespace vendtechext.Controllers
         [HttpPost("buy")]
         public async Task<IActionResult> PurchaseElectricity([FromBody] ElectricitySaleRequest request)
         {
-            var integratorId = HttpContext.Items["IntegratorId"] as string;
+            var integratorId = HttpContext.Items["IntegratorId"] as string ?? "c7d76941-5ed9-4961-59fc-08dcd3ecd192";//c7d76941-5ed9-4961-59fc-08dcd3ecd192
             APIResponse reponse = await service.PurchaseElectricity(request, integratorId);
             return Ok(reponse);
         }

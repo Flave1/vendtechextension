@@ -20,8 +20,8 @@ namespace vendtechext.BLL.Services
         //    errorObj.LoggedInDetails = $"Client: {clientkey} ";
         //    errorObj.LoggedAt = DateTime.UtcNow;
         //    errorObj.UserId = 0;
-        //    dataContext.ErrorLogs.Add(errorObj);
-        //    dataContext.SaveChanges();
+        //    _dataContext.ErrorLogs.Add(errorObj);
+        //    _dataContext.SaveChanges();
         //}
     }
 }

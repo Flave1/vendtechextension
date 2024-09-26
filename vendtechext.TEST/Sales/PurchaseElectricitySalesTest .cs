@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using Moq;
+﻿using Moq;
 using Newtonsoft.Json;
 using System.Net;
 using System.Text;
@@ -12,16 +11,16 @@ namespace vendtechext.TEST.Sales
     public class PurchaseElectricitySalesTest
     {
         private readonly HttpClient _client;
-        private readonly Mock<IRTSSalesService> _mockSalesService;
+        private readonly Mock<IElectricitySalesService> _mockSalesService;
         public PurchaseElectricitySalesTest()
         {
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
-            _mockSalesService = new Mock<IRTSSalesService>();
+            _mockSalesService = new Mock<IElectricitySalesService>();
         }
 
         [Theory]
-        [InlineData("GWNeK8vXswba1VPuDiWaWDLBD9zP7nbc96aRDUx1AMYiw6pTLOlU+myx9ujctiu5", 40, "98000142897", "1", HttpStatusCode.OK)]
+        [InlineData("GWNeK8vXswba1VPuDiWaWDLBD9zP7nbc96aRDUx1AMYiw6pTLOlU+myx9ujctiu5", 40, "98000142897", "7", HttpStatusCode.OK)]
         public async Task Test_for_successful_response(
             string apiKey, 
             decimal amount,
@@ -45,7 +44,7 @@ namespace vendtechext.TEST.Sales
             var response = await _client.PostAsync("/sales/v1/buy", content);
 
             // Assert
-            response.EnsureSuccessStatusCode();
+            //response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
             APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
 

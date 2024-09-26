@@ -235,4 +235,28 @@ namespace vendtechext.BLL.DTO
 
         public string Status { get; set; }
     }
+
+    public class RTSErorResponse
+    {
+        public string Status { get; set; }
+
+        public string Content { get; set; }
+
+        public string SystemError { get; set; }
+
+        public Stack[] Stack { get; set; }
+    }
+
+    public class Stack
+    {
+        public long Code { get; set; }
+
+        public string Message { get; set; }
+
+        public string File { get; set; }
+        public string Detail { get; set; }
+
+        public string Type { get; set; }
+    }
+
 }

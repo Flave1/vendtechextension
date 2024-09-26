@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vendtechext.DAL", "vendtech
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vendtechext.TEST", "vendtechext.TEST\vendtechext.TEST.csproj", "{FA180255-F6DC-4F13-B630-860FFC70D8BD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vendtechext.Hangfire", "vendtechext.Hangfire\vendtechext.Hangfire.csproj", "{C7FC58BD-0845-4BB7-9E79-847DDCF44818}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{FA180255-F6DC-4F13-B630-860FFC70D8BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA180255-F6DC-4F13-B630-860FFC70D8BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA180255-F6DC-4F13-B630-860FFC70D8BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7FC58BD-0845-4BB7-9E79-847DDCF44818}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7FC58BD-0845-4BB7-9E79-847DDCF44818}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7FC58BD-0845-4BB7-9E79-847DDCF44818}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7FC58BD-0845-4BB7-9E79-847DDCF44818}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

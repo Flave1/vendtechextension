@@ -7,14 +7,13 @@ namespace vendtechext.DAL.Models
         [Key]
         public Guid Id { get; set; }
         public string IntegratorId { get; set; }
+        public string TerminalId { get; set; }
         public string TransactionId { get; set; }
-        public DateTime RequestDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public decimal BalanceBefore { get; set; }
         public decimal Amount { get; set; }
         public decimal BalanceAfter { get; set; }
         public decimal? CurrentDealerBalance { get; set; }
-        public decimal? TenderedAmount { get; set; }
         public string MeterNumber { get; set; }
         public int TransactionStatus { get; set; }
         public int ClaimedStatus { get; set; }
