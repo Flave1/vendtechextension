@@ -38,7 +38,7 @@ namespace vendtechext.Controllers
         [HttpPost("buy")]
         public async Task<IActionResult> PurchaseElectricity([FromBody] ElectricitySaleRequest request)
         {
-            var integratorId = HttpContext.Items["IntegratorId"] as string ?? "c7d76941-5ed9-4961-59fc-08dcd3ecd192";
+            var integratorId = HttpContext.Items["IntegratorId"] as string; //?? "c7d76941-5ed9-4961-59fc-08dcd3ecd192";
             
             _log.Log(LogType.Infor, $"request received from {integratorId}", request);
             APIResponse reponse = await service.PurchaseElectricity(request, integratorId);
