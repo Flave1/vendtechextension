@@ -14,18 +14,21 @@ namespace vendtechext.BLL.Services
     {
         private readonly DataContext _dataContext;
         private readonly RequestExecutionContext executionContext;
-        public ElectricitySalesService(DataContext dtcxt, RequestExecutionContext executionContext)
+        private ILogService _log;
+        public ElectricitySalesService(DataContext dtcxt, RequestExecutionContext executionContext, ILogService log)
         {
             _dataContext = dtcxt;
             this.executionContext = executionContext;
+            _log = log;
         }
 
         public async Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, string integratorid)
         {
-            //await InternalValidation(request, integratorid);
 
             var vtechSalesService = new VendtechTransactionsService();
             var tranx = await vtechSalesService.CreateRecordBeforeVend(request.MeterNumber, request.Amount);
+
+            await InternalValidation(request, integratorid);
 
             request.TransactionId = tranx.TransactionId;
             Transaction transactionLog = await CreateTransactionLog(request, integratorid);
@@ -100,111 +103,15 @@ namespace vendtechext.BLL.Services
 
             await _dataContext.SaveChangesAsync();
         }
-
-        private static RTSResponse GenerateMockSuccessResponse(ElectricitySaleRequest model)
-        {
-            // Here you would generate your mock data
-            RTSResponse response = new RTSResponse
-            {
-                Status = "Success",
-                ErrorLog = new string[] { "No errors" },
-                Content = new Content
-                {
-                    Data = new DataResponse
-                    {
-                        Data = new Datum[]
-                        {
-                            new Datum
-                            {
-                                Barcode = 1234567890,
-                                DateAndTime = DateTime.Now.ToString("o"),
-                                DealerBalance = 5000,
-                                Denomination = 100,
-                                Id = 1,
-                                Instructions = "Sample instructions",
-                                PinNumber = "17222353360943207043",
-                                PinNumber2 = "17222353360943207043",
-                                PinNumber3 = "17222353360943207043",
-                                Provider = "Sample Provider",
-                                SerialNumber = "SN123456",
-                                VoucherProfit = 50,
-                                XmlResponse = "<xml>executionResult</xml>",
-                                PowerHubVoucher = new PowerHubVoucher
-                                {
-                                    AccountCredit = 1000,
-                                    AccountNumber = "123456789",
-                                    CostOfUnits = "50.00",
-                                    CustAccNo = "CUST1234",
-                                    CustAddress = "123 Sample Street",
-                                    CustCanVend = "Yes",
-                                    CustContactNo = "555-1234",
-                                    CustDaysLastPurchase = "30",
-                                    CustLocalRef = "Local123",
-                                    CustMsno = "MS1234",
-                                    CustMinVendAmt = "10",
-                                    CustName = "John Doe",
-                                    Customer = "CustomerX",
-                                    DebtRecoveryAmt = 200,
-                                    DebtRecoveryBalance = 100,
-                                    MeterNumber = "MTR1234",
-                                    PayAccDesc = "Payment Account Description",
-                                    PayAccNo = "PAY1234",
-                                    PayAmount = "500.00",
-                                    PayBalance = "0.00",
-                                    PayReceiptNo = "REC1234",
-                                    Pin1 = "17222353360943207043",
-                                    Pin2 = "17222353360943207043",
-                                    Pin3 = "17222353360943207043",
-                                    RtsUniqueId = "RTS1234",
-                                    ReceiptNumber = "RECEIPT1234",
-                                    Sgc = "SGC1234",
-                                    ServiceCharge = "10.00",
-                                    Tariff = "12.0",
-                                    TaxCharge = "5.00",
-                                    TenderedAmount = "505.00",
-                                    TransactionAmount = "500.00",
-                                    Units = "100",
-                                    VatNumber = 123456789
-                                },
-                                Tym2SellVoucher = new Tym2SellVoucher
-                                {
-                                    Account = "Account123",
-                                    ClientId = "Client123",
-                                    CostOfUnits = "50.00",
-                                    Customer = "CustomerY",
-                                    GovermentLevy = 5,
-                                    KeyChangeDetected = false,
-                                    KeyChangeToken1 = "Key1",
-                                    KeyChangeToken2 = "Key2",
-                                    ReceiptNumber = "Receipt123",
-                                    StandingCharge = 2,
-                                    StsMeter = "STS123",
-                                    TenderedAmount = "55.00",
-                                    Units = "10",
-                                    Vat = "5.00",
-                                    VatNo = "VAT123",
-                                    VoucherTextDecodeFailed = false
-                                }
-                            }
-                        },
-                        DataName = "SampleData",
-                        Error = "None",
-                        ErrorCode = 0
-                    },
-                    ProcessOption = "Option1"
-                },
-                RequestModel = model
-                // Populate other properties as needed
-            };
-
-            return response;
-        }
-
         private async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRequest request)
         {
             executionContext.BuildRequest(request.Amount, request.MeterNumber, request.TransactionId);
+
+            _log.Log(LogType.Infor, $"executing request for {request.TransactionId}", executionContext.requestAsString);
             await executionContext.ExecuteRequest();
+
             await executionContext.ProcessResponse();
+            _log.Log(LogType.Infor, $"execution response for {request.TransactionId}", executionContext.responseAsString);
 
             ExecutionResult executionResult = executionContext.salesResponse;
             executionResult.InitializeRequestAndResponse(executionContext);

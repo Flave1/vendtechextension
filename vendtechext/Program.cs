@@ -62,7 +62,7 @@ builder.Services.AddSignalR();
 
 // Dependency Injection
 builder.Services.AddScoped<IB2bAccountService, B2bAccountService>();
-builder.Services.AddScoped<IErrorlogService, ErrorlogService>();
+builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IElectricitySalesService, ElectricitySalesService>();
 builder.Services.AddScoped<IHttpRequestService, HttpRequestService>();
 builder.Services.AddScoped<IJobService, SalesJobService>();

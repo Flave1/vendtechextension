@@ -20,7 +20,6 @@ namespace vendtechext.BLL.Common
         public RTSInformation rts;
         public bool isSuccessful = false;
 
-
         // Private constructor to prevent direct instantiation
         private RTSProperties()
         {

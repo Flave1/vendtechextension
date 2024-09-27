@@ -21,4 +21,11 @@ namespace vendtechext.DAL.Common
         Error = 4,
     }
 
+    public enum LogType
+    {
+        Error = 0,
+        Infor = 1,
+        Warning = 2,
+    }
+
 }
