@@ -15,6 +15,7 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<Integrator> Integrators { get; set; }
     public virtual DbSet<Transaction> Transactions { get; set; }
+    public virtual DbSet<Log> Logs { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

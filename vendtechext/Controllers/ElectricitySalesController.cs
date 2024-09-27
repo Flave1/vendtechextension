@@ -3,6 +3,7 @@ using vendtechext.BLL.DTO;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Middlewares;
 using vendtechext.Controllers.Base;
+using vendtechext.DAL.Common;
 
 namespace vendtechext.Controllers
 {
@@ -12,10 +13,12 @@ namespace vendtechext.Controllers
     public class ElectricitySalesController : BaseController
     {
         private readonly IElectricitySalesService service;
+        private ILogService _log;
 
-        public ElectricitySalesController(ILogger<ElectricitySalesController> logger, IElectricitySalesService salesService): base(logger)
+        public ElectricitySalesController(ILogger<ElectricitySalesController> logger, IElectricitySalesService salesService, ILogService log) : base(logger)
         {
-            this.service = salesService;
+            service = salesService;
+            _log = log;
         }
 
         [HttpPost("json", Name = "json")]
@@ -35,8 +38,11 @@ namespace vendtechext.Controllers
         [HttpPost("buy")]
         public async Task<IActionResult> PurchaseElectricity([FromBody] ElectricitySaleRequest request)
         {
-            var integratorId = HttpContext.Items["IntegratorId"] as string ?? "c7d76941-5ed9-4961-59fc-08dcd3ecd192";//c7d76941-5ed9-4961-59fc-08dcd3ecd192
+            var integratorId = HttpContext.Items["IntegratorId"] as string; //?? "c7d76941-5ed9-4961-59fc-08dcd3ecd192";
+            
+            _log.Log(LogType.Infor, $"request received from {integratorId}", request);
             APIResponse reponse = await service.PurchaseElectricity(request, integratorId);
+            _log.Log(LogType.Infor, $"request sent to {integratorId}", reponse);
             return Ok(reponse);
         }
     }
