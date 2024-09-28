@@ -1,6 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using Azure.Core;
+using Newtonsoft.Json;
 using System.Text;
 using vendtechext.BLL.Interfaces;
+using vendtechext.DAL.Common;
+using vendtechext.DAL.Models;
 
 namespace vendtechext.BLL.Services
 {
@@ -8,6 +11,12 @@ namespace vendtechext.BLL.Services
     {
         private const int MaxRetryAttempts = 3;
         private readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(2);
+        private readonly ILogService _log;
+
+        public HttpRequestService(ILogService log)
+        {
+            _log = log;
+        }
 
         public async Task<HttpResponseMessage> SendPostAsync<T>(string requestUrl, T body = default)
         {
@@ -32,6 +41,7 @@ namespace vendtechext.BLL.Services
                 catch (HttpRequestException)
                 {
                     attempt++;
+                    _log.Log(LogType.Error, $"HttpRequestException retries {attempt}");
                     if (attempt >= MaxRetryAttempts)
                     {
                         throw;
@@ -41,6 +51,7 @@ namespace vendtechext.BLL.Services
             }
 
             // This line should never be reached
+            _log.Log(LogType.Error, $"SendPostAsync InvalidOperationException retries {attempt}");
             throw new InvalidOperationException("Unexpected error in SendPostAsync.");
         }
 

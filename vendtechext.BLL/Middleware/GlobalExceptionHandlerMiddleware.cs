@@ -7,17 +7,20 @@ using vendtechext.BLL.Common;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.DTO;
 using vendtechext.BLL.Exceptions;
+using vendtechext.DAL.Common;
 namespace vendtechext.BLL.Middleware
 {
     public class GlobalExceptionHandlerMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
+        private readonly ILogService _log;
 
-        public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
+        public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger, ILogService log)
         {
             _next = next;
             _logger = logger;
+            _log = log;
         }
 
         public async Task InvokeAsync(HttpContext httpContext)
@@ -62,6 +65,7 @@ namespace vendtechext.BLL.Middleware
 
         private void HandleExceptionAsync(HttpContext context, Exception exception, string message = null)
         {
+
             context.Response.ContentType = "application/json";
             if (exception is BadRequestException)
             {
@@ -80,6 +84,7 @@ namespace vendtechext.BLL.Middleware
                 .GenerateResponse();
 
             var jsonResponse = JsonConvert.SerializeObject(response);
+            _log.Log(LogType.Error, context.Response.StatusCode.ToString(), jsonResponse);
             context.Response.WriteAsync(jsonResponse);
         }
     }
