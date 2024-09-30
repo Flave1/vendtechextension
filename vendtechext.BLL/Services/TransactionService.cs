@@ -18,7 +18,7 @@ namespace vendtechext.BLL.Services
             {
                 PlatFormId = 1,
                 UserId = 40251,
-                POSId = 20467,
+                POSId = 20034,
                 MeterNumber1 = meterNumber,
                 Amount = amount,
                 IsDeleted = false,

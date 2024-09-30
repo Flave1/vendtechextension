@@ -69,7 +69,6 @@ namespace vendtechext.BLL.Common
             {
                 isSuccessful = false;
                 errorResponse = JsonConvert.DeserializeObject<RTSErorResponse>(resultAsString);
-               
             }
         }
         public void Dispose()

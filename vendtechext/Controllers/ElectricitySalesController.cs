@@ -9,7 +9,7 @@ namespace vendtechext.Controllers
 {
     [ApiController]
     [Route("sales/v1/")]
-    //[EndpointValidator]
+    [EndpointValidator]
     public class ElectricitySalesController : BaseController
     {
         private readonly IElectricitySalesService service;
@@ -38,11 +38,12 @@ namespace vendtechext.Controllers
         [HttpPost("buy")]
         public async Task<IActionResult> PurchaseElectricity([FromBody] ElectricitySaleRequest request)
         {
-            var integratorId = HttpContext.Items["IntegratorId"] as string; //?? "c7d76941-5ed9-4961-59fc-08dcd3ecd192";
-            
-            _log.Log(LogType.Infor, $"request received from {integratorId}", request);
-            APIResponse reponse = await service.PurchaseElectricity(request, integratorId);
-            _log.Log(LogType.Infor, $"request sent to {integratorId}", reponse);
+            var integratorId = HttpContext.Items["IntegratorId"] as string;
+            var integratorName = HttpContext.Items["IntegratorName"] as string;
+
+            _log.Log(LogType.Infor, $"received request for {request.TransactionId} from {integratorName}", request);
+            APIResponse reponse = await service.PurchaseElectricity(request, integratorId, integratorName);
+            _log.Log(LogType.Infor, $"response sent for {request.TransactionId} to {integratorName}", reponse);
             return Ok(reponse);
         }
     }

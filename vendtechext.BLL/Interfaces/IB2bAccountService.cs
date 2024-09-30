@@ -10,6 +10,6 @@ namespace vendtechext.BLL.Interfaces
         Task UpdateBusinessAccount(BusinessUserCommandDTO model);
         Task DeleteBusinessAccount(Guid Id);
         Task DeleteBusinessAccount(string email);
-        Task<string> GetIntegratorId(string apiKey);
+        Task<(string, string)> GetIntegratorIdAndName(string apiKey);
     }
 }

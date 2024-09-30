@@ -29,12 +29,12 @@ namespace vendtechext.BLL.Services
                 Phone = f.Phone
             }).FirstOrDefaultAsync() ?? null;
         }
-        async Task<string> IB2bAccountService.GetIntegratorId(string apiKey)
+        async Task<(string, string)> IB2bAccountService.GetIntegratorIdAndName(string apiKey)
         {
             var integrator = await dbcxt.Integrators.FirstOrDefaultAsync(d => d.ApiKey == apiKey);
             if(integrator == null)
-                return "not_found";
-            return integrator.Id.ToString();
+                return ("404", "not_found");
+            return (integrator.Id.ToString(), integrator.BusinessName);
         }
 
         async Task IB2bAccountService.CreateBusinessAccount(BusinessUserCommandDTO model)

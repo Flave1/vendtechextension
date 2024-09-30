@@ -22,18 +22,13 @@ namespace vendtechext.BLL.Services
             _log = log;
         }
 
-        public async Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, string integratorid)
+        public async Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, string integratorid, string integratorName)
         {
+            //await InternalValidation(request, integratorid);
 
-            var vtechSalesService = new VendtechTransactionsService();
-            var tranx = await vtechSalesService.CreateRecordBeforeVend(request.MeterNumber, request.Amount);
-
-            await InternalValidation(request, integratorid);
-
-            request.TransactionId = tranx.TransactionId;
             Transaction transactionLog = await CreateTransactionLog(request, integratorid);
 
-            var executionResult = await ExecuteTransaction(request);
+            var executionResult = await ExecuteTransaction(request, integratorName);
             if (executionResult.Status == "success")
             {
                 executionResult.SuccessResponse.UpdateResponse(transactionLog);
@@ -73,8 +68,8 @@ namespace vendtechext.BLL.Services
                 .WithServiceCharge(executionResult.SuccessResponse.ServiceCharge)
                 .WithSerialNumber(executionResult.SuccessResponse.SerialNumber)
                 .WithMeterToken1(executionResult.SuccessResponse.MeterToken1)
-                .WithMeterToken2(executionResult.SuccessResponse.MeterToken1)
-                .WithMeterToken3(executionResult.SuccessResponse.MeterToken1)
+                .WithMeterToken2(executionResult.SuccessResponse.MeterToken2)
+                .WithMeterToken3(executionResult.SuccessResponse.MeterToken3)
                 .WithCostOfUnits(executionResult.SuccessResponse.CostOfUnits)
                 .WithRTSUniqueID(executionResult.SuccessResponse.RTSUniqueID)
                 .WithTaxCharge(executionResult.SuccessResponse.TaxCharge)
@@ -103,15 +98,15 @@ namespace vendtechext.BLL.Services
 
             await _dataContext.SaveChangesAsync();
         }
-        private async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRequest request)
+        private async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRequest request, string integratorName)
         {
             executionContext.BuildRequest(request.Amount, request.MeterNumber, request.TransactionId);
 
-            _log.Log(LogType.Infor, $"executing request for {request.TransactionId}", executionContext.requestAsString);
+            _log.Log(LogType.Infor, $"executing request for {request.TransactionId} from {integratorName}", executionContext.requestAsString);
             await executionContext.ExecuteRequest();
 
             await executionContext.ProcessResponse();
-            _log.Log(LogType.Infor, $"execution response for {request.TransactionId}", executionContext.responseAsString);
+            _log.Log(LogType.Infor, $"executed request for {request.TransactionId} from {integratorName}", executionContext.responseAsString);
 
             ExecutionResult executionResult = executionContext.salesResponse;
             executionResult.InitializeRequestAndResponse(executionContext);
@@ -124,7 +119,7 @@ namespace vendtechext.BLL.Services
             //Check for balance
 
             //check if transactionid exist for this terminal
-            if (await _dataContext.Transactions.AnyAsync(d => d.IntegratorId == integrator && d.TransactionId == request.TransactionId))
+            if (await _dataContext.Transactions.AnyAsync(d => d.IntegratorId == integrator && d.TerminalId == request.TransactionId))
                 throw new BadRequestException("Transaction ID already exist for this terminal.");
         }
     }

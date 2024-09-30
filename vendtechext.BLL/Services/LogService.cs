@@ -27,21 +27,5 @@ namespace vendtechext.BLL.Services
             _dataContext.SaveChanges();
         }
 
-        public void Log(LogType type, string message, dynamic data = null, string stackTrace = "")
-        {
-            using (var context = new DataContext())
-            {
-                var log = new Log
-                {
-                    LogType = (int)type,
-                    Message = message,
-                    Detail = JsonConvert.SerializeObject(data),
-                    StackTrace = stackTrace,
-                    Timestamp = DateTime.UtcNow,
-                };
-                context.Logs.Add(log);
-                context.SaveChanges();
-            }
-        }
     }
 }
