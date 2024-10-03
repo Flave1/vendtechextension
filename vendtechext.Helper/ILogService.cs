@@ -1,6 +1,6 @@
 ﻿using vendtechext.DAL.Common;
 
-namespace vendtechext.BLL.Interfaces
+namespace vendtechext.Helper
 {
     public interface ILogService
     {

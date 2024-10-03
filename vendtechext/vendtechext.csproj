@@ -23,7 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\vendtechext.BLL\vendtechext.BLL.csproj" />
     <ProjectReference Include="..\vendtechext.DAL\vendtechext.DAL.csproj" />
-    <ProjectReference Include="..\vendtechext.Hangfire\vendtechext.Hangfire.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using vendtechext.BLL.DTO;
+using vendtechext.Contracts;
 using vendtechext.DAL;
 using vendtechext.DAL.Models;
 

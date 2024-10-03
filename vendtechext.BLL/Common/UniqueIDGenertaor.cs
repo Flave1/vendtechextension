@@ -14,14 +14,14 @@ namespace vendtechext.BLL.Common
                 {
                     try
                     {
-                        // Fetch the last transaction ordered by TransactionId (converted to long)
+                        // Fetch the last transaction ordered by VendtechTransactionId (converted to long)
                         var lastRecord = context.Transactions
-                         .OrderByDescending(t => Convert.ToInt64(t.TransactionId)) // Casting to long
+                         .OrderByDescending(t => Convert.ToInt64(t.VendtechTransactionID)) // Casting to long
                          .FirstOrDefault();
 
                         long transactionId;
 
-                        if (lastRecord != null && long.TryParse(lastRecord.TransactionId, out transactionId))
+                        if (lastRecord != null && long.TryParse(lastRecord.VendtechTransactionID, out transactionId))
                         {
                             // Increment the transactionId from the last record
                             transactionId += 1;

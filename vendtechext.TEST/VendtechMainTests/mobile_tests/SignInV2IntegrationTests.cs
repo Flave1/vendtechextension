@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Text;
-using vendtechext.BLL.DTO.VtchMainModels;
+using vendtechext.Contracts.VtchMainModels;
 using Xunit;
 
 namespace vendtechext.TEST.VendtechMainTests.mobile_tests

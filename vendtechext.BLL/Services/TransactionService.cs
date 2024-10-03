@@ -41,15 +41,15 @@ namespace vendtechext.BLL.Services
 
             // Build the SQL query
             var query = @"INSERT INTO TransactionDetails 
-                     (PlatFormId, UserId, POSId, MeterNumber1, Amount, 
+                     (PlatFormId, UserId, ReceivedFrom, MeterNumber1, Amount, 
                       IsDeleted, Status, CreatedAt, RTSUniqueID, TenderedAmount, 
                       TransactionAmount, Finalised, StatusRequestCount, Sold, DebitRecovery, 
-                      CostOfUnits, TransactionId, RequestDate, CurrentDealerBalance, TaxCharge, Units)
+                      CostOfUnits, VendtechTransactionId, RequestDate, CurrentDealerBalance, TaxCharge, Units)
                       VALUES 
-                      (@PlatFormId, @UserId, @POSId, @MeterNumber1, @Amount,
+                      (@PlatFormId, @UserId, @ReceivedFrom, @MeterNumber1, @Amount,
                        @IsDeleted, @Status, @CreatedAt, @RTSUniqueID, @TenderedAmount, 
                        @TransactionAmount, @Finalised, @StatusRequestCount, @Sold, @DebitRecovery, 
-                       @CostOfUnits, @TransactionId, @RequestDate, @CurrentDealerBalance, @TaxCharge, @Units)";
+                       @CostOfUnits, @VendtechTransactionId, @RequestDate, @CurrentDealerBalance, @TaxCharge, @Units)";
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
@@ -60,7 +60,7 @@ namespace vendtechext.BLL.Services
                     // Add parameters to prevent SQL injection
                     command.Parameters.AddWithValue("@PlatFormId", transaction.PlatFormId);
                     command.Parameters.AddWithValue("@UserId", transaction.UserId);
-                    command.Parameters.AddWithValue("@POSId", transaction.POSId);
+                    command.Parameters.AddWithValue("@ReceivedFrom", transaction.POSId);
                     command.Parameters.AddWithValue("@MeterNumber1", transaction.MeterNumber1);
                     command.Parameters.AddWithValue("@Amount", transaction.Amount);
                     command.Parameters.AddWithValue("@IsDeleted", transaction.IsDeleted);
@@ -74,7 +74,7 @@ namespace vendtechext.BLL.Services
                     command.Parameters.AddWithValue("@Sold", transaction.Sold);
                     command.Parameters.AddWithValue("@DebitRecovery", transaction.DebitRecovery);
                     command.Parameters.AddWithValue("@CostOfUnits", transaction.CostOfUnits);
-                    command.Parameters.AddWithValue("@TransactionId", transaction.TransactionId);
+                    command.Parameters.AddWithValue("@VendtechTransactionId", transaction.TransactionId);
                     command.Parameters.AddWithValue("@RequestDate", transaction.RequestDate);
                     command.Parameters.AddWithValue("@CurrentDealerBalance", transaction.CurrentDealerBalance);
                     command.Parameters.AddWithValue("@TaxCharge", transaction.TaxCharge);
@@ -92,7 +92,7 @@ namespace vendtechext.BLL.Services
         {
             string transactionId;
 
-            string query = @"SELECT TOP 1 TransactionId 
+            string query = @"SELECT TOP 1 VendtechTransactionId 
                      FROM TransactionDetails 
                      ORDER BY TransactionDetailsId DESC";
 

@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using vendtechext.BLL.Configurations;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Middleware;
 using vendtechext.BLL.Services;
@@ -9,8 +8,9 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using vendtechext.BLL.Validations;
 using Hangfire;
-using vendtechext.Hangfire;
-using vendtechext.BLL;
+using vendtechext.Helper;
+using vendtechext.Helper.Configurations;
+using vendtechext.BLL.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,10 +64,10 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<IB2bAccountService, B2bAccountService>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IElectricitySalesService, ElectricitySalesService>();
-builder.Services.AddScoped<IHttpRequestService, HttpRequestService>();
-builder.Services.AddScoped<IJobService, SalesJobService>();
-builder.Services.AddScoped<RetrieveJobs>();
+builder.Services.AddScoped<HttpRequestService>();
+//builder.Services.AddScoped<QueueJobs>();
 builder.Services.AddScoped<RequestExecutionContext>();
+builder.Services.AddScoped<TransactionRepository>();
 
 var app = builder.Build();
 

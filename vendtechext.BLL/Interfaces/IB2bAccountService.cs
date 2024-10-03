@@ -1,13 +1,12 @@
-﻿using vendtechext.BLL.DTO;
-using vendtechext.DAL;
+﻿using vendtechext.Contracts;
 
 namespace vendtechext.BLL.Interfaces
 {
     public interface IB2bAccountService
     {
-        Task<BusinessUserQueryDTO> GetIntegrator(string apiKey);
+        Task<BusinessUserDTO> GetIntegrator(string apiKey);
         Task CreateBusinessAccount(BusinessUserCommandDTO model);
-        Task UpdateBusinessAccount(BusinessUserCommandDTO model);
+        Task UpdateBusinessAccount(BusinessUserDTO model);
         Task DeleteBusinessAccount(Guid Id);
         Task DeleteBusinessAccount(string email);
         Task<(string, string)> GetIntegratorIdAndName(string apiKey);

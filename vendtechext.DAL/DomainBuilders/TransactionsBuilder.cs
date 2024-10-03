@@ -27,18 +27,22 @@ namespace vendtechext.DAL.DomainBuilders
             _transaction.IntegratorId = integratorId;
             return this;
         }
+        public TransactionsBuilder WithReceivedFrom(string receivedFrom)
+        {
+            _transaction.ReceivedFrom = receivedFrom;
+            return this;
+        }
 
         public TransactionsBuilder WithTransactionId(string transactionId)
         {
-            _transaction.TransactionId = transactionId;
+            _transaction.VendtechTransactionID = transactionId;
             return this;
         }
-        public TransactionsBuilder WithTerminalId(string terminalId)
+        public TransactionsBuilder WithTransactionUniqueId(string transactionUniqueId)
         {
-            _transaction.TerminalId = terminalId;
+            _transaction.TransactionUniqueId = transactionUniqueId;
             return this;
         }
-
 
         public TransactionsBuilder WithCreatedAt(DateTime createdAt)
         {
@@ -100,137 +104,13 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
-        public TransactionsBuilder WithMeterToken1(string meterToken1)
-        {
-            _transaction.MeterToken1 = meterToken1;
-            return this;
-        }
-
-        public TransactionsBuilder WithMeterToken2(string meterToken2)
-        {
-            _transaction.MeterToken2 = meterToken2;
-            return this;
-        }
-
-        public TransactionsBuilder WithMeterToken3(string meterToken3)
-        {
-            _transaction.MeterToken3 = meterToken3;
-            return this;
-        }
-
-        public TransactionsBuilder WithAccountNumber(string accountNumber)
-        {
-            _transaction.AccountNumber = accountNumber;
-            return this;
-        }
-
-        public TransactionsBuilder WithCustomer(string customer)
-        {
-            _transaction.Customer = customer;
-            return this;
-        }
-
-        public TransactionsBuilder WithRTSUniqueID(string rtsUniqueId)
-        {
-            _transaction.RTSUniqueID = rtsUniqueId;
-            return this;
-        }
-
-        public TransactionsBuilder WithReceiptNumber(string receiptNumber)
-        {
-            _transaction.ReceiptNumber = receiptNumber;
-            return this;
-        }
-
-        public TransactionsBuilder WithServiceCharge(string serviceCharge)
-        {
-            _transaction.ServiceCharge = serviceCharge;
-            return this;
-        }
-
-        public TransactionsBuilder WithTariff(string tariff)
-        {
-            _transaction.Tariff = tariff;
-            return this;
-        }
-
-        public TransactionsBuilder WithTaxCharge(string taxCharge)
-        {
-            _transaction.TaxCharge = taxCharge;
-            return this;
-        }
-
-        public TransactionsBuilder WithCostOfUnits(string costOfUnits)
-        {
-            _transaction.CostOfUnits = costOfUnits;
-            return this;
-        }
-
-        public TransactionsBuilder WithUnits(string units)
-        {
-            _transaction.Units = units;
-            return this;
-        }
-
-        public TransactionsBuilder WithDebitRecovery(string debitRecovery)
-        {
-            _transaction.DebitRecovery = debitRecovery;
-            return this;
-        }
-
-        public TransactionsBuilder WithSerialNumber(string serialNumber)
-        {
-            _transaction.SerialNumber = serialNumber;
-            return this;
-        }
-
-        public TransactionsBuilder WithCustomerAddress(string customerAddress)
-        {
-            _transaction.CustomerAddress = customerAddress;
-            return this;
-        }
-
-        public TransactionsBuilder WithVProvider(string vProvider)
-        {
-            _transaction.VProvider = vProvider;
-            return this;
-        }
-
-        public TransactionsBuilder WithFinalised(bool finalised)
-        {
-            _transaction.Finalised = finalised;
-            return this;
-        }
-
-        public TransactionsBuilder WithStatusRequestCount(int statusRequestCount)
-        {
-            _transaction.StatusRequestCount = statusRequestCount;
-            return this;
-        }
-
-        public TransactionsBuilder WithSold(bool sold)
-        {
-            _transaction.Sold = sold;
-            return this;
-        }
-
-        public TransactionsBuilder WithVoucherSerialNumber(string voucherSerialNumber)
-        {
-            _transaction.VoucherSerialNumber = voucherSerialNumber;
-            return this;
-        }
-
+      
         public TransactionsBuilder WithVendStatusDescription(string vendStatusDescription)
         {
             _transaction.VendStatusDescription = vendStatusDescription;
             return this;
         }
 
-        public TransactionsBuilder WithVendStatus(string vendStatus)
-        {
-            _transaction.VendStatus = vendStatus;
-            return this;
-        }
 
         public TransactionsBuilder WithRequest(string request)
         {
@@ -244,35 +124,12 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
-        public TransactionsBuilder WithStatusResponse(string statusResponse)
+        public TransactionsBuilder WithFinalized(bool finalized = false)
         {
-            _transaction.StatusResponse = statusResponse;
+            _transaction.Finalized = finalized;
             return this;
         }
 
-        public TransactionsBuilder WithDateAndTimeSold(string dateAndTimeSold)
-        {
-            _transaction.DateAndTimeSold = dateAndTimeSold;
-            return this;
-        }
-
-        public TransactionsBuilder WithDateAndTimeFinalised(string dateAndTimeFinalised)
-        {
-            _transaction.DateAndTimeFinalised = dateAndTimeFinalised;
-            return this;
-        }
-
-        public TransactionsBuilder WithDateAndTimeLinked(string dateAndTimeLinked)
-        {
-            _transaction.DateAndTimeLinked = dateAndTimeLinked;
-            return this;
-        }
-
-        public TransactionsBuilder WithQueryStatusCount(int queryStatusCount)
-        {
-            _transaction.QueryStatusCount = queryStatusCount;
-            return this;
-        }
 
         public Transaction Build()
         {

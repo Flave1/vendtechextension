@@ -14,10 +14,14 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Hangfire" Version="1.8.14" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\vendtechext.Contracts\vendtechext.Contracts.csproj" />
     <ProjectReference Include="..\vendtechext.DAL\vendtechext.DAL.csproj" />
+    <ProjectReference Include="..\vendtechext.Helper\vendtechext.Helper.csproj" />
   </ItemGroup>
 
 </Project>

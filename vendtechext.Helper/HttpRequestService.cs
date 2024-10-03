@@ -1,13 +1,12 @@
 ﻿using Azure.Core;
 using Newtonsoft.Json;
 using System.Text;
-using vendtechext.BLL.Interfaces;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 
-namespace vendtechext.BLL.Services
+namespace vendtechext.Helper
 {
-    public class HttpRequestService : IHttpRequestService
+    public class HttpRequestService
     {
         private const int MaxRetryAttempts = 3;
         private readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(2);
@@ -55,6 +54,6 @@ namespace vendtechext.BLL.Services
             throw new InvalidOperationException("Unexpected error in SendPostAsync.");
         }
 
-         
+
     }
 }

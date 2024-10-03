@@ -4,14 +4,15 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using Newtonsoft.Json;
 using vendtechext.BLL.Common;
-using vendtechext.BLL.Interfaces;
-using vendtechext.BLL.DTO;
 using vendtechext.BLL.Exceptions;
 using vendtechext.DAL.Common;
 using System.Net.Http;
+using vendtechext.Helper;
+using vendtechext.Contracts;
+using vendtechext.BLL.Services;
 namespace vendtechext.BLL.Middleware
 {
-    public class GlobalExceptionHandlerMiddleware
+    public class GlobalExceptionHandlerMiddleware: BaseService
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
@@ -65,6 +66,9 @@ namespace vendtechext.BLL.Middleware
         private void HandleExceptionAsync(HttpContext context, Exception exception, string message = null)
         {
 
+            var _log = context.RequestServices.GetRequiredService<ILogService>();
+            
+
             context.Response.ContentType = "application/json";
             if (exception is BadRequestException)
             {
@@ -75,18 +79,17 @@ namespace vendtechext.BLL.Middleware
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             }
 
-            APIResponse response = Response.Instance
+            APIResponse response = Response
                 .WithStatus("failed")
                 .WithStatusCode(context.Response.StatusCode)
                 .WithMessage(message)
                 .WithDetail(exception.Message)
                 .GenerateResponse();
 
-
             var jsonResponse = JsonConvert.SerializeObject(response);
 
-            var _log = context.RequestServices.GetRequiredService<ILogService>();
-            _log.Log(LogType.Error, context.Response.StatusCode.ToString(), jsonResponse);
+            if(context.Response.StatusCode != 400)
+                _log.Log(LogType.Error, context.Response.StatusCode.ToString(), jsonResponse);
 
             context.Response.WriteAsync(jsonResponse);
         }

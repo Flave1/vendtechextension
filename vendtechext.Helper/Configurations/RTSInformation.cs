@@ -1,4 +1,4 @@
-﻿namespace vendtechext.BLL.Configurations
+﻿namespace vendtechext.Helper.Configurations
 {
     public class RTSInformation
     {

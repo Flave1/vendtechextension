@@ -1,16 +1,15 @@
 ﻿using Newtonsoft.Json;
-using vendtechext.BLL.Interfaces;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 
-namespace vendtechext.BLL.Services
+namespace vendtechext.Helper
 {
     public class LogService : ILogService
     {
-        public readonly DataContext _dataContext; 
+        public readonly DataContext _dataContext;
         public LogService(DataContext dataContext)
         {
-                _dataContext = dataContext;
+            _dataContext = dataContext;
         }
 
         void ILogService.Log(LogType type, string message, dynamic data, string stackTrace)

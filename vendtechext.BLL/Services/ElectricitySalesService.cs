@@ -1,126 +1,102 @@
-﻿using Microsoft.EntityFrameworkCore;
-using signalrserver.Models.DTO;
+﻿using Hangfire;
 using vendtechext.BLL.Common;
-using vendtechext.BLL.DTO;
-using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
-using vendtechext.DAL.Common;
-using vendtechext.DAL.DomainBuilders;
+using vendtechext.BLL.Repository;
+using vendtechext.Contracts;
 using vendtechext.DAL.Models;
+using vendtechext.Helper;
 
 namespace vendtechext.BLL.Services
 {
-    public class ElectricitySalesService: IElectricitySalesService
+    public class ElectricitySalesService: BaseService, IElectricitySalesService
     {
-        private readonly DataContext _dataContext;
-        private readonly RequestExecutionContext executionContext;
-        private ILogService _log;
-        public ElectricitySalesService(DataContext dtcxt, RequestExecutionContext executionContext, ILogService log)
+        private readonly RequestExecutionContext _executionContext; 
+        private readonly TransactionRepository _transactionRepository;
+        private readonly IRecurringJobManager _recurringJobManager;
+        public ElectricitySalesService(RequestExecutionContext executionContext, TransactionRepository transactionRepository, IRecurringJobManager recurringJobManager)
         {
-            _dataContext = dtcxt;
-            this.executionContext = executionContext;
-            _log = log;
+            _executionContext = executionContext;
+            _transactionRepository = transactionRepository;
+            _recurringJobManager = recurringJobManager;
         }
 
         public async Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, string integratorid, string integratorName)
         {
-            //await InternalValidation(request, integratorid);
+            await _transactionRepository.InternalValidation(request, integratorid);
 
-            Transaction transactionLog = await CreateTransactionLog(request, integratorid);
+            Transaction transactionLog = await _transactionRepository.CreateTransactionLog(request, integratorid);
 
-            var executionResult = await ExecuteTransaction(request, integratorName);
+            ExecutionResult executionResult = await _executionContext.ExecuteTransaction(request, integratorid, integratorName);
             if (executionResult.Status == "success")
             {
                 executionResult.SuccessResponse.UpdateResponse(transactionLog);
-                await UpdateSuccessTransactionLog(executionResult, transactionLog);
-                return Response.Instance.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.SuccessResponse.VendStatus).WithType(executionResult).GenerateResponse();
+                await _transactionRepository.UpdateSuccessTransactionLog(executionResult, transactionLog);
+                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.SuccessResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
+            }
+
+            else if (executionResult.Status == "pending")
+            {
+                AddSaleToQueue(request.TransactionId, integratorid, integratorName);
+                await _transactionRepository.UpdateFailedTransactionLog(executionResult, transactionLog);
+                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
             }
             else
             {
-                await UpdateFailedTransactionLog(executionResult, transactionLog);
-                return Response.Instance.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+                await _transactionRepository.UpdateFailedTransactionLog(executionResult, transactionLog);
+                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
             }
         }
 
-        private async Task<Transaction> CreateTransactionLog(ElectricitySaleRequest request, string integratorId)
+        public async Task<APIResponse> QuerySalesStatus(SaleStatusRequest request, string integratorid, string integratorName)
         {
-            var trans = new TransactionsBuilder()
-                .WithTransactionId(UniqueIDGenerator.NewTransactionId())
-                .WithTransactionStatus(TransactionStatus.Pending)
-                .WithTerminalId(request.TransactionId)
-                .WithMeterNumber(request.MeterNumber)
-                .WithIntegratorId(integratorId)
-                .WithCreatedAt(DateTime.Now)
-                .WithAmount(request.Amount)
-                .Build();
-
-            _dataContext.Transactions.Add(trans);
-            await _dataContext.SaveChangesAsync();
-            return trans;
+            ExecutionResult executionResult = null;
+            Transaction transaction = await _transactionRepository.GetTransaction(request.TransactionId, integratorid);
+            
+            if(transaction == null)
+                executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
+            else if (transaction.Finalized)
+            {
+                executionResult = new ExecutionResult(transaction.Response, transaction.ReceivedFrom);
+                executionResult.Status = "success";
+            }
+            else if (!transaction.Finalized)
+            {
+                executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
+            }
+            return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
         }
 
-        private async Task UpdateSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
+        private void AddSaleToQueue(string transactionId, string integratorId, string integratorName)
         {
-            new TransactionsBuilder(trans)
-                .WithCustomerAddress(executionResult.SuccessResponse.CustomerAddress)
-                .WithAccountNumber(executionResult.SuccessResponse.AccountNumber)
-                .WithReceiptNumber(executionResult.SuccessResponse.ReceiptNumber)
-                .WithServiceCharge(executionResult.SuccessResponse.ServiceCharge)
-                .WithSerialNumber(executionResult.SuccessResponse.SerialNumber)
-                .WithMeterToken1(executionResult.SuccessResponse.MeterToken1)
-                .WithMeterToken2(executionResult.SuccessResponse.MeterToken2)
-                .WithMeterToken3(executionResult.SuccessResponse.MeterToken3)
-                .WithCostOfUnits(executionResult.SuccessResponse.CostOfUnits)
-                .WithRTSUniqueID(executionResult.SuccessResponse.RTSUniqueID)
-                .WithTaxCharge(executionResult.SuccessResponse.TaxCharge)
-                .WithVProvider(executionResult.SuccessResponse.VProvider)
-                .WithTransactionStatus(TransactionStatus.Success)
-                .WithTariff(executionResult.SuccessResponse.Tariff)
-                .WithUnits(executionResult.SuccessResponse.Units)
-                .WithResponse(executionResult.Response)
-                .WithRequest(executionResult.Request) 
-                .WithFinalised(true)
-                .WithSold(true)
-                .Build();
+            string jobId = $"{integratorName}_{transactionId}";
+            _recurringJobManager.AddOrUpdate(jobId, () => CheckPendingSalesStatusJob(transactionId, integratorId, integratorName), Cron.Minutely);
+            _recurringJobManager.Trigger(jobId);
+        }
+        public Task CheckPendingSalesStatusJob(string transactionId, string integratorId, string integratorName)
+        {
+            return CheckPendingSalesStatus(transactionId, integratorId, integratorName);
+        }
+        public async Task CheckPendingSalesStatus(string transactionId, string integratorId, string integratorName)
+        {
+            Transaction transaction = await _transactionRepository.GetTransaction(transactionId, integratorId);
 
-            await _dataContext.SaveChangesAsync();
+            if(transaction != null) 
+            {
+                ExecutionResult executionResult = await _executionContext.ExecuteTransaction(transactionId, integratorId, integratorName);
+
+                if (executionResult.Status == "success")
+                {
+                    _recurringJobManager.RemoveIfExists($"{integratorName}_{transactionId}");
+                    await _transactionRepository.UpdateSuccessTransactionLog(executionResult, transaction);
+                }
+                else
+                {
+                    await _transactionRepository.UpdateFailedTransactionLog(executionResult, transaction);
+                }
+            }
+
+            await Task.CompletedTask;
         }
 
-        private async Task UpdateFailedTransactionLog(ExecutionResult executionResult, Transaction trans)
-        {
-            new TransactionsBuilder(trans)
-                .WithVendStatusDescription(executionResult.FailedResponse.ErrorDetail)
-                .WithStatusResponse(executionResult.FailedResponse.ErrorMessage)
-                .WithTransactionStatus(TransactionStatus.Failed)
-                .WithResponse(executionResult.Response)
-                .WithRequest(executionResult.Request)
-                .Build();
-
-            await _dataContext.SaveChangesAsync();
-        }
-        private async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRequest request, string integratorName)
-        {
-            executionContext.BuildRequest(request.Amount, request.MeterNumber, request.TransactionId);
-
-            _log.Log(LogType.Infor, $"executing request for {request.TransactionId} from {integratorName}", executionContext.requestAsString);
-            await executionContext.ExecuteRequest();
-
-            await executionContext.ProcessResponse();
-            _log.Log(LogType.Infor, $"executed request for {request.TransactionId} from {integratorName}", executionContext.responseAsString);
-
-            ExecutionResult executionResult = executionContext.salesResponse;
-            executionResult.InitializeRequestAndResponse(executionContext);
-
-            return executionResult;
-        }
-
-        private async Task InternalValidation(ElectricitySaleRequest request, string integrator)
-        {
-            //Check for balance
-
-            //check if transactionid exist for this terminal
-            if (await _dataContext.Transactions.AnyAsync(d => d.IntegratorId == integrator && d.TerminalId == request.TransactionId))
-                throw new BadRequestException("Transaction ID already exist for this terminal.");
-        }
     }
 }
