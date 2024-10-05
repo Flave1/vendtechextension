@@ -11,6 +11,8 @@ using Hangfire;
 using vendtechext.Helper;
 using vendtechext.Helper.Configurations;
 using vendtechext.BLL.Repository;
+using System.Net;
+using vendtechext.BLL.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,8 +88,10 @@ app.MapHub<CustomersHub>("/customerHub");
 app.MapHub<AdminHub>("/adminHub");
 
 //Use Hangfire Dashboard
-app.UseHangfireDashboard();
-
+app.UseHangfireDashboard("/hangfire", new DashboardOptions()
+{
+    Authorization = new[] { new CustomAuthorizeFilter() }
+});
 // Map Controllers
 app.MapControllers();
 
