@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using signalrserver.HubConnection;
-using vendtechext.BLL.DTO;
+using vendtechext.Contracts;
 
 namespace vendtechext.Controllers
 {

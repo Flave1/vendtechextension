@@ -1,22 +1,18 @@
 ﻿using FluentValidation;
-using vendtechext.BLL.DTO;
+using vendtechext.Contracts;
 
 public class IntegratorValidator : AbstractValidator<BusinessUserCommandDTO>
 {
     public IntegratorValidator()
     {
         RuleFor(user => user.FirstName)
-            .NotNull().WithMessage("Name cannot be null")
+            .NotNull().WithMessage("ReceivedFrom cannot be null")
             .NotEmpty().WithMessage("First name is required.")
             .Length(2, 50).WithMessage("First name must be between 2 and 50 characters.");
 
         RuleFor(user => user.LastName)
             .NotEmpty().WithMessage("Last name is required.")
             .Length(2, 50).WithMessage("Last name must be between 2 and 50 characters.");
-
-        RuleFor(user => user.Password)
-            .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
 
         RuleFor(user => user.Phone)
             .NotEmpty().WithMessage("Phone number is required.")

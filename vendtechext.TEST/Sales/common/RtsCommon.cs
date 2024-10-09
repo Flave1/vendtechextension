@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using vendtechext.BLL.DTO;
-
-namespace vendtechext.TEST.Sales.common
+﻿namespace vendtechext.TEST.Sales.common
 {
     public static class RTSCommon
     {
@@ -25,7 +18,7 @@ namespace vendtechext.TEST.Sales.common
         //                                    UserName = "username",
         //                                    Password = "password",
         //                                    System = "SL"
-        //                                }, "apiV1_VendVoucher", "webapp", "0", "EDSA", $"{model.Amount}", $"{model.MeterNumber}", -1, "ver1.5", model.TransactionId
+        //                                }, "apiV1_VendVoucher", "webapp", "0", "EDSA", $"{model.Amount}", $"{model.MeterNumber}", -1, "ver1.5", model.VendtechTransactionId
         //                               },
         //     };
     }

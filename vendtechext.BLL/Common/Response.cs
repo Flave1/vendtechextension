@@ -1,18 +1,18 @@
-﻿using vendtechext.BLL.DTO;
+﻿using vendtechext.Contracts;
 
 namespace vendtechext.BLL.Common
 {
-    public class Response
+    public class Response : IDisposable
     {
-        private static readonly Lazy<Response> _instance = new Lazy<Response>(() => new Response());
+        //private static readonly Lazy<Response> _instance = new Lazy<Response>(() => new Response());
         private readonly APIResponse _response;
         public Response()
         {
-                _response = new APIResponse();
+              _response = new APIResponse();
         }
 
 
-        public static Response Instance => _instance.Value;
+        //public static Response Instance => _instance.Value;
 
         public Response WithStatus(string status)
         {
@@ -41,7 +41,13 @@ namespace vendtechext.BLL.Common
         }
         public APIResponse GenerateResponse()
         {
+            Dispose();
             return _response;
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
         }
     }
 }

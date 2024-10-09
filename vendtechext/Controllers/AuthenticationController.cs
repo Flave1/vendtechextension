@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using vendtechext.BLL.DTO;
 using vendtechext.BLL.Middlewares;
+using vendtechext.Contracts;
 
 namespace vendtechext.Controllers
 {

@@ -1,14 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using vendtechext.BLL.Common;
-using vendtechext.BLL.DTO;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
+using vendtechext.Contracts;
 using vendtechext.DAL.DomainBuilders;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.BLL.Services
 {
-    public class B2bAccountService : IB2bAccountService
+    public class B2bAccountService : BaseService, IB2bAccountService
     {
         private readonly DataContext dbcxt;
         public B2bAccountService(DataContext dbcxt)
@@ -16,25 +16,24 @@ namespace vendtechext.BLL.Services
             this.dbcxt = dbcxt; 
         }
 
-        async Task<BusinessUserQueryDTO> IB2bAccountService.GetIntegrator(string apiKey)
+        async Task<BusinessUserDTO> IB2bAccountService.GetIntegrator(string apiKey)
         {
-            return await dbcxt.Integrators.Where(d => d.ApiKey == apiKey).Select(f => new BusinessUserQueryDTO
+            return await dbcxt.Integrators.Where(d => d.ApiKey == apiKey).Select(f => new BusinessUserDTO
             {
                 ApiKey = apiKey,
                 BusinessName = f.BusinessName,
-                Clientkey = f.Clientkey,
                 FirstName = f.FirstName,
                 Id = f.Id,
                 LastName = f.LastName,
                 Phone = f.Phone
             }).FirstOrDefaultAsync() ?? null;
         }
-        async Task<string> IB2bAccountService.GetIntegratorId(string apiKey)
+        async Task<(string, string)> IB2bAccountService.GetIntegratorIdAndName(string apiKey)
         {
             var integrator = await dbcxt.Integrators.FirstOrDefaultAsync(d => d.ApiKey == apiKey);
             if(integrator == null)
-                return "not_found";
-            return integrator.Id.ToString();
+                return ("404", "not_found");
+            return (integrator.Id.ToString(), integrator.BusinessName);
         }
 
         async Task IB2bAccountService.CreateBusinessAccount(BusinessUserCommandDTO model)
@@ -58,7 +57,7 @@ namespace vendtechext.BLL.Services
             await dbcxt.SaveChangesAsync();
         }
 
-        async Task IB2bAccountService.UpdateBusinessAccount(BusinessUserCommandDTO model)
+        async Task IB2bAccountService.UpdateBusinessAccount(BusinessUserDTO model)
         {
             var account = dbcxt.Integrators.FirstOrDefault(d => d.Id == model.Id);
             if (account == null)

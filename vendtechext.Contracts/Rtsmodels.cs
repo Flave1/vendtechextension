@@ -1,6 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace vendtechext.BLL.DTO
+﻿namespace vendtechext.Contracts
 {
     public class RTSRequestmodel
     {
@@ -186,7 +184,14 @@ namespace vendtechext.BLL.DTO
 
         public bool VoucherTextDecodeFailed { get; set; }
     }
+    public class RTSStatusResponse
+    {
+        public string Status { get; set; }
 
+        public QueryContent Content { get; set; }
+
+        public string[] ErrorLog { get; set; }
+    }
     public class QueryContent
     {
         public string SerialNumber { get; set; }
@@ -216,6 +221,9 @@ namespace vendtechext.BLL.DTO
         public string Denomination { get; set; }
 
         public string VoucherPin { get; set; }
+        public string VoucherPin2 { get; set; }
+        public string VoucherPin3 { get; set; }
+        public string RTSUniqueID { get; set; }
 
         public string MeterNumber { get; set; }
 

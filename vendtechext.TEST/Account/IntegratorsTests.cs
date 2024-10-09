@@ -2,8 +2,9 @@
 using Newtonsoft.Json;
 using System.Net;
 using System.Text;
-using vendtechext.BLL.DTO;
 using vendtechext.BLL.Interfaces;
+using vendtechext;
+using vendtechext.Contracts;
 using Xunit;
 
 namespace vendtechext.TEST.Account
@@ -30,7 +31,6 @@ namespace vendtechext.TEST.Account
             {
                 FirstName = firstName,
                 LastName = lastName,
-                Password = password,
                 Phone = phone,
                 BusinessName = businessName,
                 Email = email
@@ -66,10 +66,9 @@ namespace vendtechext.TEST.Account
             // Arrange
             var requestBody = new BusinessUserCommandDTO
             {
-                Id = Guid.Parse(Id),
+                //Id = Guid.Parse(Id),
                 FirstName = firstName,
                 LastName = lastName,
-                Password = password,
                 Phone = phone,
                 BusinessName = businessName,
                 Email = email

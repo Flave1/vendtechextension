@@ -1,4 +1,4 @@
-﻿namespace vendtechext.BLL.DTO
+﻿namespace vendtechext.Contracts
 {
 
     public class MessageBody

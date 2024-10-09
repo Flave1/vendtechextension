@@ -39,15 +39,16 @@ namespace vendtechext.BLL.Middlewares
 
           
             var apiKey = extractedApiKey.First();
-            var integratorId = credentialService.GetIntegratorId(apiKey).Result;
+            var integrator = credentialService.GetIntegratorIdAndName(apiKey).Result;
 
-            if (integratorId == "not_found")
+            if (integrator == ("404", "not_found"))
             {
                 context.Result = new UnauthorizedResult();
                 return;
             }
             //Pass ClientKey to controller
-            context.HttpContext.Items["IntegratorId"] = integratorId;
+            context.HttpContext.Items["IntegratorId"] = integrator.Item1;
+            context.HttpContext.Items["IntegratorName"] = integrator.Item2;
         }
 
     }

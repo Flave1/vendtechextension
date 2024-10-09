@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using vendtechext.BLL.DTO;
+using vendtechext.Contracts;
 
 namespace vendtechext.BLL.Validations
 {

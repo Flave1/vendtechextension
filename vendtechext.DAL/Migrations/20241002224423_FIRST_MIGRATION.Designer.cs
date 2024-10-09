@@ -12,8 +12,8 @@ using vendtechext.DAL.Models;
 namespace vendtechext.DAL.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240926052123_update-transaction-table")]
-    partial class updatetransactiontable
+    [Migration("20241002224423_FIRST_MIGRATION")]
+    partial class FIRST_MIGRATION
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -60,14 +60,39 @@ namespace vendtechext.DAL.Migrations
                     b.ToTable("Integrators");
                 });
 
+            modelBuilder.Entity("vendtechext.DAL.Models.Log", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Detail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LogType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StackTrace")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Logs");
+                });
+
             modelBuilder.Entity("vendtechext.DAL.Models.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AccountNumber")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
@@ -81,34 +106,13 @@ namespace vendtechext.DAL.Migrations
                     b.Property<int>("ClaimedStatus")
                         .HasColumnType("int");
 
-                    b.Property<string>("CostOfUnits")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<decimal?>("CurrentDealerBalance")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Customer")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CustomerAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DateAndTimeFinalised")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DateAndTimeLinked")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DateAndTimeSold")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DebitRecovery")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Finalised")
+                    b.Property<bool>("Finalized")
                         .HasColumnType("bit");
 
                     b.Property<string>("IntegratorId")
@@ -120,25 +124,10 @@ namespace vendtechext.DAL.Migrations
                     b.Property<string>("MeterNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("MeterToken1")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MeterToken2")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MeterToken3")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("PlatFormId")
                         .HasColumnType("int");
 
-                    b.Property<int>("QueryStatusCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RTSUniqueID")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ReceiptNumber")
+                    b.Property<string>("ReceivedFrom")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Request")
@@ -147,49 +136,16 @@ namespace vendtechext.DAL.Migrations
                     b.Property<string>("Response")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SerialNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ServiceCharge")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Sold")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("StatusRequestCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("StatusResponse")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Tariff")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TaxCharge")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TerminalId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TransactionId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("TransactionStatus")
                         .HasColumnType("int");
 
-                    b.Property<string>("Units")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("VProvider")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("VendStatus")
+                    b.Property<string>("TransactionUniqueId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VendStatusDescription")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("VoucherSerialNumber")
+                    b.Property<string>("VendtechTransactionID")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

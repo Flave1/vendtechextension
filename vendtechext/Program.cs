@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using vendtechext.BLL.Configurations;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Middleware;
 using vendtechext.BLL.Services;
@@ -9,8 +8,11 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using vendtechext.BLL.Validations;
 using Hangfire;
-using vendtechext.Hangfire;
-using vendtechext.BLL;
+using vendtechext.Helper;
+using vendtechext.Helper.Configurations;
+using vendtechext.BLL.Repository;
+using System.Net;
+using vendtechext.BLL.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,7 +44,7 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 
 // Configure strongly typed settings objects
-builder.Services.Configure<RTSInformation>(builder.Configuration.GetSection("RTSInformation"));
+builder.Services.Configure<ProviderInformation>(builder.Configuration.GetSection("ProviderInformation"));
 
 // Add controllers and API behavior
 builder.Services.AddFluentValidationAutoValidation();
@@ -64,10 +66,9 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<IB2bAccountService, B2bAccountService>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IElectricitySalesService, ElectricitySalesService>();
-builder.Services.AddScoped<IHttpRequestService, HttpRequestService>();
-builder.Services.AddScoped<IJobService, SalesJobService>();
-builder.Services.AddScoped<RetrieveJobs>();
+builder.Services.AddScoped<HttpRequestService>();
 builder.Services.AddScoped<RequestExecutionContext>();
+builder.Services.AddScoped<TransactionRepository>();
 
 var app = builder.Build();
 
@@ -86,8 +87,10 @@ app.MapHub<CustomersHub>("/customerHub");
 app.MapHub<AdminHub>("/adminHub");
 
 //Use Hangfire Dashboard
-app.UseHangfireDashboard();
-
+app.UseHangfireDashboard("/hangfire", new DashboardOptions()
+{
+    Authorization = new[] { new CustomAuthorizeFilter() }
+});
 // Map Controllers
 app.MapControllers();
 

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace vendtechext.BLL.DTO.VtchMainModels
+﻿namespace vendtechext.Contracts.VtchMainModels
 {
     // Define your LoginAPIPassCodeModel class
     public class LoginAPIPassCodeModel
