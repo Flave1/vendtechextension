@@ -6,20 +6,21 @@ using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.DAL.DomainBuilders;
 using vendtechext.DAL.Models;
+using vendtechext.Helper;
 
 namespace vendtechext.BLL.Services
 {
-    public class B2bAccountService : BaseService, IB2bAccountService
+    public class IntegratorService : BaseService, IIntegratorService
     {
         private readonly DataContext dbcxt;
         private readonly IAuthService _authService;
-        public B2bAccountService(DataContext dbcxt, IAuthService authService)
+        public IntegratorService(DataContext dbcxt, IAuthService authService)
         {
             this.dbcxt = dbcxt;
             _authService = authService;
         }
 
-        async Task<BusinessUserDTO> IB2bAccountService.GetIntegrator(string apiKey)
+        async Task<BusinessUserDTO> IIntegratorService.GetIntegrator(string apiKey)
         {
             return await dbcxt.Integrators.Where(d => d.ApiKey == apiKey).Select(f => new BusinessUserDTO
             {
@@ -31,7 +32,7 @@ namespace vendtechext.BLL.Services
                 Phone = f.Phone
             }).FirstOrDefaultAsync() ?? null;
         }
-        async Task<(string, string)> IB2bAccountService.GetIntegratorIdAndName(string apiKey)
+        async Task<(string, string)> IIntegratorService.GetIntegratorIdAndName(string apiKey)
         {
             var integrator = await dbcxt.Integrators.FirstOrDefaultAsync(d => d.ApiKey == apiKey);
             if(integrator == null)
@@ -39,7 +40,7 @@ namespace vendtechext.BLL.Services
             return (integrator.Id.ToString(), integrator.BusinessName);
         }
 
-        async Task IB2bAccountService.CreateBusinessAccount(BusinessUserCommandDTO model)
+        async Task IIntegratorService.CreateBusinessAccount(BusinessUserCommandDTO model)
         {
             if (dbcxt.Integrators.Any(d => d.Email.Trim().ToLower() == model.Email.Trim().ToLower()))
                 throw new BadRequestException("Business Account with Email already  exist");
@@ -72,7 +73,7 @@ namespace vendtechext.BLL.Services
 
         }
 
-        async Task IB2bAccountService.UpdateBusinessAccount(BusinessUserDTO model)
+        async Task IIntegratorService.UpdateBusinessAccount(BusinessUserDTO model)
         {
             var account = dbcxt.Integrators.FirstOrDefault(d => d.Id == model.Id);
             if (account == null)
@@ -96,7 +97,7 @@ namespace vendtechext.BLL.Services
             await dbcxt.SaveChangesAsync();
         }
 
-        async Task IB2bAccountService.DeleteBusinessAccount(Guid Id)
+        async Task IIntegratorService.DeleteBusinessAccount(Guid Id)
         {
             var account = dbcxt.Integrators.FirstOrDefault(d => d.Id == Id);
             if (account == null)
@@ -108,7 +109,7 @@ namespace vendtechext.BLL.Services
             await dbcxt.SaveChangesAsync();
         }
 
-        async Task IB2bAccountService.DeleteBusinessAccount(string email)
+        async Task IIntegratorService.DeleteBusinessAccount(string email)
         {
             var account = dbcxt.Integrators.FirstOrDefault(d => d.Email.ToLower() == email.ToLower());
             if (account == null)

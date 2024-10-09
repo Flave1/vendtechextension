@@ -3,13 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using Newtonsoft.Json;
-using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.DAL.Common;
-using System.Net.Http;
 using vendtechext.Helper;
 using vendtechext.Contracts;
-using vendtechext.BLL.Services;
 namespace vendtechext.BLL.Middleware
 {
     public class GlobalExceptionHandlerMiddleware: BaseService
@@ -58,7 +55,7 @@ namespace vendtechext.BLL.Middleware
             {
                 _logger.LogError(ex, "An unhandled exception occurred.");
                 httpContext.Request.Headers.TryGetValue("X-Client", out var clientKey);
-                var errorlogService = httpContext.RequestServices.GetRequiredService<ILogService>();
+                var errorlogService = httpContext.RequestServices.GetRequiredService<LogService>();
                 HandleExceptionAsync(httpContext, ex, "Internal Server Error from the middleware server.");
             }
         }
@@ -66,7 +63,7 @@ namespace vendtechext.BLL.Middleware
         private void HandleExceptionAsync(HttpContext context, Exception exception, string message = null)
         {
 
-            var _log = context.RequestServices.GetRequiredService<ILogService>();
+            var _log = context.RequestServices.GetRequiredService<LogService>();
             
 
             context.Response.ContentType = "application/json";

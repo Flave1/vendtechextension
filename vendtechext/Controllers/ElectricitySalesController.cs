@@ -14,9 +14,9 @@ namespace vendtechext.Controllers
     public class ElectricitySalesController : BaseController
     {
         private readonly IElectricitySalesService service;
-        private ILogService _log;
+        private LogService _log;
 
-        public ElectricitySalesController(ILogger<ElectricitySalesController> logger, IElectricitySalesService salesService, ILogService log) : base(logger)
+        public ElectricitySalesController(ILogger<ElectricitySalesController> logger, IElectricitySalesService salesService, LogService log) : base(logger)
         {
             service = salesService;
             _log = log;

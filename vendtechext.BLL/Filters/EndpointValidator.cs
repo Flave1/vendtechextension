@@ -29,7 +29,7 @@ namespace vendtechext.BLL.Middlewares
             }
 
             // Perform your authorization logic as usual
-            var credentialService = context.HttpContext.RequestServices.GetRequiredService<IB2bAccountService>();
+            var credentialService = context.HttpContext.RequestServices.GetRequiredService<IIntegratorService>();
 
             if (!context.HttpContext.Request.Headers.TryGetValue("X-Api-Key", out var extractedApiKey))
             {

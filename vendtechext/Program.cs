@@ -73,7 +73,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]??"")),
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = true
@@ -90,8 +90,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSignalR();
 
 // Dependency Injection
-builder.Services.AddScoped<IB2bAccountService, B2bAccountService>();
-builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddScoped<IIntegratorService, IntegratorService>();
+builder.Services.AddScoped<LogService>();
 builder.Services.AddScoped<IElectricitySalesService, ElectricitySalesService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<HttpRequestService>();

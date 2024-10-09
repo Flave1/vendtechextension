@@ -13,7 +13,7 @@ namespace vendtechext.Helper
         private HttpResponseMessage _httpResponse;
         private readonly HttpRequestService _webRequest;
         private readonly IntegratorInProcessInformation _integratorInfor;
-        private readonly ILogService _log;
+        private readonly LogService _log;
         private readonly ProviderInformation _providerInfor;
 
         //........................................................
@@ -27,7 +27,7 @@ namespace vendtechext.Helper
         public ExecutionResult salesResponse;
 
 
-        public RequestExecutionContext(HttpRequestService webRequest, IOptions<ProviderInformation> rts, ILogService log)
+        public RequestExecutionContext(HttpRequestService webRequest, IOptions<ProviderInformation> rts, LogService log)
         {
             _webRequest = webRequest;
             _integrator = RTSProperties.Instance;

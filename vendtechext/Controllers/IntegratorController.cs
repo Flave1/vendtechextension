@@ -9,8 +9,8 @@ namespace vendtechext.Controllers
     [Route("integrator/v1")]
     public class IntegratorController : BaseController
     {
-        private readonly IB2bAccountService service;
-        public IntegratorController(ILogger<BaseController> logger, IB2bAccountService b2bAccountService) : base(logger)
+        private readonly IIntegratorService service;
+        public IntegratorController(ILogger<BaseController> logger, IIntegratorService b2bAccountService) : base(logger)
         {
             service = b2bAccountService;
         }
