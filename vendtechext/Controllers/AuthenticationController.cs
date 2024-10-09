@@ -1,32 +1,34 @@
 using Microsoft.AspNetCore.Mvc;
-using vendtechext.BLL.Middlewares;
+using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 
 namespace vendtechext.Controllers
 {
     [ApiController]
-    [Route("auth/v2/user")]
-    [EndpointValidator]
+    [Route("auth/v1/")]
     public class AuthenticationController : ControllerBase
     {
         private readonly ILogger<AuthenticationController> _logger;
+        private readonly IAuthService _authService;
 
-        public AuthenticationController(ILogger<AuthenticationController> logger)
+        public AuthenticationController(ILogger<AuthenticationController> logger, IAuthService authService)
         {
             _logger = logger;
+            _authService = authService;
         }
 
-        [HttpPost("validate", Name = "validate")]
-        public IActionResult Validate([FromBody] MessageBody request)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto request)
         {
-            _logger.LogInformation(1, null, "This is it");
-            return Ok(request);
+            var result = await _authService.RegisterAsync(request);
+            return Ok(result);
         }
 
-        [HttpGet("exception")]
-        public IActionResult ThrowException()
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
-            throw new Exception("Test exception");
+            var result = await _authService.LoginAsync(request);
+            return Ok(result);
         }
 
     }

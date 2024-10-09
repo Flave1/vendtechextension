@@ -1,6 +1,4 @@
-﻿using vendtechext.Contracts;
-
-namespace vendtechext.BLL.Common
+﻿namespace vendtechext.Contracts
 {
     public class Response : IDisposable
     {
@@ -8,7 +6,7 @@ namespace vendtechext.BLL.Common
         private readonly APIResponse _response;
         public Response()
         {
-              _response = new APIResponse();
+            _response = new APIResponse();
         }
 
 

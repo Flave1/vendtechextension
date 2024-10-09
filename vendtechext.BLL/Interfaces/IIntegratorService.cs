@@ -2,7 +2,7 @@
 
 namespace vendtechext.BLL.Interfaces
 {
-    public interface IB2bAccountService
+    public interface IIntegratorService
     {
         Task<BusinessUserDTO> GetIntegrator(string apiKey);
         Task CreateBusinessAccount(BusinessUserCommandDTO model);

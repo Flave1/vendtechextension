@@ -10,9 +10,9 @@ namespace vendtechext.Helper
     {
         private const int MaxRetryAttempts = 3;
         private readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(2);
-        private readonly ILogService _log;
+        private readonly LogService _log;
 
-        public HttpRequestService(ILogService log)
+        public HttpRequestService(LogService log)
         {
             _log = log;
         }

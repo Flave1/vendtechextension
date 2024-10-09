@@ -12,13 +12,13 @@ namespace vendtechext.TEST.Account
     public class AccountControllerIntegrationTests
     {
         private readonly HttpClient _client;
-        private readonly Mock<IB2bAccountService> _service;
+        private readonly Mock<IIntegratorService> _service;
 
         public AccountControllerIntegrationTests()
         {
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
-            _service = new Mock<IB2bAccountService>();
+            _service = new Mock<IIntegratorService>();
         }
 
         [Theory]

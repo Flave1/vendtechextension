@@ -4,7 +4,7 @@ using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper
 {
-    public class LogService : ILogService
+    public class LogService
     {
         public readonly DataContext _dataContext;
         public LogService(DataContext dataContext)
@@ -12,7 +12,7 @@ namespace vendtechext.Helper
             _dataContext = dataContext;
         }
 
-        void ILogService.Log(LogType type, string message, dynamic data, string stackTrace)
+       public void Log(LogType type, string message, dynamic data = null, string stackTrace = "")
         {
             var log = new Log
             {
