@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
@@ -11,9 +12,11 @@ namespace vendtechext.BLL.Services
     public class B2bAccountService : BaseService, IB2bAccountService
     {
         private readonly DataContext dbcxt;
-        public B2bAccountService(DataContext dbcxt)
+        private readonly IAuthService _authService;
+        public B2bAccountService(DataContext dbcxt, IAuthService authService)
         {
-            this.dbcxt = dbcxt; 
+            this.dbcxt = dbcxt;
+            _authService = authService;
         }
 
         async Task<BusinessUserDTO> IB2bAccountService.GetIntegrator(string apiKey)
@@ -44,7 +47,17 @@ namespace vendtechext.BLL.Services
             if (dbcxt.Integrators.Any(d => d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
                 throw new BadRequestException("Business Account with name already  exist");
 
-            Integrator account = new IntegratorsBuilder()
+            IdentityResult identityResult = await _authService.RegisterAsync(new RegisterDto {
+                Firstname = model.FirstName,
+                Email = model.Email,
+                Lastname = model.LastName,
+                Password = "Password@123",
+                Username = model.FirstName,
+            });
+
+            if (identityResult.Succeeded)
+            {
+                Integrator account = new IntegratorsBuilder()
                 .WithApiKey(AesEncryption.Encrypt(model.BusinessName + model.Email + model.Phone))
                 .WithBusinessName(model.BusinessName)
                 .WithFirstName(model.FirstName)
@@ -53,8 +66,10 @@ namespace vendtechext.BLL.Services
                 .WithEmail(model.Email)
                 .Build();
 
-            dbcxt.Integrators.Add(account);
-            await dbcxt.SaveChangesAsync();
+                dbcxt.Integrators.Add(account);
+                await dbcxt.SaveChangesAsync();
+            }
+
         }
 
         async Task IB2bAccountService.UpdateBusinessAccount(BusinessUserDTO model)

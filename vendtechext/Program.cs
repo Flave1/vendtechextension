@@ -11,8 +11,11 @@ using Hangfire;
 using vendtechext.Helper;
 using vendtechext.Helper.Configurations;
 using vendtechext.BLL.Repository;
-using System.Net;
 using vendtechext.BLL.Filters;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +28,7 @@ builder.Services.AddCors(options =>
             policy.WithOrigins("http://localhost:56549", "https://vendtechsl.com")
                    .AllowAnyHeader()
                    .AllowAnyMethod()
-                   .AllowCredentials();  // Explicitly allow specific origins
-                   //.SetIsOriginAllowed((host) => true);
+                   .AllowCredentials();
         });
 });
 
@@ -53,6 +55,31 @@ builder.Services.AddValidatorsFromAssemblyContaining<ElectricitySalesValidator>(
 
 builder.Services.AddControllers();
 
+// Identity configuration
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+{
+    options.Password.RequiredLength = 6;
+    options.User.RequireUniqueEmail = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.SignIn.RequireConfirmedEmail = false;
+})
+.AddEntityFrameworkStores<DataContext>()
+.AddDefaultTokenProviders();
+
+// Configure JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true
+        };
+    });
+
 // Swagger Configuration
 builder.Services.AddSwaggerGen(c =>
 {
@@ -66,6 +93,7 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<IB2bAccountService, B2bAccountService>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IElectricitySalesService, ElectricitySalesService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<HttpRequestService>();
 builder.Services.AddScoped<RequestExecutionContext>();
 builder.Services.AddScoped<TransactionRepository>();
@@ -91,6 +119,11 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions()
 {
     Authorization = new[] { new CustomAuthorizeFilter() }
 });
+
+// Use authentication and authorization
+app.UseAuthentication(); // Ensure this is before UseAuthorization
+app.UseAuthorization();
+
 // Map Controllers
 app.MapControllers();
 
