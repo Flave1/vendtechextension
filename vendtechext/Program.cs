@@ -44,7 +44,7 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 
 // Configure strongly typed settings objects
-builder.Services.Configure<RTSInformation>(builder.Configuration.GetSection("RTSInformation"));
+builder.Services.Configure<ProviderInformation>(builder.Configuration.GetSection("ProviderInformation"));
 
 // Add controllers and API behavior
 builder.Services.AddFluentValidationAutoValidation();
@@ -67,7 +67,6 @@ builder.Services.AddScoped<IB2bAccountService, B2bAccountService>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IElectricitySalesService, ElectricitySalesService>();
 builder.Services.AddScoped<HttpRequestService>();
-//builder.Services.AddScoped<QueueJobs>();
 builder.Services.AddScoped<RequestExecutionContext>();
 builder.Services.AddScoped<TransactionRepository>();
 

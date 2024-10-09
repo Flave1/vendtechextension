@@ -33,7 +33,6 @@ namespace vendtechext.BLL.Services
                 await _transactionRepository.UpdateSuccessTransactionLog(executionResult, transactionLog);
                 return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.SuccessResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
             }
-
             else if (executionResult.Status == "pending")
             {
                 AddSaleToQueue(request.TransactionId, integratorid, integratorName);

@@ -8,6 +8,7 @@ namespace vendtechext.Helper
     {
         // Static Lazy Singleton
         private static readonly Lazy<RTSProperties> _instance = new Lazy<RTSProperties>(() => new RTSProperties());
+
         public string ReceivedFrom;
         private decimal _amount;
         private string _meterNumber;
@@ -16,8 +17,9 @@ namespace vendtechext.Helper
         public RTSResponse successResponse = null;
         public RTSErorResponse errorResponse = null;
         public RTSStatusResponse statusResponse = null;
-        public RTSInformation rts;
+        public ProviderInformation rts;
         public bool isSuccessful = false;
+        public bool isFinalized = false;
 
         // Private constructor to prevent direct instantiation
         private RTSProperties()
@@ -30,7 +32,7 @@ namespace vendtechext.Helper
 
         public string GetProductionUrl() => rts.ProductionUrl;
 
-        public string GetSandboxUrl() => rts.SandboxBox;
+        public string GetSandboxUrl() => rts.SandboxUrl;
 
         public string GetTransactionId() => _transactionId;
 
@@ -101,57 +103,13 @@ namespace vendtechext.Helper
         {
             ReceivedFrom = "rts_status";
             statusResponse = JsonConvert.DeserializeObject<RTSStatusResponse>(resultAsString);
-            if (string.IsNullOrEmpty(statusResponse.Content.VoucherPin)) 
+            if (string.IsNullOrEmpty(statusResponse.Content.VoucherPin))
+            {
                 isSuccessful = false;
+                isFinalized = statusResponse.Content.Finalised;
+            }
             else
                 isSuccessful = true;
-        }
-
-        public string ReadErrorMessage(string message)
-        {
-            if (message == "The request timed out with the Ouc server.")
-            {
-                return message;
-            }
-            else if (message == "Error: Vending is disabled")
-            {
-                return message;
-            }
-            else if (message == "-9137 : InCMS-BL-CB001607. Purchase not allowed, not enought vendor balance")
-            {
-                return "Due to some technical resolutions involving EDSA, the system is unable to vend";
-            }
-
-            else if (message == "InCMS-BL-CO000846. The amount is too low for recharge")
-            {
-                return "The amount is too low for recharge";
-            }
-            else if (message == "Unexpected error in OUC VendVoucher")
-            {
-                return message;
-            }
-            else if (message == "CB001600 : InCMS-BL-CB001600. Error serial number, contracted service not found or not active.")
-            {
-                return "Error serial number, contracted service not found or not active";
-            }
-            else if (message == "There was an error when determining if the request for the given meter number can be processed.")
-            {
-                return message;
-            }
-            else if (message == "Input string was not in a correct format.")
-            {
-                return "Amount tendered is too low";
-            }
-            else if (message == "-47 : InCMS-BL-CB001273. Error, purchase units less than minimum.")
-            {
-                return "Purchase units less than minimum.";
-            }
-            else if (message == "The specified TransactionID already exists for this terminal.")
-                return message;
-            else
-            {
-                return "pending";
-            }
         }
 
         public void Dispose()

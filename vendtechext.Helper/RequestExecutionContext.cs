@@ -14,23 +14,24 @@ namespace vendtechext.Helper
         private readonly HttpRequestService _webRequest;
         private readonly IntegratorInProcessInformation _integratorInfor;
         private readonly ILogService _log;
+        private readonly ProviderInformation _providerInfor;
+
+        //........................................................
+        //WILL CHANGE INTEGRATOR (EASY TO DO)
+        private readonly RTSProperties _integrator;
+        //WILL CHANGE INTEGRATOR (EASY TO DO)
+        //........................................................
 
         public string requestAsString;
         public string responseAsString;
         public ExecutionResult salesResponse;
 
-        //........................................................
-        //WILL CHANGE INTEGRATOR (EASY TO DO)
-        private RTSProperties _integrator;
-        private RTSInformation _rts;
-        //WILL CHANGE INTEGRATOR (EASY TO DO)
-        //........................................................
 
-        public RequestExecutionContext(HttpRequestService webRequest, IOptions<RTSInformation> rts, ILogService log)
+        public RequestExecutionContext(HttpRequestService webRequest, IOptions<ProviderInformation> rts, ILogService log)
         {
             _webRequest = webRequest;
             _integrator = RTSProperties.Instance;
-            _rts = rts.Value;
+            _providerInfor = rts.Value;
             _log = log;
             _integratorInfor = new IntegratorInProcessInformation();
         }
@@ -40,7 +41,7 @@ namespace vendtechext.Helper
         }
         public void InitializeIntegratorData(string id, string name, string transactionId, decimal? amount, string meterNumber)
         {
-            _integrator.rts = _rts;
+            _integrator.rts = _providerInfor;
             _requestObject = _integrator.GenerateSaleRequest(amount, meterNumber, transactionId);
             requestAsString = JsonConvert.SerializeObject(_requestObject);
 
@@ -49,7 +50,7 @@ namespace vendtechext.Helper
         }
         public void InitializeIntegratorData(string id, string name, string transactionId)
         {
-            _integrator.rts = _rts;
+            _integrator.rts = _providerInfor;
             _requestObject = _integrator.GenerateSaleStatusRequest(transactionId);
             requestAsString = JsonConvert.SerializeObject(_requestObject);
 
@@ -102,10 +103,9 @@ namespace vendtechext.Helper
             {
                 salesResponse = new ExecutionResult(_integrator.errorResponse);
                 salesResponse.Status = "failed";
-                string errorMessage = _integrator.ReadErrorMessage(salesResponse.FailedResponse.ErrorMessage);
                 
-                if (errorMessage == "pending")
-                    salesResponse.Status = errorMessage;
+                if (_integrator.isFinalized)
+                    salesResponse.Status = "pending";
             }
             _integrator.Dispose();
             salesResponse.ReceivedFrom = _integrator.ReceivedFrom;
@@ -125,7 +125,6 @@ namespace vendtechext.Helper
             {
                 salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
                 salesResponse.Status = "failed";
-                _integrator.ReadErrorMessage(salesResponse.FailedResponse.ErrorMessage);
             }
             _integrator.Dispose();
             salesResponse.ReceivedFrom = _integrator.ReceivedFrom;
