@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,20 +9,23 @@ using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.DAL.Models;
+using vendtechext.Helper;
 
 namespace vendtechext.BLL.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService : BaseService, IAuthService
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IConfiguration _configuration;
+        private readonly DataContext _dataContext;
 
-        public AuthService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration configuration)
+        public AuthService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration configuration, DataContext dataContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
+            _dataContext = dataContext;
         }
 
         public async Task<IdentityResult> RegisterAsync(RegisterDto registerDto)
@@ -34,10 +38,27 @@ namespace vendtechext.BLL.Services
                 LastName = registerDto.Lastname,
             };
 
-            return await _userManager.CreateAsync(user, registerDto.Password);
+           return await _userManager.CreateAsync(user, registerDto.Password);
+        }
+        public async Task<AppUser> RegisterAndReturnUserAsync(RegisterDto registerDto)
+        {
+            var user = new AppUser
+            {
+                UserName = registerDto.Username,
+                Email = registerDto.Email,
+                FirstName = registerDto.Firstname,
+                LastName = registerDto.Lastname,
+            };
+
+            IdentityResult result = await _userManager.CreateAsync(user, registerDto.Password);
+            if (!result.Succeeded)
+            {
+                throw new BadRequestException(result.Errors.FirstOrDefault().Description);
+            }
+            return user;
         }
 
-        public async Task<string> LoginAsync(LoginDto loginDto)
+        public async Task<APIResponse> LoginAsync(LoginDto loginDto)
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
             if (user == null)
@@ -47,18 +68,26 @@ namespace vendtechext.BLL.Services
             if (!result.Succeeded)
                 throw new BadRequestException("Invalid email or password.");
 
+            var integrator_infor = await _dataContext.Integrators.FirstOrDefaultAsync(d => d.AppUserId == user.Id);
+
             // Generate JWT Token
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, user.Id.ToString()) }),
+                Subject = new ClaimsIdentity(new[] 
+                {
+                    new Claim("integrator_name", integrator_infor == null ? "": integrator_infor.BusinessName),
+                    new Claim("integratorId", integrator_infor == null ? "": integrator_infor.Id.ToString()),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Name, user.Id.ToString())
+                }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("You have succesffully logged in").WithType(tokenHandler.WriteToken(token)).GenerateResponse();
         }
     }
 }

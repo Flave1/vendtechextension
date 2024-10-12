@@ -48,7 +48,7 @@ namespace vendtechext.BLL.Services
             if (dbcxt.Integrators.Any(d => d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
                 throw new BadRequestException("Business Account with name already  exist");
 
-            IdentityResult identityResult = await _authService.RegisterAsync(new RegisterDto {
+            AppUser userAccount = await _authService.RegisterAndReturnUserAsync(new RegisterDto {
                 Firstname = model.FirstName,
                 Email = model.Email,
                 Lastname = model.LastName,
@@ -56,11 +56,14 @@ namespace vendtechext.BLL.Services
                 Username = model.FirstName,
             });
 
-            if (identityResult.Succeeded)
+            
+
+            if (userAccount != null)
             {
                 Integrator account = new IntegratorsBuilder()
                 .WithApiKey(AesEncryption.Encrypt(model.BusinessName + model.Email + model.Phone))
                 .WithBusinessName(model.BusinessName)
+                .WithAppUserId(userAccount.Id)
                 .WithFirstName(model.FirstName)
                 .WithLastName(model.LastName)
                 .WithPhone(model.Phone)

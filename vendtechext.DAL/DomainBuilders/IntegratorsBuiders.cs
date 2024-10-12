@@ -69,6 +69,12 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public IntegratorsBuilder WithAppUserId(string appUserId)
+        {
+            _integrator.AppUserId = appUserId;
+            return this;
+        }
+
         public Integrator Build()
         {
             return _integrator;

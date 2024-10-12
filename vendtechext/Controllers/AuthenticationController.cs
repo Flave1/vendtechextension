@@ -17,17 +17,17 @@ namespace vendtechext.Controllers
             _authService = authService;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto request)
-        {
-            var result = await _authService.RegisterAsync(request);
-            return Ok(result);
-        }
-
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
             var result = await _authService.LoginAsync(request);
+            return Ok(result);
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto request)
+        {
+            var result = await _authService.RegisterAsync(request);
             return Ok(result);
         }
 
