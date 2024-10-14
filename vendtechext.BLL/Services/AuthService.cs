@@ -40,6 +40,10 @@ namespace vendtechext.BLL.Services
 
            return await _userManager.CreateAsync(user, registerDto.Password);
         }
+        public async Task<AppUser> FindUserByEmail(string email)
+        {
+            return await _userManager.FindByEmailAsync(email);
+        }
         public async Task<AppUser> RegisterAndReturnUserAsync(RegisterDto registerDto)
         {
             var user = new AppUser
@@ -78,11 +82,16 @@ namespace vendtechext.BLL.Services
                 Subject = new ClaimsIdentity(new[] 
                 {
                     new Claim("integrator_name", integrator_infor == null ? "": integrator_infor.BusinessName),
-                    new Claim("integratorId", integrator_infor == null ? "": integrator_infor.Id.ToString()),
+                    new Claim("integrator_id", integrator_infor == null ? "": integrator_infor.Id.ToString()),
+                    new Claim("user_id", user.Id),
                     new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Name, user.Id.ToString())
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(ClaimTypes.Name, integrator_infor?.Id.ToString()), 
+                    new Claim(JwtRegisteredClaimNames.Aud, "vendtech"), // Audience
+                    new Claim(JwtRegisteredClaimNames.Iss, "vendtech")  // Add this line for issuer
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
+                
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 

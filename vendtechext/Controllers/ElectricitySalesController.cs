@@ -25,7 +25,7 @@ namespace vendtechext.Controllers
         [HttpPost("buy")]
         public async Task<IActionResult> PurchaseElectricity([FromBody] ElectricitySaleRequest request)
         {
-            var integratorId = HttpContext.Items["IntegratorId"] as string ; 
+            var integratorId = Guid.Parse(HttpContext.Items["IntegratorId"] as string ?? "") ; 
             var integratorName = HttpContext.Items["IntegratorName"] as string;
 
             _log.Log(LogType.Infor, $"received request for {request.TransactionId} from {integratorName}", request);
@@ -38,7 +38,7 @@ namespace vendtechext.Controllers
         [HttpPost("status")]
         public async Task<IActionResult> SaleStatus([FromBody] SaleStatusRequest request)
         {
-            var integratorId = HttpContext.Items["IntegratorId"] as string;
+            var integratorId = Guid.Parse(HttpContext.Items["IntegratorId"] as string ?? "");
             var integratorName = HttpContext.Items["IntegratorName"] as string;
 
             APIResponse reponse = await service.QuerySalesStatus(request, integratorId, integratorName);

@@ -8,7 +8,7 @@
         public string Phone { get; set; }
         public string BusinessName { get; set; }
         public string ApiKey { get; set; }
-        public string Email { get; set; }
+        public string About { get; set; }
 
     }
 

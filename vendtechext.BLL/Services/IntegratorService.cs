@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
+using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
 using vendtechext.DAL.DomainBuilders;
 using vendtechext.DAL.Models;
@@ -14,10 +14,12 @@ namespace vendtechext.BLL.Services
     {
         private readonly DataContext dbcxt;
         private readonly IAuthService _authService;
-        public IntegratorService(DataContext dbcxt, IAuthService authService)
+        private readonly WalletRepository _walletRepository;
+        public IntegratorService(DataContext dbcxt, IAuthService authService, WalletRepository walletRepository)
         {
             this.dbcxt = dbcxt;
             _authService = authService;
+            _walletRepository = walletRepository;
         }
 
         async Task<BusinessUserDTO> IIntegratorService.GetIntegrator(string apiKey)
@@ -26,10 +28,9 @@ namespace vendtechext.BLL.Services
             {
                 ApiKey = apiKey,
                 BusinessName = f.BusinessName,
-                FirstName = f.FirstName,
                 Id = f.Id,
-                LastName = f.LastName,
-                Phone = f.Phone
+                Phone = f.Phone,
+                About = f.About
             }).FirstOrDefaultAsync() ?? null;
         }
         async Task<(string, string)> IIntegratorService.GetIntegratorIdAndName(string apiKey)
@@ -42,13 +43,15 @@ namespace vendtechext.BLL.Services
 
         async Task IIntegratorService.CreateBusinessAccount(BusinessUserCommandDTO model)
         {
-            if (dbcxt.Integrators.Any(d => d.Email.Trim().ToLower() == model.Email.Trim().ToLower()))
+            AppUser userAccount = await _authService.FindUserByEmail(model.Email);
+
+            if(userAccount != null)
                 throw new BadRequestException("Business Account with Email already  exist");
 
             if (dbcxt.Integrators.Any(d => d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
                 throw new BadRequestException("Business Account with name already  exist");
 
-            AppUser userAccount = await _authService.RegisterAndReturnUserAsync(new RegisterDto {
+            userAccount = await _authService.RegisterAndReturnUserAsync(new RegisterDto {
                 Firstname = model.FirstName,
                 Email = model.Email,
                 Lastname = model.LastName,
@@ -56,22 +59,20 @@ namespace vendtechext.BLL.Services
                 Username = model.FirstName,
             });
 
-            
-
             if (userAccount != null)
             {
                 Integrator account = new IntegratorsBuilder()
                 .WithApiKey(AesEncryption.Encrypt(model.BusinessName + model.Email + model.Phone))
                 .WithBusinessName(model.BusinessName)
                 .WithAppUserId(userAccount.Id)
-                .WithFirstName(model.FirstName)
-                .WithLastName(model.LastName)
                 .WithPhone(model.Phone)
-                .WithEmail(model.Email)
                 .Build();
 
                 dbcxt.Integrators.Add(account);
                 await dbcxt.SaveChangesAsync();
+
+
+                Wallet wallet = await _walletRepository.CreateWallet(account.Id);
             }
 
         }
@@ -83,17 +84,15 @@ namespace vendtechext.BLL.Services
             {
                 throw new BadRequestException("Business Account not found");
             }
-            if (dbcxt.Integrators.Any(d => d.Id != model.Id && d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower() 
-            || d.Email.Trim().ToLower() == model.Email.Trim().ToLower()))
+            if (dbcxt.Integrators.Any(d => d.Id != model.Id && d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
             {
                 throw new BadRequestException("Business Account with name already  exist");
             }
 
             account = new IntegratorsBuilder(account)
                 .WithBusinessName(model.BusinessName)
-                .WithFirstName(model.FirstName)
-                .WithLastName(model.LastName)
                 .WithPhone(model.Phone)
+                .WithAbout(model.About)
                 .WithId(model.Id)
                 .Build();
 
@@ -111,18 +110,5 @@ namespace vendtechext.BLL.Services
             dbcxt.Integrators.Remove(account);
             await dbcxt.SaveChangesAsync();
         }
-
-        async Task IIntegratorService.DeleteBusinessAccount(string email)
-        {
-            var account = dbcxt.Integrators.FirstOrDefault(d => d.Email.ToLower() == email.ToLower());
-            if (account == null)
-            {
-                throw new BadRequestException("Business Account not found");
-            }
-
-            dbcxt.Integrators.Remove(account);
-            await dbcxt.SaveChangesAsync();
-        }
-
     }
 }

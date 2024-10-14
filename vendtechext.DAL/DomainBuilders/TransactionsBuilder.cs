@@ -22,7 +22,7 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
-        public TransactionsBuilder WithIntegratorId(string integratorId)
+        public TransactionsBuilder WithIntegratorId(Guid integratorId)
         {
             _transaction.IntegratorId = integratorId;
             return this;

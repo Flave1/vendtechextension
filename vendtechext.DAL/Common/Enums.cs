@@ -28,4 +28,10 @@ namespace vendtechext.DAL.Common
         Warning = 2,
     }
 
+    public enum DepositStatus
+    {
+        Approved = 1,
+        Waiting = 2,
+    }
+
 }

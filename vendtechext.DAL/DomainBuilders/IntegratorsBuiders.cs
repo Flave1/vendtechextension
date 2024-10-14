@@ -21,28 +21,15 @@ namespace vendtechext.DAL.DomainBuilders
             _integrator.Id = id;
             return this;
         }
-
-        public IntegratorsBuilder WithFirstName(string firstName)
-        {
-            _integrator.FirstName = firstName;
-            return this;
-        }
-
-        public IntegratorsBuilder WithLastName(string lastName)
-        {
-            _integrator.LastName = lastName;
-            return this;
-        }
-
-        public IntegratorsBuilder WithPassword(string password)
-        {
-            _integrator.Password = password;
-            return this;
-        }
-
         public IntegratorsBuilder WithPhone(string phone)
         {
             _integrator.Phone = phone;
+            return this;
+        }
+
+        public IntegratorsBuilder WithAbout(string about)
+        {
+            _integrator.About = about;
             return this;
         }
 
@@ -51,18 +38,6 @@ namespace vendtechext.DAL.DomainBuilders
             _integrator.BusinessName = businessName;
             return this;
         }
-        public IntegratorsBuilder WithEmail(string email)
-        {
-            _integrator.Email = email;
-            return this;
-        }
-
-        public IntegratorsBuilder WithClientKey(string clientKey)
-        {
-            _integrator.Clientkey = clientKey;
-            return this;
-        }
-
         public IntegratorsBuilder WithApiKey(string apiKey)
         {
             _integrator.ApiKey = apiKey;

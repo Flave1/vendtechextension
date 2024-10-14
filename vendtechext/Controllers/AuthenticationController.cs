@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 
@@ -31,5 +34,16 @@ namespace vendtechext.Controllers
             return Ok(result);
         }
 
+        [Authorize]
+        [HttpGet("profile")]
+        public IActionResult GetProfile()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var givenName = User.FindFirst(ClaimTypes.Name)?.Value;
+            var integrator = User.FindFirst("integrator_id")?.Value;
+
+            return Ok(new { userId, email, givenName });
+        }
     }
 }

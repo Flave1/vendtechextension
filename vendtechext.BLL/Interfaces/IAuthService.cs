@@ -9,5 +9,6 @@ namespace vendtechext.BLL.Interfaces
         Task<IdentityResult> RegisterAsync(RegisterDto registerDto);
         Task<AppUser> RegisterAndReturnUserAsync(RegisterDto registerDto);
         Task<APIResponse> LoginAsync(LoginDto loginDto);
+        Task<AppUser> FindUserByEmail(string email);
     }
 }

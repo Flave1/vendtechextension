@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
 using vendtechext.Contracts;
-using vendtechext.DAL;
-using vendtechext.DAL.Models;
 
 namespace vendtechext.BLL.Common
 {
@@ -13,6 +11,11 @@ namespace vendtechext.BLL.Common
             File.WriteAllText($"{transactionId}.json", json);
             Console.WriteLine($"Response written to file {transactionId}.json");
             return json;
+        }
+
+        public static string formatDate(DateTime date)
+        {
+            return date.ToString("dd-MM-yyyy hh:mm");
         }
     }
 }

@@ -25,4 +25,8 @@
     <ProjectReference Include="..\vendtechext.DAL\vendtechext.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\Admin\" />
+  </ItemGroup>
+
 </Project>

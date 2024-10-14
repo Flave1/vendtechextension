@@ -51,6 +51,10 @@ namespace vendtechext.BLL.Middleware
                 _logger.LogError(ex, "JSON deserialization error: invalid operation.");
                 HandleExceptionAsync(httpContext, ex, "Invalid operation during deserialization.");
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                HandleExceptionAsync(httpContext, ex, "Invalid operation during deserialization.");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unhandled exception occurred.");
