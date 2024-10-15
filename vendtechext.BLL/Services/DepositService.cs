@@ -36,8 +36,6 @@ namespace vendtechext.BLL.Services
             Deposit deposit = await _repository.CreateDepositTransaction(dto, DepositStatus.Waiting);
             if(deposit != null) 
                 await _walletRepository.UpdateWalletBookBalance(wallet, deposit.BalanceAfter);
-            
-            await ApproveDeposit(new ApproveDepositRequest { DepositId = deposit.Id, IntegratorId = integratorid });
 
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully created deposit").WithType(request).GenerateResponse();
         }
@@ -57,7 +55,7 @@ namespace vendtechext.BLL.Services
 
         private async Task CreateCommision(Deposit deposit, Guid integratorid, Wallet wallet)
         {
-            decimal.TryParse("0.5", out decimal percentage);
+            decimal.TryParse("1.0", out decimal percentage);
 
             decimal commission = deposit.Amount * percentage / 100;
 
@@ -76,6 +74,12 @@ namespace vendtechext.BLL.Services
         public async Task<APIResponse> GetIntegratorDeposits(Guid integratorId)
         {
             List<DepositDto> result = await _repository.GetDeposits(integratorId, DepositStatus.Approved);
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
+        }
+
+        public async Task<APIResponse> GetPendingDeposits()
+        {
+            List<DepositDto> result = await _repository.GetDeposits(null, DepositStatus.Waiting);
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 

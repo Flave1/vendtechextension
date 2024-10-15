@@ -1,12 +1,11 @@
-﻿using Azure.Core;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
 using vendtechext.DAL.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace vendtechext.BLL.Repository
 {
@@ -119,12 +118,13 @@ namespace vendtechext.BLL.Repository
         }
         public async Task<List<LastDeposit>> GetLastDepositTransaction(Guid integratorId)
         {
-            var trans = await _context.Deposits.Where(d => d.IntegratorId == integratorId).OrderByDescending(d => d.CreatedAt).Take(2)
+            var trans = await _context.Deposits.Where(d => d.IntegratorId == integratorId).OrderByDescending(d => d.CreatedAt).Take(10)
                 .Select(d => new LastDeposit
                 {
                     Amount = d.Amount,
                     Date = Utils.formatDate(d.CreatedAt),
                     Reference = d.Reference,
+                    TransactionId = d.TransactionId,
                 })
                 .ToListAsync() ?? new List<LastDeposit>();
             return trans;
@@ -135,25 +135,41 @@ namespace vendtechext.BLL.Repository
             return await Task.Run(() => _types);
         }
 
-        public async Task<List<DepositDto>> GetDeposits(Guid integratorId, DepositStatus status)
+        public async Task<List<DepositDto>> GetDeposits(Guid? integratorId, DepositStatus status)
         {
-            return await _context.Deposits.Where(d => d.IntegratorId == integratorId && d.Deleted == false && d.Status == (int)status)
-                .Include(t => t.Integrator)
-                .Select(d => new DepositDto
-                {
-                    Reference = d.Reference,
-                    BalanceBefore = d.BalanceBefore,
-                    Amount = d.Amount,
-                    BalanceAfter = d.BalanceAfter,
-                    IntegratorId = integratorId,
-                    TransactionId = d.TransactionId,
-                    Id = d.Id,
-                    IntegratorName = d.Integrator.BusinessName,
-                    PaymentTypeName = "CASH",
-                    WalletId = _context.Wallets.FirstOrDefault(f => f.IntegratorId == integratorId).WALLET_ID,
-                    Date = Utils.formatDate(d.CreatedAt)
-                }).ToListAsync();
-        } 
+            string[] types = { "BANK DEPOSIT", "TRANSFER", "CASH" };
+            IQueryable<Deposit> query = _context.Deposits.Where(d => d.Deleted == false && d.Status == (int)status).OrderByDescending(d => d.CreatedAt).Include(t => t.Integrator);
+            List<DepositDto> result = new List<DepositDto>();
+            if (integratorId == null)
+            {
+                result = await query
+              .Select(d => new DepositDto(d)).ToListAsync();
 
+                if (result.Any())
+                {
+                    for (var i = 0; i < result.Count; i++)
+                    {
+                        result[i].PaymentTypeName = "CASH";
+                        result[i].WalletId = _context.Wallets.FirstOrDefault(f => f.IntegratorId == result[i].IntegratorId).WALLET_ID;
+                        result[i].Date = Utils.formatDate(result[i].InternalDate);
+                    }
+                }
+            }
+            else
+            {
+                result = await query.Where(d => d.IntegratorId == integratorId.Value)
+                .Select(d => new DepositDto(d)).ToListAsync();
+                if (result.Any())
+                {
+                    for (var i = 0; i < result.Count; i++)
+                    {
+                        result[i].PaymentTypeName = "CASH";
+                        result[i].WalletId = _context.Wallets.FirstOrDefault(f => f.IntegratorId == result[i].IntegratorId).WALLET_ID;
+                        result[i].Date = Utils.formatDate(result[i].InternalDate);
+                    }
+                }
+            }
+            return result;
+        }
     }
 }

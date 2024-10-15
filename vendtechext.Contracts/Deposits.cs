@@ -1,4 +1,7 @@
-﻿namespace vendtechext.Contracts
+﻿using Microsoft.EntityFrameworkCore;
+using vendtechext.DAL.Models;
+
+namespace vendtechext.Contracts
 {
     public class DepositDto
     {
@@ -13,6 +16,19 @@
         public string WalletId { get; set; }
         public string IntegratorName { get; set; }
         public string Date { get; set; }
+        public DateTime InternalDate;
+        public DepositDto(Deposit d)
+        {
+            Reference = d.Reference;
+            BalanceBefore = d.BalanceBefore;
+            Amount = d.Amount;
+            BalanceAfter = d.BalanceAfter;
+            IntegratorId = d.IntegratorId;
+            TransactionId = d.TransactionId;
+            Id = d.Id;
+            IntegratorName = d.Integrator.BusinessName;
+            InternalDate = d.CreatedAt;
+        }
     }
 
     public class CreateDepositDto
@@ -58,5 +74,6 @@
         public string Date { get; set; }
         public string Reference { get; set; }
         public decimal Amount { get; set; }
+        public string TransactionId { get; set; }
     }
 }

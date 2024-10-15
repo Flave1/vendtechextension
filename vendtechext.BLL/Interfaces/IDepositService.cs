@@ -8,6 +8,7 @@ namespace vendtechext.BLL.Interfaces
         Task<APIResponse> CreateDeposit(DepositRequest request, Guid integratorid);
         Task<APIResponse> GetIntegratorDeposits(Guid integratorId);
         Task<APIResponse> GetPaymentTypes();
+        Task<APIResponse> GetPendingDeposits();
         Task<APIResponse> GetWalletBalance(Guid integratorId, bool includeLastDeposit);
     }
 }

@@ -81,14 +81,14 @@ namespace vendtechext.BLL.Services
             {
                 Subject = new ClaimsIdentity(new[] 
                 {
-                    new Claim("integrator_name", integrator_infor == null ? "": integrator_infor.BusinessName),
                     new Claim("integrator_id", integrator_infor == null ? "": integrator_infor.Id.ToString()),
                     new Claim("user_id", user.Id),
+                    new Claim("logo", integrator_infor == null ? "": integrator_infor.Logo),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(ClaimTypes.Name, integrator_infor?.Id.ToString()), 
-                    new Claim(JwtRegisteredClaimNames.Aud, "vendtech"), // Audience
-                    new Claim(JwtRegisteredClaimNames.Iss, "vendtech")  // Add this line for issuer
+                    new Claim(ClaimTypes.Name, integrator_infor == null ? "": integrator_infor?.Id.ToString()), 
+                    new Claim(JwtRegisteredClaimNames.Aud, "vendtech"), 
+                    new Claim(JwtRegisteredClaimNames.Iss, "vendtech")  
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 

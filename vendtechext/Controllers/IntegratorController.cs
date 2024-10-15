@@ -10,9 +10,13 @@ namespace vendtechext.Controllers
     public class IntegratorController : BaseController
     {
         private readonly IIntegratorService service;
-        public IntegratorController(ILogger<BaseController> logger, IIntegratorService b2bAccountService) : base(logger)
+        private readonly IDepositService _depositService;
+        private readonly IHttpContextAccessor _contextAccessor;
+        public IntegratorController(ILogger<BaseController> logger, IIntegratorService b2bAccountService, IDepositService depositService, IHttpContextAccessor contextAccessor) : base(logger)
         {
             service = b2bAccountService;
+            _depositService = depositService;
+            _contextAccessor = contextAccessor;
         }
 
 
@@ -30,5 +34,12 @@ namespace vendtechext.Controllers
             return Ok(businessUser);
         }
 
+        [HttpGet("get-wallet-balance")]
+        public async Task<IActionResult> GetBalance(bool includeLastDeposit)
+        {
+            var integrator_id = Guid.Parse(_contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "integrator_id")?.Value ?? "");
+            var result = await _depositService.GetWalletBalance(integrator_id, includeLastDeposit);
+            return Ok(result);
+        }
     }
 }

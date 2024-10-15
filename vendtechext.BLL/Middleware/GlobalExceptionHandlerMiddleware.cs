@@ -75,6 +75,10 @@ namespace vendtechext.BLL.Middleware
             {
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
             }
+            else if(exception is UnauthorizedAccessException)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            }
             else
             {
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

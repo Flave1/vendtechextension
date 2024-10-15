@@ -41,7 +41,7 @@ namespace vendtechext.DAL.DomainBuilders
 
         public WalletBuilder SetBookBalance(decimal bookBalance)
         {
-            _wallet.Balance = bookBalance;
+            _wallet.BookBalance = bookBalance;
             return this;
         }
 
