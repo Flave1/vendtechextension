@@ -8,12 +8,12 @@ namespace vendtechext.Controllers
     [ApiController]
     [Route("deposit/v1/")]
     [Authorize]
-    public class DepositController : ControllerBase
+    public class DashboardDepositController : ControllerBase
     {
         private readonly IDepositService _depositService;
         private readonly IHttpContextAccessor _contextAccessor;
 
-        public DepositController(IDepositService depositService, IHttpContextAccessor contextAccessor)
+        public DashboardDepositController(IDepositService depositService, IHttpContextAccessor contextAccessor)
         {
             _depositService = depositService;
             _contextAccessor = contextAccessor;

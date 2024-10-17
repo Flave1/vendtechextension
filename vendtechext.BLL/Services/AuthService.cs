@@ -8,6 +8,7 @@ using System.Text;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
+using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -52,6 +53,7 @@ namespace vendtechext.BLL.Services
                 Email = registerDto.Email,
                 FirstName = registerDto.Firstname,
                 LastName = registerDto.Lastname,
+                UserType = (int)registerDto.UserType,
             };
 
             IdentityResult result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -98,5 +100,24 @@ namespace vendtechext.BLL.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("You have succesffully logged in").WithType(tokenHandler.WriteToken(token)).GenerateResponse();
         }
+
+
+        public async Task<APIResponse> GetProfileAsync(string userId)
+        {
+            string businessName;
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                throw new BadRequestException("User does not exist");
+
+            if (user.UserType == (int)UserType.External)
+                businessName = _dataContext.Integrators.FirstOrDefault(d => d.AppUserId == user.Id).BusinessName;
+            else
+                businessName = "VENDTECH";
+
+            var profile = new ProfileDto(user, businessName);
+
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(profile).GenerateResponse();
+        }
+
     }
 }

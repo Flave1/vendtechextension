@@ -4,6 +4,7 @@ using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
+using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
@@ -57,6 +58,7 @@ namespace vendtechext.BLL.Services
                 Lastname = model.LastName,
                 Password = "Password@123",
                 Username = model.FirstName,
+                UserType = UserType.External
             });
 
             if (userAccount != null)

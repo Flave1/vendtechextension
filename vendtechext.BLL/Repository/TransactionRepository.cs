@@ -24,61 +24,7 @@ namespace vendtechext.BLL.Repository
             _context = context;
         }
 
-        public async Task<Transaction> CreateSaleTransactionLog(ElectricitySaleRequest request, Guid integratorId)
-        {
-            var trans = new TransactionsBuilder()
-                .WithTransactionId(UniqueIDGenerator.NewSaleTransactionId())
-                .WithTransactionStatus(TransactionStatus.Pending)
-                .WithTransactionUniqueId(request.TransactionId)
-                .WithMeterNumber(request.MeterNumber)
-                .WithIntegratorId(integratorId)
-                .WithCreatedAt(DateTime.Now)
-                .WithAmount(request.Amount)
-                .Build();
-
-            _context.Transactions.Add(trans);
-            await _context.SaveChangesAsync();
-            return trans;
-        }
-
-        public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
-        {
-            new TransactionsBuilder(trans)
-                .WithVendStatusDescription(executionResult.SuccessResponse.Voucher.VendStatusDescription)
-                .WithTransactionStatus(TransactionStatus.Success)
-                .WithReceivedFrom(executionResult.ReceivedFrom)
-                .WithResponse(executionResult.Response)
-                .WithRequest(executionResult.Request)
-                .WithFinalized(true)
-                .Build();
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateSaleFailedTransactionLog(ExecutionResult executionResult, Transaction trans)
-        {
-            new TransactionsBuilder(trans)
-                .WithVendStatusDescription(executionResult.FailedResponse.ErrorDetail)
-                .WithTransactionStatus(TransactionStatus.Failed)
-                .WithReceivedFrom(executionResult.ReceivedFrom)
-                .WithResponse(executionResult.Response)
-                .WithRequest(executionResult.Request)
-                .Build();
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<Transaction> GetSaleTransaction(string transactionId, Guid integratorid)
-        {
-            var trans = await _context.Transactions.FirstOrDefaultAsync(d => d.TransactionUniqueId == transactionId && d.IntegratorId == integratorid) ?? null;
-            return trans;
-        }
-
-        public async Task SalesInternalValidation(ElectricitySaleRequest request, Guid integratorid)
-        {
-            if (await _context.Transactions.AnyAsync(d => d.IntegratorId == integratorid && d.TransactionUniqueId == request.TransactionId))
-                throw new BadRequestException("Transaction ID already exist for this terminal.");
-        }
+        #region DEPOSITS TRANSACTION REGION
 
 
         public async Task<Deposit> CreateDepositTransaction(CreateDepositDto dto, DepositStatus status)
@@ -171,5 +117,79 @@ namespace vendtechext.BLL.Repository
             }
             return result;
         }
+
+
+        #endregion
+
+        #region SALES TRANSACTIONS REGION
+
+
+        public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
+        {
+            new TransactionsBuilder(trans)
+                .WithVendStatusDescription(executionResult.SuccessResponse.Voucher.VendStatusDescription)
+                .WithTransactionStatus(TransactionStatus.Success)
+                .WithReceivedFrom(executionResult.ReceivedFrom)
+                .WithResponse(executionResult.Response)
+                .WithRequest(executionResult.Request)
+                .WithFinalized(true)
+                .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateSaleFailedTransactionLog(ExecutionResult executionResult, Transaction trans)
+        {
+            new TransactionsBuilder(trans)
+                .WithVendStatusDescription(executionResult.FailedResponse.ErrorDetail)
+                .WithTransactionStatus(TransactionStatus.Failed)
+                .WithReceivedFrom(executionResult.ReceivedFrom)
+                .WithResponse(executionResult.Response)
+                .WithRequest(executionResult.Request)
+                .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SalesInternalValidation(ElectricitySaleRequest request, Guid integratorid)
+        {
+            if (await _context.Transactions.AnyAsync(d => d.IntegratorId == integratorid && d.TransactionUniqueId == request.TransactionId))
+                throw new BadRequestException("Transaction ID already exist for this terminal.");
+        }
+
+
+        public async Task<Transaction> GetSaleTransaction(string transactionId, Guid integratorid)
+        {
+            var trans = await _context.Transactions.FirstOrDefaultAsync(d => d.TransactionUniqueId == transactionId && d.IntegratorId == integratorid) ?? null;
+            return trans;
+        }
+
+        public async Task<Transaction> CreateSaleTransactionLog(ElectricitySaleRequest request, Guid integratorId)
+        {
+            var trans = new TransactionsBuilder()
+                .WithTransactionId(UniqueIDGenerator.NewSaleTransactionId())
+                .WithTransactionStatus(TransactionStatus.Pending)
+                .WithTransactionUniqueId(request.TransactionId)
+                .WithMeterNumber(request.MeterNumber)
+                .WithIntegratorId(integratorId)
+                .WithCreatedAt(DateTime.Now)
+                .WithAmount(request.Amount)
+                .Build();
+
+            _context.Transactions.Add(trans);
+            await _context.SaveChangesAsync();
+            return trans;
+        }
+
+        public IQueryable<Transaction> GetSalesTransactionQuery(int status, int claimedStatus, Guid integratorId)
+        {
+            var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status 
+            && d.ClaimedStatus == claimedStatus 
+            && d.IntegratorId == integratorId);
+            return query;
+        }
+
+        #endregion
+
     }
 }

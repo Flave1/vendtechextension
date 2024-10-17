@@ -11,12 +11,12 @@ namespace vendtechext.Controllers
     [ApiController]
     [Route("sales/v1/")]
     [EndpointValidator]
-    public class ElectricitySalesController : BaseController
+    public class APISalesController : BaseController
     {
-        private readonly IElectricitySalesService service;
+        private readonly IAPISalesService service;
         private LogService _log;
 
-        public ElectricitySalesController(ILogger<ElectricitySalesController> logger, IElectricitySalesService salesService, LogService log) : base(logger)
+        public APISalesController(ILogger<APISalesController> logger, IAPISalesService salesService, LogService log) : base(logger)
         {
             service = salesService;
             _log = log;

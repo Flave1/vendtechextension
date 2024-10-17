@@ -135,8 +135,9 @@ builder.Services.AddSignalR();
 
 // Dependency Injection
 builder.Services.AddScoped<IIntegratorService, IntegratorService>();
-builder.Services.AddScoped<IElectricitySalesService, SalesService>();
+builder.Services.AddScoped<IAPISalesService, APISalesService>();
 builder.Services.AddScoped<IDepositService, DepositService>();
+builder.Services.AddScoped<ISalesService, SalesService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RequestExecutionContext>();
 builder.Services.AddScoped<TransactionRepository>();

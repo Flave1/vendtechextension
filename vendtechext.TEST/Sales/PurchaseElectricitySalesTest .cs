@@ -11,12 +11,12 @@ namespace vendtechext.TEST.Sales
     public class PurchaseElectricitySalesTest
     {
         private readonly HttpClient _client;
-        private readonly Mock<IElectricitySalesService> _mockSalesService;
+        private readonly Mock<IAPISalesService> _mockSalesService;
         public PurchaseElectricitySalesTest()
         {
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
-            _mockSalesService = new Mock<IElectricitySalesService>();
+            _mockSalesService = new Mock<IAPISalesService>();
         }
 
         [Theory]

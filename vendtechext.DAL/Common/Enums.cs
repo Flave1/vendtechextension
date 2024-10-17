@@ -34,4 +34,16 @@ namespace vendtechext.DAL.Common
         Waiting = 2,
     }
 
+
+    public enum ClaimedStatus
+    {
+        Unclaimed = -1,
+        Claimed = 0,
+    }
+
+    public enum UserType
+    {
+        Internal = 0,
+        External = 1
+    }
 }

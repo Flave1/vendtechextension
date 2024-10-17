@@ -1,3 +1,4 @@
+using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
@@ -36,14 +37,11 @@ namespace vendtechext.Controllers
 
         [Authorize]
         [HttpGet("profile")]
-        public IActionResult GetProfile()
+        public async Task<IActionResult> GetProfile()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            var givenName = User.FindFirst(ClaimTypes.Name)?.Value;
-            var integrator = User.FindFirst("integrator_id")?.Value;
-
-            return Ok(new { userId, email, givenName });
+            var result = await _authService.GetProfileAsync(userId);
+            return Ok(result);
         }
     }
 }
