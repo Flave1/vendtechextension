@@ -1,7 +1,5 @@
-using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
@@ -27,11 +25,33 @@ namespace vendtechext.Controllers
             var result = await _authService.LoginAsync(request);
             return Ok(result);
         }
-
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto request)
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto request)
         {
-            var result = await _authService.RegisterAsync(request);
+            var result = await _authService.RefreshTokenAsync(request);
+            return Ok(result);
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ChangeForgottenPassword([FromBody] ForgotPassword request)
+        {
+            var result = await _authService.ChangeForgottenPassword(request.AppUserId, request.Token, request.NewPassword);
+            return Ok(result);
+        }
+
+        [HttpPost("generate-password-reset-token")]
+        public async Task<IActionResult> GenerateResetLink([FromBody] ResetToken request)
+        {
+            var result = await _authService.GeneratePasswordResetToken(request.Email);
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePsssword([FromBody] ChangePassword request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await _authService.ChangePassword(userId, request.OldPassword, request.NewPassword);
             return Ok(result);
         }
 

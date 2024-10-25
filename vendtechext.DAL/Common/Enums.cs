@@ -37,6 +37,8 @@ namespace vendtechext.DAL.Common
 
     public enum ClaimedStatus
     {
+
+        All = -2,
         Unclaimed = -1,
         Claimed = 0,
     }
@@ -45,5 +47,11 @@ namespace vendtechext.DAL.Common
     {
         Internal = 0,
         External = 1
+    }
+
+    public enum UserAccountStatus
+    {
+        Disabled = 0,
+        Active = 1,
     }
 }

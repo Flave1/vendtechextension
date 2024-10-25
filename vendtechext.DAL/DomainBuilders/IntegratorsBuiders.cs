@@ -1,4 +1,5 @@
-﻿using vendtechext.DAL.Models;
+﻿using System.Numerics;
+using vendtechext.DAL.Models;
 
 namespace vendtechext.DAL.DomainBuilders
 {
@@ -21,11 +22,7 @@ namespace vendtechext.DAL.DomainBuilders
             _integrator.Id = id;
             return this;
         }
-        public IntegratorsBuilder WithPhone(string phone)
-        {
-            _integrator.Phone = phone;
-            return this;
-        }
+
 
         public IntegratorsBuilder WithAbout(string about)
         {
@@ -50,9 +47,20 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public IntegratorsBuilder WithDisabled(Boolean disabled)
+        {
+            _integrator.Disabled = disabled;
+            return this;
+        }
+
         public Integrator Build()
         {
             return _integrator;
+        }
+
+        public object WithAbout(object about)
+        {
+            throw new NotImplementedException();
         }
     }
 

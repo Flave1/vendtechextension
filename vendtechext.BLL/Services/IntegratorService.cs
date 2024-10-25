@@ -13,43 +13,44 @@ namespace vendtechext.BLL.Services
 {
     public class IntegratorService : BaseService, IIntegratorService
     {
-        private readonly DataContext dbcxt;
+        private readonly DataContext _dbcxt;
         private readonly IAuthService _authService;
         private readonly WalletRepository _walletRepository;
         public IntegratorService(DataContext dbcxt, IAuthService authService, WalletRepository walletRepository)
         {
-            this.dbcxt = dbcxt;
+            this._dbcxt = dbcxt;
             _authService = authService;
             _walletRepository = walletRepository;
         }
 
         async Task<BusinessUserDTO> IIntegratorService.GetIntegrator(string apiKey)
         {
-            return await dbcxt.Integrators.Where(d => d.ApiKey == apiKey).Select(f => new BusinessUserDTO
+            return await _dbcxt.Integrators.Where(d => d.ApiKey == apiKey).Select(f => new BusinessUserDTO
             {
                 ApiKey = apiKey,
                 BusinessName = f.BusinessName,
                 Id = f.Id,
-                Phone = f.Phone,
                 About = f.About
             }).FirstOrDefaultAsync() ?? null;
         }
         async Task<(string, string)> IIntegratorService.GetIntegratorIdAndName(string apiKey)
         {
-            var integrator = await dbcxt.Integrators.FirstOrDefaultAsync(d => d.ApiKey == apiKey);
+            var integrator = await _dbcxt.Integrators.FirstOrDefaultAsync(d => d.ApiKey == apiKey);
             if(integrator == null)
                 return ("404", "not_found");
+            if (integrator.Disabled)
+                return ("403", "forbidden");
             return (integrator.Id.ToString(), integrator.BusinessName);
         }
 
-        async Task IIntegratorService.CreateBusinessAccount(BusinessUserCommandDTO model)
+        async Task<APIResponse> IIntegratorService.CreateBusinessAccount(BusinessUserCommandDTO model)
         {
             AppUser userAccount = await _authService.FindUserByEmail(model.Email);
 
             if(userAccount != null)
                 throw new BadRequestException("Business Account with Email already  exist");
 
-            if (dbcxt.Integrators.Any(d => d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
+            if (_dbcxt.Integrators.Any(d => d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
                 throw new BadRequestException("Business Account with name already  exist");
 
             userAccount = await _authService.RegisterAndReturnUserAsync(new RegisterDto {
@@ -57,8 +58,9 @@ namespace vendtechext.BLL.Services
                 Email = model.Email,
                 Lastname = model.LastName,
                 Password = "Password@123",
-                Username = model.FirstName,
-                UserType = UserType.External
+                Username = model.Email,
+                UserType = UserType.External,
+                Phone = model.Phone,
             });
 
             if (userAccount != null)
@@ -67,50 +69,144 @@ namespace vendtechext.BLL.Services
                 .WithApiKey(AesEncryption.Encrypt(model.BusinessName + model.Email + model.Phone))
                 .WithBusinessName(model.BusinessName)
                 .WithAppUserId(userAccount.Id)
-                .WithPhone(model.Phone)
+                .WithAbout(model.About)
+                .WithDisabled(false)
                 .Build();
 
-                dbcxt.Integrators.Add(account);
-                await dbcxt.SaveChangesAsync();
+                _dbcxt.Integrators.Add(account);
+                await _dbcxt.SaveChangesAsync();
 
-
-                Wallet wallet = await _walletRepository.CreateWallet(account.Id);
+                await _walletRepository.CreateWallet(account.Id);
             }
 
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully created integrator").WithType(model).GenerateResponse();
         }
 
-        async Task IIntegratorService.UpdateBusinessAccount(BusinessUserDTO model)
+        async Task<APIResponse> IIntegratorService.UpdateBusinessAccount(BusinessUserDTO model)
         {
-            var account = dbcxt.Integrators.FirstOrDefault(d => d.Id == model.Id);
+            var account = _dbcxt.Integrators.FirstOrDefault(d => d.Id == model.Id);
             if (account == null)
             {
                 throw new BadRequestException("Business Account not found");
             }
-            if (dbcxt.Integrators.Any(d => d.Id != model.Id && d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
+            if (_dbcxt.Integrators.Any(d => d.Id != model.Id && d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
             {
                 throw new BadRequestException("Business Account with name already  exist");
             }
 
+            AppUser userAccount = await _authService.UpdateAndReturnUserAsync(new RegisterDto
+            {
+                Firstname = model.FirstName,
+                Email = model.Email,
+                Lastname = model.LastName,
+                Username = model.Email,
+                UserType = UserType.External,
+                Phone = model.Phone,
+            }, model.AppUserId);
+
             account = new IntegratorsBuilder(account)
                 .WithBusinessName(model.BusinessName)
-                .WithPhone(model.Phone)
                 .WithAbout(model.About)
                 .WithId(model.Id)
                 .Build();
-
-            await dbcxt.SaveChangesAsync();
+            await _dbcxt.SaveChangesAsync();
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully updated account").WithType(model).GenerateResponse();
         }
 
-        async Task IIntegratorService.DeleteBusinessAccount(Guid Id)
+        async Task<APIResponse> IIntegratorService.DeleteBusinessAccount(Guid Id)
         {
-            var account = dbcxt.Integrators.FirstOrDefault(d => d.Id == Id);
+            var account = _dbcxt.Integrators.FirstOrDefault(d => d.Id == Id);
             if (account == null)
             {
                 throw new BadRequestException("Business Account not found");
             }
 
-            dbcxt.Integrators.Remove(account);
-            await dbcxt.SaveChangesAsync();
+            _dbcxt.Integrators.Remove(account);
+            await _dbcxt.SaveChangesAsync();
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully updated account").WithType(Id).GenerateResponse();
         }
+
+
+        public async Task<APIResponse> GetIntegrators(PaginatedSearchRequest req)
+        {
+            IQueryable<Integrator> query = _dbcxt.Integrators.Where(d => d.Deleted == false && d.AppUser.UserType == (int)UserType.External && req.Status == d.AppUser.UserAccountStatus)
+                .Include(d => d.AppUser).Include(d => d.Wallet);
+
+            query = FilterQuery(req, query);
+
+            int totalRecords = await query.CountAsync();
+
+            query = query.Skip((req.PageNumber - 1) * req.PageSize).Take(req.PageSize);
+
+            List<BusinessUserListDTO> transactions = await query.Select(d => new BusinessUserListDTO(d)).ToListAsync();
+
+            PagedResponse<BusinessUserListDTO> result = new PagedResponse<BusinessUserListDTO>(transactions, totalRecords, req.PageNumber, req.PageSize);
+
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
+        }
+
+        public async Task<APIResponse> GetIntegrator(Guid id)
+        {
+            BusinessUserListDTO result = await _dbcxt.Integrators.Where(d => d.Deleted == false && d.Id == id)
+                .Include(d => d.AppUser).Include(d => d.Wallet).Select(d => new BusinessUserListDTO(d)).FirstOrDefaultAsync();
+
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
+        }
+
+        private IQueryable<Integrator> FilterQuery(PaginatedSearchRequest req, IQueryable<Integrator> query)
+        {
+            if (!string.IsNullOrEmpty(req.From))
+            {
+                var fromDate = DateTime.Parse(req.From).Date;
+                query = query.Where(p => p.CreatedAt.Date >= fromDate);
+            }
+
+            if (!string.IsNullOrEmpty(req.To))  
+            {
+                var toDate = DateTime.Parse(req.To).Date;
+                query = query.Where(p => p.CreatedAt.Date <= toDate);
+            }
+
+            if (Utils.IsAscending(req.SortOrder))
+                query = query.OrderBy(d => d.CreatedAt);
+            else
+                query = query.OrderByDescending(d => d.CreatedAt);
+
+            if (!string.IsNullOrEmpty(req.SortValue))
+            {
+                if (req.SortBy == "FIRST_NAME")
+                    query = query.Where(d => d.AppUser.FirstName.Contains(req.SortValue));
+                else if (req.SortBy == "BUSINESS_NAME")
+                    query = query.Where(d => d.BusinessName.ToString().Contains(req.SortValue));
+                else if (req.SortBy == "LAST_NAME")
+                    query = query.Where(d => d.AppUser.LastName.Contains(req.SortValue));
+                else if (req.SortBy == "BALANCE")
+                    query = query.Where(d => d.Wallet.Balance.ToString().Contains(req.SortValue));
+                else if (req.SortBy == "EMAIL")
+                    query = query.Where(d => d.AppUser.Email.Contains(req.SortValue));
+                else if (req.SortBy == "PHONE")
+                    query = query.Where(d => d.AppUser.PhoneNumber.Contains(req.SortValue));
+                else if (req.SortBy == "WALLET_ID")
+                    query = query.Where(d => d.Wallet.WALLET_ID.Contains(req.SortValue));
+            }
+            return query;
+        }
+
+
+        async Task<APIResponse> IIntegratorService.EnableDisable(EnableIntegrator model)
+        {
+            var account = _dbcxt.Integrators.Where(d => d.Id == model.IntegratorId).Include(d => d.AppUser).FirstOrDefault();
+            if (account == null)
+            {
+                throw new BadRequestException("Business Account not found");
+            }
+
+            account.AppUser.UserAccountStatus = model.Enable ? (int)UserAccountStatus.Active : (int)UserAccountStatus.Disabled;
+            account.Disabled = !model.Enable;
+
+            await _dbcxt.SaveChangesAsync();
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully updated account").WithType(model).GenerateResponse();
+        }
+
     }
 }

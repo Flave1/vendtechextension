@@ -4,10 +4,14 @@
     {
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
-        public int Status { get; set; }
-        public int ClaimedStatus { get; set; }
-        public Guid IntegratorId { get; set; }
-        public string TransactionId { get; set; }
+        public string SortOrder { get; set; } = "Desc";
+        public string SortBy { get; set; } = "CreatedAt";
+        public string SortValue { get; set; } = "";
+        public string From { get; set; } = "";
+        public string To { get; set; } = "";
+        public Guid? IntegratorId { get; set; } = null;
+        public int Status { get; set; } = 1;
+        public int IsClaimedStatus { get; set; } = 0;
     }
 
     public class PagedResponse<T>

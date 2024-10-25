@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Ocsp;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.Contracts;
@@ -23,6 +24,22 @@ namespace vendtechext.BLL.Repository
         {
             _context = context;
         }
+
+        #region COMMON
+        public TodaysTransaction GetTodaysTransaction(Guid integratorId)
+        {
+            var todaysDate = DateTime.UtcNow.Date;
+
+            return new TodaysTransaction
+            {
+                Deposits = _context.Transactions.FirstOrDefault(d => d.Deleted == false
+                && d.IntegratorId == integratorId && d.TransactionStatus == (int)TransactionStatus.Success
+                && d.CreatedAt.Date == todaysDate).Amount,
+                Sales = _context.Wallets.FirstOrDefault(d => d.Deleted == false
+                && d.IntegratorId == integratorId  && d.CreatedAt.Date == todaysDate).Balance
+            };
+        }
+        #endregion
 
         #region DEPOSITS TRANSACTION REGION
 
@@ -57,20 +74,28 @@ namespace vendtechext.BLL.Repository
 
         public async Task<Deposit> GetDepositTransaction(Guid Id)
         {
-            var trans = await _context.Deposits.FirstOrDefaultAsync(d => d.Id == Id) ?? null;
+            var trans = await _context.Deposits.FirstOrDefaultAsync(d => d.Id == Id && d.Deleted == false) ?? null;
             if (trans == null)
                 throw new BadRequestException("Unable to find deposit");
             return trans;
         }
+        public async Task DeleteDepositTransaction(Deposit deposit)
+        {
+            if (deposit == null)
+                throw new BadRequestException("Unable to find deposit");
+            deposit.Deleted = true;
+            await _context.SaveChangesAsync();
+        }
         public async Task<List<LastDeposit>> GetLastDepositTransaction(Guid integratorId)
         {
-            var trans = await _context.Deposits.Where(d => d.IntegratorId == integratorId).OrderByDescending(d => d.CreatedAt).Take(10)
+            var trans = await _context.Deposits.Where(d => d.IntegratorId == integratorId && d.Deleted == false).OrderByDescending(d => d.CreatedAt).Take(10)
                 .Select(d => new LastDeposit
                 {
                     Amount = d.Amount,
                     Date = Utils.formatDate(d.CreatedAt),
                     Reference = d.Reference,
                     TransactionId = d.TransactionId,
+                    Status = d.Status
                 })
                 .ToListAsync() ?? new List<LastDeposit>();
             return trans;
@@ -81,48 +106,16 @@ namespace vendtechext.BLL.Repository
             return await Task.Run(() => _types);
         }
 
-        public async Task<List<DepositDto>> GetDeposits(Guid? integratorId, DepositStatus status)
+        public IQueryable<Deposit> GetDepositsQuery(DepositStatus status)
         {
-            string[] types = { "BANK DEPOSIT", "TRANSFER", "CASH" };
-            IQueryable<Deposit> query = _context.Deposits.Where(d => d.Deleted == false && d.Status == (int)status).OrderByDescending(d => d.CreatedAt).Include(t => t.Integrator);
-            List<DepositDto> result = new List<DepositDto>();
-            if (integratorId == null)
-            {
-                result = await query
-              .Select(d => new DepositDto(d)).ToListAsync();
-
-                if (result.Any())
-                {
-                    for (var i = 0; i < result.Count; i++)
-                    {
-                        result[i].PaymentTypeName = "CASH";
-                        result[i].WalletId = _context.Wallets.FirstOrDefault(f => f.IntegratorId == result[i].IntegratorId).WALLET_ID;
-                        result[i].Date = Utils.formatDate(result[i].InternalDate);
-                    }
-                }
-            }
-            else
-            {
-                result = await query.Where(d => d.IntegratorId == integratorId.Value)
-                .Select(d => new DepositDto(d)).ToListAsync();
-                if (result.Any())
-                {
-                    for (var i = 0; i < result.Count; i++)
-                    {
-                        result[i].PaymentTypeName = "CASH";
-                        result[i].WalletId = _context.Wallets.FirstOrDefault(f => f.IntegratorId == result[i].IntegratorId).WALLET_ID;
-                        result[i].Date = Utils.formatDate(result[i].InternalDate);
-                    }
-                }
-            }
-            return result;
+            IQueryable<Deposit> query = _context.Deposits.Where(d => d.Deleted == false && d.Status == (int)status)
+                .Include(t => t.Integrator).ThenInclude(d => d.Wallet);
+            return query;
         }
-
 
         #endregion
 
         #region SALES TRANSACTIONS REGION
-
 
         public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
@@ -157,7 +150,6 @@ namespace vendtechext.BLL.Repository
                 throw new BadRequestException("Transaction ID already exist for this terminal.");
         }
 
-
         public async Task<Transaction> GetSaleTransaction(string transactionId, Guid integratorid)
         {
             var trans = await _context.Transactions.FirstOrDefaultAsync(d => d.TransactionUniqueId == transactionId && d.IntegratorId == integratorid) ?? null;
@@ -181,12 +173,18 @@ namespace vendtechext.BLL.Repository
             return trans;
         }
 
-        public IQueryable<Transaction> GetSalesTransactionQuery(int status, int claimedStatus, Guid integratorId)
+        public IQueryable<Transaction> GetSalesTransactionQuery(int status, int claimedStatus)
         {
-            var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status 
-            && d.ClaimedStatus == claimedStatus 
-            && d.IntegratorId == integratorId);
-            return query;
+            if(claimedStatus == (int)ClaimedStatus.All)
+            {
+                var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status);
+                return query;
+            }
+            else
+            {
+                var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status && d.ClaimedStatus == claimedStatus);
+                return query;
+            }
         }
 
         #endregion

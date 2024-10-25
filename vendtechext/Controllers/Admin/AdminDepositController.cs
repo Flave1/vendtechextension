@@ -26,17 +26,17 @@ namespace vendtechext.Controllers
             return Ok(result);
         }
 
-        [HttpGet("get-pending")]
-        public async Task<IActionResult> GetPaymentTypes()
+        [HttpPost("get-pending")]
+        public async Task<IActionResult> GetPaymentTypes([FromBody] PaginatedSearchRequest request)
         {
-            var result = await _depositService.GetPendingDeposits();
+            var result = await _depositService.GetPendingDeposits(request);
             return Ok(result);
         }
 
-        [HttpGet("get")]
-        public async Task<IActionResult> Get(Guid integrator_id)
+        [HttpPost("get")]
+        public async Task<IActionResult> Get([FromBody]PaginatedSearchRequest request)
         {
-            var result = await _depositService.GetIntegratorDeposits(integrator_id);
+            var result = await _depositService.GetIntegratorDeposits(request);
             return Ok(result);
         }
 

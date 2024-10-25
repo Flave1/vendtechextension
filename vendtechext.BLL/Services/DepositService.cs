@@ -1,4 +1,7 @@
-﻿using vendtechext.BLL.Common;
+﻿using MailKit.Search;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using vendtechext.BLL.Common;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
@@ -42,10 +45,14 @@ namespace vendtechext.BLL.Services
 
         public async Task<APIResponse> ApproveDeposit(ApproveDepositRequest request)
         {
-            var wallet = await _walletRepository.GetWalletByIntegratorId(request.IntegratorId);
- 
             Deposit deposit = await _repository.GetDepositTransaction(request.DepositId);
+            if (!request.Approve)
+            {
+                await _repository.DeleteDepositTransaction(deposit);
+                return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully Cancelled deposit").WithType(request).GenerateResponse();
+            }
 
+            Wallet wallet = await _walletRepository.GetWalletByIntegratorId(request.IntegratorId);
             await _repository.ApproveDepositTransaction(deposit);
             await _walletRepository.UpdateWalletBookBalance(wallet, deposit.BalanceAfter);
             await CreateCommision(deposit, request.IntegratorId, wallet);
@@ -71,15 +78,70 @@ namespace vendtechext.BLL.Services
             await _walletRepository.UpdateWalletRealBalance(wallet, deposit.BalanceAfter);
         }
 
-        public async Task<APIResponse> GetIntegratorDeposits(Guid integratorId)
+        public async Task<APIResponse> GetIntegratorDeposits(PaginatedSearchRequest req)
         {
-            List<DepositDto> result = await _repository.GetDeposits(integratorId, DepositStatus.Approved);
+            IQueryable<Deposit> query = _repository.GetDepositsQuery((DepositStatus)req.Status);
+
+            query = FilterQuery(req, query);
+            
+            int totalRecords = await query.CountAsync();
+
+            query = query.Skip((req.PageNumber - 1) * req.PageSize).Take(req.PageSize);
+
+            List<DepositDto> transactions = await query.Select(d => new DepositDto(d)).ToListAsync();
+
+            PagedResponse<DepositDto> result = new PagedResponse<DepositDto>(transactions, totalRecords, req.PageNumber, req.PageSize);
+
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 
-        public async Task<APIResponse> GetPendingDeposits()
+        private IQueryable<Deposit> FilterQuery(PaginatedSearchRequest req, IQueryable<Deposit> query) {
+
+            if (req.IntegratorId != null)
+                query = query.Where(d => d.IntegratorId == req.IntegratorId);
+
+            if (!string.IsNullOrEmpty(req.From))
+            {
+                var fromDate = DateTime.Parse(req.From).Date;
+                query = query.Where(p => p.CreatedAt.Date >= fromDate);
+            }
+
+            if (!string.IsNullOrEmpty(req.To))
+            {
+                var toDate = DateTime.Parse(req.To).Date;
+                query = query.Where(p => p.CreatedAt.Date <= toDate);
+            }
+
+            if (Utils.IsAscending(req.SortOrder))
+                query = query.OrderBy(d => d.CreatedAt);
+            else
+                query = query.OrderByDescending(d => d.CreatedAt);
+
+            if (!string.IsNullOrEmpty(req.SortValue))
+            {
+                if (req.SortBy == "TRANSACTION_ID")
+                    query = query.Where(d => d.TransactionId.Contains(req.SortValue));
+                else if (req.SortBy == "AMOUNT")
+                    query = query.Where(d => d.Amount.ToString().Contains(req.SortValue));
+                else if (req.SortBy == "REFERENCE")
+                    query = query.Where(d => d.Reference.Contains(req.SortValue));
+            }
+            return query;
+        }
+
+        public async Task<APIResponse> GetPendingDeposits(PaginatedSearchRequest req)
         {
-            List<DepositDto> result = await _repository.GetDeposits(null, DepositStatus.Waiting);
+            IQueryable<Deposit> query = _repository.GetDepositsQuery(DepositStatus.Waiting);
+
+            query = FilterQuery(req, query);
+
+            int totalRecords = await query.CountAsync();
+
+            query = query.Skip((req.PageNumber - 1) * req.PageSize).Take(req.PageSize);
+
+            List<DepositDto> transactions = await query.Select(d => new DepositDto(d)).ToListAsync();
+
+            PagedResponse<DepositDto> result = new PagedResponse<DepositDto>(transactions, totalRecords, req.PageNumber, req.PageSize);
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 
@@ -108,6 +170,39 @@ namespace vendtechext.BLL.Services
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
         }
 
+        public async Task<APIResponse> GetAdminBalance()
+        {
+            var balance = await _walletRepository.GetAdminBalance();
+            var result = new WalletDTO
+            {
+                AccountName = "Administrator",
+                AccountNumber = "VENDTECH SL",
+                BookBalance = 0,
+                WalletBalance = balance,
+                LastDeposit = null,
+            };
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
+        }
 
+        public async Task<List<DepositExcelDto>> GetDepositReportForExportAsync(PaginatedSearchRequest req)
+        {
+            IQueryable<Deposit> query = _repository.GetDepositsQuery((DepositStatus)req.Status);
+
+            query = FilterQuery(req, query);
+
+            Wallet wallet = await _walletRepository.GetWalletByIntegratorId(req.IntegratorId.Value);
+            return await query.Select(d => new DepositExcelDto(d, wallet)).ToListAsync();
+        }
+
+        public APIResponse GetTodaysTransaction(Guid integratorId) {
+
+            var result = _walletRepository.GetTodaysTransaction(integratorId);
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
+        }
+        public APIResponse GetAdminTodaysTransaction()
+        {
+            var result = _walletRepository.GetAdminTodaysTransaction();
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
+        }
     }
 }

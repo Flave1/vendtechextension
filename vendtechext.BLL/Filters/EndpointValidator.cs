@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using vendtechext.BLL.Interfaces;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
 
 namespace vendtechext.BLL.Middlewares
 {
@@ -44,6 +42,11 @@ namespace vendtechext.BLL.Middlewares
             if (integrator == ("404", "not_found"))
             {
                 context.Result = new UnauthorizedResult();
+                return;
+            }
+            if(integrator == ("403", "forbidden"))
+            {
+                context.Result = new ForbidResult();
                 return;
             }
             //Pass ClientKey to controller

@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using vendtechext.DAL.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,10 +27,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         policy =>
         {
-            policy.WithOrigins("http://localhost:56549", "http://localhost:5173", "https://vendtechsl.com", "https://www.vendtechsl.com:460")
+            policy.AllowAnyOrigin()
                    .AllowAnyHeader()
-                   .AllowAnyMethod()
-                   .AllowCredentials();
+                   .AllowAnyMethod();
         });
 });
 
@@ -67,7 +67,8 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
     options.SignIn.RequireConfirmedEmail = false;
 })
 .AddEntityFrameworkStores<DataContext>()
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddTokenProvider<CustomTokenProvider<AppUser>>("vendtech");
 
 // Configure JWT Authentication
 
@@ -90,7 +91,6 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
     };
 });
-
 // Swagger Configuration
 
 builder.Services.AddSwaggerGen(c =>
@@ -143,6 +143,7 @@ builder.Services.AddScoped<RequestExecutionContext>();
 builder.Services.AddScoped<TransactionRepository>();
 builder.Services.AddScoped<HttpRequestService>();
 builder.Services.AddScoped<WalletRepository>();
+builder.Services.AddScoped<EmailHelper>();
 builder.Services.AddScoped<LogService>();
 
 var app = builder.Build();
@@ -170,6 +171,13 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions()
 // Use authentication and authorization
 app.UseAuthentication(); 
 app.UseAuthorization();
+
+//Seed Default User
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
+//    await SeedData.Initialize(services);
+//}
 
 // Map Controllers
 app.MapControllers();

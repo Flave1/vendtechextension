@@ -1,4 +1,5 @@
-﻿using vendtechext.DAL.Models;
+﻿using vendtechext.DAL.Common;
+using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
 {
@@ -31,11 +32,14 @@ namespace vendtechext.Contracts
         public string Request { get; set; }
         public string Response { get; set; }
         public string ReceivedFrom { get; set; }
+        public string Date { get; set; }
+        public bool IsClaimed { get; set; }
         public TransactionDto(Transaction x)
         {
             Id = x.Id;
             TransactionUniqueId = x.TransactionUniqueId;
             VendStatusDescription = x.VendStatusDescription;
+            VendtechTransactionID = x.VendtechTransactionID;
             Finalized = x.Finalized;
             Amount = x.Amount;
             BalanceBefore = x.BalanceBefore;
@@ -43,6 +47,40 @@ namespace vendtechext.Contracts
             CurrentDealerBalance = x.CurrentDealerBalance;
             MeterNumber = x.MeterNumber;
             TransactionStatus = x.TransactionStatus;
+            Date = x.CreatedAt.ToString("dd-MM-yyyy hh:mm");
+            IsClaimed = x.ClaimedStatus == (int)ClaimedStatus.Claimed;
+        }
+    }
+
+    public class TransactionExportDto
+    {
+        public string TransactionUniqueId { get; set; }
+        public string VendtechTransactionID { get; set; }
+        public decimal BalanceBefore { get; set; }
+        public decimal Amount { get; set; }
+        public decimal BalanceAfter { get; set; }
+        public string MeterNumber { get; set; }
+        public int TransactionStatus { get; set; }
+        public string VendStatusDescription { get; set; }
+        public string Request { get; set; }
+        public string Response { get; set; }
+        public string Date { get; set; }
+        public string IsClaimed { get; set; }
+        public TransactionExportDto(Transaction x)
+        {
+            TransactionUniqueId = x.TransactionUniqueId;
+            VendStatusDescription = x.VendStatusDescription;
+            VendtechTransactionID = x.VendtechTransactionID;
+            Amount = x.Amount;
+            BalanceBefore = x.BalanceBefore;
+            BalanceAfter = x.BalanceAfter;
+            MeterNumber = x.MeterNumber;
+            TransactionStatus = x.TransactionStatus;
+            Date = x.CreatedAt.ToString("dd-MM-yyyy hh:mm");
+            IsClaimed = x.ClaimedStatus == (int)ClaimedStatus.Claimed ? "CLAIMED" : "UNCLAIMED";
+            Request = x.Request;
+            Response = x.Response;
+            VendStatusDescription = x.VendStatusDescription;
         }
     }
 }

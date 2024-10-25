@@ -16,9 +16,10 @@ namespace vendtechext.Contracts
         public string WalletId { get; set; }
         public string IntegratorName { get; set; }
         public string Date { get; set; }
-        public DateTime InternalDate;
+  
         public DepositDto(Deposit d)
         {
+            WalletId = d.Integrator.Wallet.WALLET_ID;
             Reference = d.Reference;
             BalanceBefore = d.BalanceBefore;
             Amount = d.Amount;
@@ -27,7 +28,33 @@ namespace vendtechext.Contracts
             TransactionId = d.TransactionId;
             Id = d.Id;
             IntegratorName = d.Integrator.BusinessName;
-            InternalDate = d.CreatedAt;
+            PaymentTypeName = "CASH";
+            Date = d.CreatedAt.ToString("dd-MM-yyyy hh:mm");
+        }
+    }
+
+    public class DepositExcelDto
+    {
+        public decimal BalanceBefore { get; set; }
+        public decimal Amount { get; set; }
+        public decimal BalanceAfter { get; set; }
+        public string Reference { get; set; }
+        public string TransactionId { get; set; }
+        public string PaymentTypeName { get; set; }
+        public string WalletId { get; set; }
+        public string IntegratorName { get; set; }
+        public string Date { get; set; }
+        public DepositExcelDto(Deposit d, Wallet wallet)
+        {
+            WalletId = wallet.WALLET_ID;
+            Reference = d.Reference;
+            BalanceBefore = d.BalanceBefore;
+            Amount = d.Amount;
+            BalanceAfter = d.BalanceAfter;
+            TransactionId = d.TransactionId;
+            IntegratorName = d.Integrator.BusinessName;
+            PaymentTypeName = "CASH";
+            Date = d.CreatedAt.ToString("dd-MM-yyyy hh:mm");
         }
     }
 
@@ -49,6 +76,7 @@ namespace vendtechext.Contracts
     }
     public class ApproveDepositRequest
     {
+        public bool Approve { get; set; }
         public Guid DepositId { get; set; }
         public Guid IntegratorId { get; set; }
     }
@@ -75,5 +103,12 @@ namespace vendtechext.Contracts
         public string Reference { get; set; }
         public decimal Amount { get; set; }
         public string TransactionId { get; set; }
+        public int Status { get; set; }
+    }
+
+    public class TodaysTransaction
+    {
+        public decimal Sales { get; set;}
+        public decimal Deposits { get; set; }
     }
 }

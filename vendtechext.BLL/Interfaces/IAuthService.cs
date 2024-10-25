@@ -11,5 +11,11 @@ namespace vendtechext.BLL.Interfaces
         Task<APIResponse> LoginAsync(LoginDto loginDto);
         Task<AppUser> FindUserByEmail(string email);
         Task<APIResponse> GetProfileAsync(string userId);
+        Task<AppUser> FindUserById(string id);
+        Task<AppUser> UpdateAndReturnUserAsync(RegisterDto registerDto, string appUserId);
+        Task<APIResponse> ChangeForgottenPassword(string userId, string token, string newPassword);
+        Task<APIResponse> GeneratePasswordResetToken(string email);
+        Task<APIResponse> ChangePassword(string userId, string oldPassword, string newPassword);
+        Task<APIResponse> RefreshTokenAsync(RefreshTokenDto request);
     }
 }
