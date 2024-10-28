@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.OpenApi.Models;
+using vendtechext.DAL.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,10 +27,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         policy =>
         {
-            policy.WithOrigins("http://localhost:56549", "https://vendtechsl.com")
+            policy.AllowAnyOrigin()
                    .AllowAnyHeader()
-                   .AllowAnyMethod()
-                   .AllowCredentials();
+                   .AllowAnyMethod();
         });
 });
 
@@ -52,8 +53,10 @@ builder.Services.Configure<ProviderInformation>(builder.Configuration.GetSection
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<IntegratorValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<ElectricitySalesValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<DepositRequestValidator>();
 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 
 // Identity configuration
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
@@ -64,26 +67,67 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
     options.SignIn.RequireConfirmedEmail = false;
 })
 .AddEntityFrameworkStores<DataContext>()
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddTokenProvider<CustomTokenProvider<AppUser>>("vendtech");
 
 // Configure JWT Authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]??"")),
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true
-        };
-    });
 
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = "vendtech",
+        ValidAudience = "vendtech", // Ensure this matches the audience claim in the token
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
+    };
+});
 // Swagger Configuration
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.CustomSchemaIds(type => type.FullName);
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "VENDTECHSL API",
+        Version = "v1"
+    });
+
+    // Add JWT Bearer Authorization to Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Please insert JWT token into field"
+    });
+
+    // Apply JWT to all operations
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 // SignalR Configuration
@@ -91,12 +135,16 @@ builder.Services.AddSignalR();
 
 // Dependency Injection
 builder.Services.AddScoped<IIntegratorService, IntegratorService>();
-builder.Services.AddScoped<LogService>();
-builder.Services.AddScoped<IElectricitySalesService, ElectricitySalesService>();
+builder.Services.AddScoped<IAPISalesService, APISalesService>();
+builder.Services.AddScoped<IDepositService, DepositService>();
+builder.Services.AddScoped<ISalesService, SalesService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<HttpRequestService>();
 builder.Services.AddScoped<RequestExecutionContext>();
 builder.Services.AddScoped<TransactionRepository>();
+builder.Services.AddScoped<HttpRequestService>();
+builder.Services.AddScoped<WalletRepository>();
+builder.Services.AddScoped<EmailHelper>();
+builder.Services.AddScoped<LogService>();
 
 var app = builder.Build();
 
@@ -121,8 +169,15 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions()
 });
 
 // Use authentication and authorization
-app.UseAuthentication(); // Ensure this is before UseAuthorization
+app.UseAuthentication(); 
 app.UseAuthorization();
+
+//Seed Default User
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
+//    await SeedData.Initialize(services);
+//}
 
 // Map Controllers
 app.MapControllers();

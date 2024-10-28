@@ -1,11 +1,10 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using vendtechext.BLL.Interfaces;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
 
 namespace vendtechext.BLL.Middlewares
 {
@@ -44,6 +43,17 @@ namespace vendtechext.BLL.Middlewares
             if (integrator == ("404", "not_found"))
             {
                 context.Result = new UnauthorizedResult();
+                return;
+            }
+            if(integrator == ("403", "forbidden"))
+            {
+
+                context.Result = new ContentResult
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Content = "API Vending is Disabled",
+                    ContentType = "application/json"
+                };
                 return;
             }
             //Pass ClientKey to controller

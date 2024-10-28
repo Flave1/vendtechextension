@@ -39,7 +39,7 @@ namespace vendtechext.Helper
         {
             _url = _integrator.GetProductionUrl();
         }
-        public void InitializeIntegratorData(string id, string name, string transactionId, decimal? amount, string meterNumber)
+        public void InitializeIntegratorData(Guid id, string name, string transactionId, decimal? amount, string meterNumber)
         {
             _integrator.rts = _providerInfor;
             _requestObject = _integrator.GenerateSaleRequest(amount, meterNumber, transactionId);
@@ -48,7 +48,7 @@ namespace vendtechext.Helper
             _integratorInfor.CopyData(id, name);
             InitializeUrl();
         }
-        public void InitializeIntegratorData(string id, string name, string transactionId)
+        public void InitializeIntegratorData(Guid id, string name, string transactionId)
         {
             _integrator.rts = _providerInfor;
             _requestObject = _integrator.GenerateSaleStatusRequest(transactionId);
@@ -61,7 +61,7 @@ namespace vendtechext.Helper
         {
             _httpResponse = await _webRequest.SendPostAsync(_url, _requestObject);
         }
-        public async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRequest request, string integratorId, string integratorName)
+        public async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRequest request, Guid integratorId, string integratorName)
         {
             InitializeIntegratorData(integratorId, integratorName, request.TransactionId, request.Amount, request.MeterNumber);
 
@@ -76,7 +76,7 @@ namespace vendtechext.Helper
 
             return executionResult;
         }
-        public async Task<ExecutionResult> ExecuteTransaction(string transactionId, string integratorId, string integratorName)
+        public async Task<ExecutionResult> ExecuteTransaction(string transactionId, Guid integratorId, string integratorName)
         {
             InitializeIntegratorData(integratorId, integratorName, transactionId);
 

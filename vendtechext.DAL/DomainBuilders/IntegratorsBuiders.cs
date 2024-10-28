@@ -1,4 +1,5 @@
-﻿using vendtechext.DAL.Models;
+﻿using System.Numerics;
+using vendtechext.DAL.Models;
 
 namespace vendtechext.DAL.DomainBuilders
 {
@@ -22,27 +23,10 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
-        public IntegratorsBuilder WithFirstName(string firstName)
-        {
-            _integrator.FirstName = firstName;
-            return this;
-        }
 
-        public IntegratorsBuilder WithLastName(string lastName)
+        public IntegratorsBuilder WithAbout(string about)
         {
-            _integrator.LastName = lastName;
-            return this;
-        }
-
-        public IntegratorsBuilder WithPassword(string password)
-        {
-            _integrator.Password = password;
-            return this;
-        }
-
-        public IntegratorsBuilder WithPhone(string phone)
-        {
-            _integrator.Phone = phone;
+            _integrator.About = about;
             return this;
         }
 
@@ -51,27 +35,32 @@ namespace vendtechext.DAL.DomainBuilders
             _integrator.BusinessName = businessName;
             return this;
         }
-        public IntegratorsBuilder WithEmail(string email)
-        {
-            _integrator.Email = email;
-            return this;
-        }
-
-        public IntegratorsBuilder WithClientKey(string clientKey)
-        {
-            _integrator.Clientkey = clientKey;
-            return this;
-        }
-
         public IntegratorsBuilder WithApiKey(string apiKey)
         {
             _integrator.ApiKey = apiKey;
             return this;
         }
 
+        public IntegratorsBuilder WithAppUserId(string appUserId)
+        {
+            _integrator.AppUserId = appUserId;
+            return this;
+        }
+
+        public IntegratorsBuilder WithDisabled(Boolean disabled)
+        {
+            _integrator.Disabled = disabled;
+            return this;
+        }
+
         public Integrator Build()
         {
             return _integrator;
+        }
+
+        public object WithAbout(object about)
+        {
+            throw new NotImplementedException();
         }
     }
 

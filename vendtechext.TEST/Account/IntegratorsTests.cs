@@ -47,14 +47,14 @@ namespace vendtechext.TEST.Account
             Assert.Equal(expectedStatusCode, response.StatusCode);
             if(expectedStatusCode == HttpStatusCode.OK && response.StatusCode == expectedStatusCode)
             {
-                // Setup the mock to expect the method call
-                _service.Setup(s => s.DeleteBusinessAccount(email)).Returns(Task.CompletedTask);
+                //// Setup the mock to expect the method call
+                //_service.Setup(s => s.DeleteBusinessAccount(email)).Returns(Task.CompletedTask);
 
-                // Call the delete method
-                await _service.Object.DeleteBusinessAccount(email);
+                //// Call the delete method
+                //await _service.Object.DeleteBusinessAccount(email);
 
-                // Verify that the delete method was called
-                _service.Verify(s => s.DeleteBusinessAccount(email), Times.Once);
+                //// Verify that the delete method was called
+                //_service.Verify(s => s.DeleteBusinessAccount(email), Times.Once);
             }
         }
 

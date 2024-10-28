@@ -51,11 +51,13 @@ namespace vendtechext.BLL.Middleware
                 _logger.LogError(ex, "JSON deserialization error: invalid operation.");
                 HandleExceptionAsync(httpContext, ex, "Invalid operation during deserialization.");
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                HandleExceptionAsync(httpContext, ex, "Invalid operation during deserialization.");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unhandled exception occurred.");
-                httpContext.Request.Headers.TryGetValue("X-Client", out var clientKey);
-                var errorlogService = httpContext.RequestServices.GetRequiredService<LogService>();
                 HandleExceptionAsync(httpContext, ex, "Internal Server Error from the middleware server.");
             }
         }
@@ -70,6 +72,10 @@ namespace vendtechext.BLL.Middleware
             if (exception is BadRequestException)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            }
+            else if(exception is UnauthorizedAccessException)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
             }
             else
             {

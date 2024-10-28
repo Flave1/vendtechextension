@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace vendtechext.DAL.Models;
 
@@ -15,9 +17,18 @@ public partial class DataContext : IdentityDbContext<AppUser>
     {
     }
 
+
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    public DataContext(DbContextOptions<DataContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
+
     public virtual DbSet<Integrator> Integrators { get; set; }
     public virtual DbSet<Transaction> Transactions { get; set; }
     public virtual DbSet<Log> Logs { get; set; }
+    public virtual DbSet<Wallet> Wallets { get; set; }
+    public virtual DbSet<Deposit> Deposits { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -39,5 +50,45 @@ public partial class DataContext : IdentityDbContext<AppUser>
         modelBuilder.Entity<IdentityUserLogin<string>>(entity => { entity.ToTable("UserLogins"); });
         modelBuilder.Entity<IdentityUserToken<string>>(entity => { entity.ToTable("UserTokens"); });
         modelBuilder.Entity<IdentityRoleClaim<string>>(entity => { entity.ToTable("RoleClaims"); });
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+    {
+        var userId = _httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        foreach (var entry in ChangeTracker.Entries<AuditTrail>())
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.Deleted = false;
+                entry.Entity.CreatedBy = userId;
+                entry.Entity.CreatedAt = DateTime.Now;
+            }
+            else
+            {
+                entry.Entity.UpdatedAt = DateTime.Now;
+                entry.Entity.UpdatedBy = userId;
+            }
+        }
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override int SaveChanges()
+    {
+        var userId = _httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        foreach (var entry in ChangeTracker.Entries<AuditTrail>())
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.Deleted = false;
+                entry.Entity.CreatedAt = DateTime.Now;
+                entry.Entity.CreatedBy = userId;
+            }
+            else
+            {
+                entry.Entity.UpdatedAt = DateTime.Now;
+                entry.Entity.UpdatedBy = userId;
+            }
+        }
+        return base.SaveChanges();
     }
 }

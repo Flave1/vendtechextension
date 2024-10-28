@@ -28,4 +28,30 @@ namespace vendtechext.DAL.Common
         Warning = 2,
     }
 
+    public enum DepositStatus
+    {
+        Approved = 1,
+        Waiting = 2,
+    }
+
+
+    public enum ClaimedStatus
+    {
+
+        All = -2,
+        Unclaimed = -1,
+        Claimed = 0,
+    }
+
+    public enum UserType
+    {
+        Internal = 0,
+        External = 1
+    }
+
+    public enum UserAccountStatus
+    {
+        Disabled = 0,
+        Active = 1,
+    }
 }
