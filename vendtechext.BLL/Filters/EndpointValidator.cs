@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,7 +47,13 @@ namespace vendtechext.BLL.Middlewares
             }
             if(integrator == ("403", "forbidden"))
             {
-                context.Result = new ForbidResult();
+
+                context.Result = new ContentResult
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Content = "API Vending is Disabled",
+                    ContentType = "application/json"
+                };
                 return;
             }
             //Pass ClientKey to controller

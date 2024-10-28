@@ -58,8 +58,6 @@ namespace vendtechext.BLL.Middleware
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unhandled exception occurred.");
-                httpContext.Request.Headers.TryGetValue("X-Client", out var clientKey);
-                var errorlogService = httpContext.RequestServices.GetRequiredService<LogService>();
                 HandleExceptionAsync(httpContext, ex, "Internal Server Error from the middleware server.");
             }
         }

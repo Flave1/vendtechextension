@@ -44,6 +44,7 @@ namespace vendtechext.Contracts
         public string Phone { get; set; }
         public string WalletId { get; set; }
         public int UserAccountStatus { get; set; }
+        public decimal Balance { get; set; }
         public BusinessUserListDTO(Integrator x)
         {
             Id = x.Id;
@@ -57,6 +58,7 @@ namespace vendtechext.Contracts
             Phone = x.AppUser.PhoneNumber;
             WalletId = x.Wallet.WALLET_ID;
             UserAccountStatus = x.AppUser.UserAccountStatus;
+            Balance = x.Wallet.Balance;
         }
     }
 
