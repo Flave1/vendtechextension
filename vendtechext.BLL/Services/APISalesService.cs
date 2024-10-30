@@ -2,6 +2,7 @@
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -40,6 +41,8 @@ namespace vendtechext.BLL.Services
             }
             else
             {
+
+                await _repository.RefundToWallet(integratorid, request.Amount);
                 await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
                 return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
             }
@@ -89,6 +92,7 @@ namespace vendtechext.BLL.Services
                 }
                 else
                 {
+                    await _repository.RefundToWallet(integratorId, transaction.Amount);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transaction);
                 }
             }

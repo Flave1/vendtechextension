@@ -10,36 +10,32 @@ namespace vendtechext.Controllers
     [Authorize]
     public class AdminDepositController : ControllerBase
     {
-        private readonly IDepositService _depositService;
-        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IDepositService _service;
 
-        public AdminDepositController(IDepositService depositService, IHttpContextAccessor contextAccessor)
+        public AdminDepositController(IDepositService service)
         {
-            _depositService = depositService;
-            _contextAccessor = contextAccessor;
+            _service = service;
         }
 
         [HttpPost("aprrove")]
         public async Task<IActionResult> Create([FromBody] ApproveDepositRequest request)
         {
-            var result = await _depositService.ApproveDeposit(request);
+            var result = await _service.ApproveDeposit(request);
             return Ok(result);
         }
 
         [HttpPost("get-pending")]
-        public async Task<IActionResult> GetPaymentTypes([FromBody] PaginatedSearchRequest request)
+        public async Task<IActionResult> GetPendingDeposits([FromBody] PaginatedSearchRequest request)
         {
-            var result = await _depositService.GetPendingDeposits(request);
+            var result = await _service.GetPendingDeposits(request);
             return Ok(result);
         }
 
-        [HttpPost("get")]
-        public async Task<IActionResult> Get([FromBody]PaginatedSearchRequest request)
+        [HttpPost("get-all")]
+        public async Task<IActionResult> Get([FromBody] PaginatedSearchRequest request)
         {
-            var result = await _depositService.GetIntegratorDeposits(request);
+            var result = await _service.GetIntegratorDeposits(request);
             return Ok(result);
         }
-
-        
     }
 }

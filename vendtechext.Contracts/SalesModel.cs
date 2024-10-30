@@ -34,6 +34,8 @@ namespace vendtechext.Contracts
         public string ReceivedFrom { get; set; }
         public string Date { get; set; }
         public bool IsClaimed { get; set; }
+        public string IntegratorName { get; set; }
+        public string WalletId { get; set; }
         public TransactionDto(Transaction x)
         {
             Id = x.Id;
@@ -49,6 +51,8 @@ namespace vendtechext.Contracts
             TransactionStatus = x.TransactionStatus;
             Date = x.CreatedAt.ToString("dd-MM-yyyy hh:mm");
             IsClaimed = x.ClaimedStatus == (int)ClaimedStatus.Claimed;
+            IntegratorName = x.Integrator.BusinessName;
+            WalletId = x.Integrator.Wallet.WALLET_ID;
         }
     }
 

@@ -5,6 +5,7 @@ using vendtechext.BLL.Exceptions;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -148,8 +149,26 @@ namespace vendtechext.BLL.Repository
         {
             if (await _context.Transactions.AnyAsync(d => d.IntegratorId == integratorid && d.TransactionUniqueId == request.TransactionId))
                 throw new BadRequestException("Transaction ID already exist for this terminal.");
+
+            Wallet wallet = await _context.Wallets.FirstOrDefaultAsync(d => d.IntegratorId == integratorid);
+           
+            if(request.Amount >= wallet.Balance)
+                throw new BadRequestException("Insufficient Balance");
+
+            await DeductFromWallet(wallet, request.Amount);
         }
 
+        private async Task DeductFromWallet(Wallet wallet, decimal Amount)
+        {
+            wallet.Balance = (wallet.Balance - Amount);
+            await _context.SaveChangesAsync();
+        }
+        public async Task RefundToWallet(Guid integratorid, decimal Amount)
+        {
+            Wallet wallet = await _context.Wallets.FirstOrDefaultAsync(d => d.IntegratorId == integratorid);
+            wallet.Balance = (wallet.Balance + Amount);
+            await _context.SaveChangesAsync();
+        }
         public async Task<Transaction> GetSaleTransaction(string transactionId, Guid integratorid)
         {
             var trans = await _context.Transactions.FirstOrDefaultAsync(d => d.TransactionUniqueId == transactionId && d.IntegratorId == integratorid) ?? null;
@@ -177,12 +196,14 @@ namespace vendtechext.BLL.Repository
         {
             if(claimedStatus == (int)ClaimedStatus.All)
             {
-                var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status);
+                var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status)
+                    .Include(d => d.Integrator).ThenInclude(d => d.Wallet);
                 return query;
             }
             else
             {
-                var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status && d.ClaimedStatus == claimedStatus);
+                var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status && d.ClaimedStatus == claimedStatus)
+                            .Include(d => d.Integrator).ThenInclude(d => d.Wallet);
                 return query;
             }
         }

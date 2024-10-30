@@ -95,7 +95,24 @@ namespace vendtechext.BLL.Services
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 
-        private IQueryable<Deposit> FilterQuery(PaginatedSearchRequest req, IQueryable<Deposit> query) {
+        public async Task<APIResponse> GetPendingDeposits(PaginatedSearchRequest req)
+        {
+            IQueryable<Deposit> query = _repository.GetDepositsQuery(DepositStatus.Waiting);
+
+            query = FilterQuery(req, query);
+
+            int totalRecords = await query.CountAsync();
+
+            query = query.Skip((req.PageNumber - 1) * req.PageSize).Take(req.PageSize);
+
+            List<DepositDto> transactions = await query.Select(d => new DepositDto(d)).ToListAsync();
+
+            PagedResponse<DepositDto> result = new PagedResponse<DepositDto>(transactions, totalRecords, req.PageNumber, req.PageSize);
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
+        }
+
+        private IQueryable<Deposit> FilterQuery(PaginatedSearchRequest req, IQueryable<Deposit> query)
+        {
 
             if (req.IntegratorId != null)
                 query = query.Where(d => d.IntegratorId == req.IntegratorId);
@@ -125,24 +142,12 @@ namespace vendtechext.BLL.Services
                     query = query.Where(d => d.Amount.ToString().Contains(req.SortValue));
                 else if (req.SortBy == "REFERENCE")
                     query = query.Where(d => d.Reference.Contains(req.SortValue));
+                else if (req.SortBy == "WALLET_ID")
+                    query = query.Where(d => d.Integrator.Wallet.WALLET_ID.Contains(req.SortValue));
+                else if (req.SortBy == "INTEGRATOR")
+                    query = query.Where(d => d.Integrator.BusinessName.Contains(req.SortValue));
             }
             return query;
-        }
-
-        public async Task<APIResponse> GetPendingDeposits(PaginatedSearchRequest req)
-        {
-            IQueryable<Deposit> query = _repository.GetDepositsQuery(DepositStatus.Waiting);
-
-            query = FilterQuery(req, query);
-
-            int totalRecords = await query.CountAsync();
-
-            query = query.Skip((req.PageNumber - 1) * req.PageSize).Take(req.PageSize);
-
-            List<DepositDto> transactions = await query.Select(d => new DepositDto(d)).ToListAsync();
-
-            PagedResponse<DepositDto> result = new PagedResponse<DepositDto>(transactions, totalRecords, req.PageNumber, req.PageSize);
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 
         public async Task<APIResponse> GetPaymentTypes()

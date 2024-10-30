@@ -11,7 +11,7 @@
         public string To { get; set; } = "";
         public Guid? IntegratorId { get; set; } = null;
         public int Status { get; set; } = 1;
-        public int IsClaimedStatus { get; set; } = 0;
+        public int IsClaimedStatus { get; set; } = -2;
     }
 
     public class PagedResponse<T>

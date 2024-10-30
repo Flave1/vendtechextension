@@ -4,7 +4,6 @@ using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
 using vendtechext.Helper;
 using vendtechext.BLL.Common;
-using System.Linq;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.BLL.Services
@@ -73,6 +72,10 @@ namespace vendtechext.BLL.Services
                     query = query.Where(d => d.Amount.ToString().Contains(req.SortValue));
                 else if (req.SortBy == "METER_NUMBER")
                     query = query.Where(d => d.MeterNumber.Contains(req.SortValue));
+                else if (req.SortBy == "WALLET_ID")
+                    query = query.Where(d => d.Integrator.Wallet.WALLET_ID.Contains(req.SortValue));
+                else if (req.SortBy == "INTEGRATOR")
+                    query = query.Where(d => d.Integrator.BusinessName.Contains(req.SortValue));
             }
             return query;
         }
