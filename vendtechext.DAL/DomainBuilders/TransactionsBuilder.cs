@@ -68,11 +68,7 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
-        public TransactionsBuilder WithCurrentDealerBalance(decimal? currentDealerBalance)
-        {
-            _transaction.CurrentDealerBalance = currentDealerBalance;
-            return this;
-        }
+     
 
         public TransactionsBuilder WithMeterNumber(string meterNumber)
         {

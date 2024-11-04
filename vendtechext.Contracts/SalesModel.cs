@@ -46,7 +46,6 @@ namespace vendtechext.Contracts
             Amount = x.Amount;
             BalanceBefore = x.BalanceBefore;
             BalanceAfter = x.BalanceAfter;
-            CurrentDealerBalance = x.CurrentDealerBalance;
             MeterNumber = x.MeterNumber;
             TransactionStatus = x.TransactionStatus;
             Date = x.CreatedAt.ToString("dd-MM-yyyy hh:mm");

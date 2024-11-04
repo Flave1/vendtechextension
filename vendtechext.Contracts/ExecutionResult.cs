@@ -11,6 +11,7 @@ namespace vendtechext.Contracts
         public string MeterNumber { get; set; }
         public int TransactionStatus { get; set; }
         public string VendtechTransactionId { get; set; }
+        public string WalleBalance { get; set; }
         public Voucher Voucher { get; set; } = new Voucher();
 
         public SuccessResponse(RTSResponse x)
@@ -54,7 +55,8 @@ namespace vendtechext.Contracts
             TransactionId = x.TransactionUniqueId;
             RequestDate = x.CreatedAt;
             Amount = x.Amount;
-            VendtechTransactionId = x.TransactionUniqueId;
+            VendtechTransactionId = x.VendtechTransactionID;
+            WalleBalance = Utils.FormatAmount(x.BalanceAfter);
             return this;
         }
     }
@@ -105,17 +107,19 @@ namespace vendtechext.Contracts
         {
             SuccessResponse = new SuccessResponse(x);
         }
-        public ExecutionResult(string response, string receivedFrom)
+        public ExecutionResult(Transaction transaction, string receivedFrom)
         {
             if (receivedFrom == "rts_init")
             {
-                RTSResponse x = JsonConvert.DeserializeObject<RTSResponse>(response);
+                RTSResponse x = JsonConvert.DeserializeObject<RTSResponse>(transaction.Response);
                 SuccessResponse = new SuccessResponse(x);
+                SuccessResponse.UpdateResponse(transaction);
             }
             else if (receivedFrom == "rts_status")
             {
-                RTSStatusResponse x = JsonConvert.DeserializeObject<RTSStatusResponse>(response);
+                RTSStatusResponse x = JsonConvert.DeserializeObject<RTSStatusResponse>(transaction.Response);
                 SuccessResponse = new SuccessResponse(x);
+                SuccessResponse.UpdateResponse(transaction);
             }
         }
         public ExecutionResult(RTSErorResponse x)

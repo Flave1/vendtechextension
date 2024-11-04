@@ -8,7 +8,6 @@ namespace vendtechext.DAL.Models
         [Key]
         public Guid Id { get; set; }
         public string WALLET_ID { get; set; }
-        public decimal BalanceBefore { get; set; }
         public decimal Balance { get; set; }
         public decimal BookBalance { get; set; }
         public Guid IntegratorId { get; set; }

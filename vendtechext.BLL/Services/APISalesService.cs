@@ -13,18 +13,24 @@ namespace vendtechext.BLL.Services
         private readonly RequestExecutionContext _executionContext; 
         private readonly TransactionRepository _repository;
         private readonly IRecurringJobManager _recurringJobManager;
-        public APISalesService(RequestExecutionContext executionContext, TransactionRepository transactionRepository, IRecurringJobManager recurringJobManager)
+        private readonly WalletRepository _walletReo;
+        public APISalesService(RequestExecutionContext executionContext, TransactionRepository transactionRepository, IRecurringJobManager recurringJobManager, WalletRepository walletReo)
         {
             _executionContext = executionContext;
             _repository = transactionRepository;
             _recurringJobManager = recurringJobManager;
+            _walletReo = walletReo;
         }
 
         public async Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, Guid integratorid, string integratorName)
         {
-            await _repository.SalesInternalValidation(request, integratorid);
+            Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
+
+            await _repository.SalesInternalValidation(wallet, request, integratorid);
 
             Transaction transactionLog = await _repository.CreateSaleTransactionLog(request, integratorid);
+
+            await _repository.DeductFromWallet(wallet, transactionLog);
 
             ExecutionResult executionResult = await _executionContext.ExecuteTransaction(request, integratorid, integratorName);
             if (executionResult.Status == "success")
@@ -41,8 +47,7 @@ namespace vendtechext.BLL.Services
             }
             else
             {
-
-                await _repository.RefundToWallet(integratorid, request.Amount);
+                await _repository.RefundToWallet(wallet, transactionLog);
                 await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
                 return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
             }
@@ -57,7 +62,7 @@ namespace vendtechext.BLL.Services
                 executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
             else if (transaction.Finalized)
             {
-                executionResult = new ExecutionResult(transaction.Response, transaction.ReceivedFrom);
+                executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
                 executionResult.Status = "success";
             }
             else if (!transaction.Finalized)
@@ -92,7 +97,8 @@ namespace vendtechext.BLL.Services
                 }
                 else
                 {
-                    await _repository.RefundToWallet(integratorId, transaction.Amount);
+                    Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
+                    await _repository.RefundToWallet(wallet, transaction);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transaction);
                 }
             }

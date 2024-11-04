@@ -33,12 +33,7 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
-        public WalletBuilder SetBalanceBefore(decimal balanceBefore)
-        {
-            _wallet.BalanceBefore = balanceBefore;
-            return this;
-        }
-
+ 
         public WalletBuilder SetBookBalance(decimal bookBalance)
         {
             _wallet.BookBalance = bookBalance;

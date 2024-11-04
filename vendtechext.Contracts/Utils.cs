@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
-using vendtechext.Contracts;
 
-namespace vendtechext.BLL.Common
+namespace vendtechext.Contracts
 {
     public class Utils
     {
@@ -19,7 +18,6 @@ namespace vendtechext.BLL.Common
         }
 
         public static bool IsAscending(string sortOrder) => sortOrder == "ASC";
-
 
         public static string FormatAmount(decimal? amt)
         {

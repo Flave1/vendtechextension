@@ -22,7 +22,6 @@ namespace vendtechext.BLL.Repository
             var wallet = new WalletBuilder()
                 .SetIntegratorId(integratorId)
                 .SetWalletId(UniqueIDGenerator.GenerateAccountNumber("000"))
-                .SetBalanceBefore(0)
                 .SetBalance(0)
                 .Build();
 
@@ -51,7 +50,6 @@ namespace vendtechext.BLL.Repository
         public async Task UpdateWalletRealBalance(Wallet wallet, decimal newBalance)
         {
             new WalletBuilder(wallet)
-                .SetBalanceBefore(wallet.Balance)
                 .SetBalance(newBalance)
                 .Build();
 
@@ -86,7 +84,7 @@ namespace vendtechext.BLL.Repository
 
             var res = new TodaysTransaction();
             res.Deposits = _context.Deposits.FirstOrDefault(d => d.Deleted == false && d.IntegratorId == integratorId && d.CreatedAt.Date == todaysDate && d.Status == (int)DepositStatus.Approved)?.Amount ?? 0;
-            res.Sales = _context.Transactions.FirstOrDefault(d => d.Deleted == false && d.IntegratorId == integratorId && d.TransactionStatus == (int)DepositStatus.Approved && d.CreatedAt.Date == todaysDate)?.Amount ?? 0;
+            res.Sales = _context.Transactions.FirstOrDefault(d => d.Deleted == false && d.IntegratorId == integratorId && d.TransactionStatus == (int)TransactionStatus.Success && d.CreatedAt.Date == todaysDate)?.Amount ?? 0;
 
             return res;
         }

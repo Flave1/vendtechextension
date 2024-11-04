@@ -13,7 +13,6 @@ namespace vendtechext.DAL.Models
         public decimal BalanceBefore { get; set; }
         public decimal Amount { get; set; }
         public decimal BalanceAfter { get; set; }
-        public decimal? CurrentDealerBalance { get; set; }
         public string MeterNumber { get; set; }
         public int TransactionStatus { get; set; }
         public int ClaimedStatus { get; set; }

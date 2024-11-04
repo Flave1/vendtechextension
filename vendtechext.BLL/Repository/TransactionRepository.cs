@@ -145,28 +145,25 @@ namespace vendtechext.BLL.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task SalesInternalValidation(ElectricitySaleRequest request, Guid integratorid)
+        public async Task SalesInternalValidation(Wallet wallet, ElectricitySaleRequest request, Guid integratorid)
         {
             if (await _context.Transactions.AnyAsync(d => d.IntegratorId == integratorid && d.TransactionUniqueId == request.TransactionId))
                 throw new BadRequestException("Transaction ID already exist for this terminal.");
 
-            Wallet wallet = await _context.Wallets.FirstOrDefaultAsync(d => d.IntegratorId == integratorid);
-           
-            if(request.Amount >= wallet.Balance)
+            if(request.Amount > wallet.Balance)
                 throw new BadRequestException("Insufficient Balance");
-
-            await DeductFromWallet(wallet, request.Amount);
         }
 
-        private async Task DeductFromWallet(Wallet wallet, decimal Amount)
+        public async Task DeductFromWallet(Wallet wallet, Transaction transaction)
         {
-            wallet.Balance = (wallet.Balance - Amount);
+            transaction.BalanceBefore = wallet.Balance;
+            wallet.Balance = (wallet.Balance - transaction.Amount);
+            transaction.BalanceAfter = wallet.Balance;
             await _context.SaveChangesAsync();
         }
-        public async Task RefundToWallet(Guid integratorid, decimal Amount)
+        public async Task RefundToWallet(Wallet wallet, Transaction transaction)
         {
-            Wallet wallet = await _context.Wallets.FirstOrDefaultAsync(d => d.IntegratorId == integratorid);
-            wallet.Balance = (wallet.Balance + Amount);
+            wallet.Balance = (wallet.Balance + transaction.Amount);
             await _context.SaveChangesAsync();
         }
         public async Task<Transaction> GetSaleTransaction(string transactionId, Guid integratorid)
