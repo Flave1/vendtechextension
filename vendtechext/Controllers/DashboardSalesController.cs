@@ -34,8 +34,11 @@ namespace vendtechext.Controllers
         [HttpPost("export-report")]
         public async Task<IActionResult> ExportToExcel(PaginatedSearchRequest request)
         {
-            var integrator_id = Guid.Parse(_contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "integrator_id")?.Value ?? "");
-            request.IntegratorId = integrator_id;
+            if (User.IsInRole("Integrator"))
+            {
+                var integrator_id = Guid.Parse(_contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "integrator_id")?.Value ?? "");
+                request.IntegratorId = integrator_id;
+            }
             List<TransactionExportDto> transactions  = await _service.GetSalesReportForExportAsync(request);
             
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;

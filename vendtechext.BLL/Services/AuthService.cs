@@ -15,6 +15,7 @@ using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace vendtechext.BLL.Services
 {
@@ -264,6 +265,21 @@ namespace vendtechext.BLL.Services
             _emailHelper.SendEmail(user.Email, "Password Changed Successfully", body);
 
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Your password has been changed successfully").GenerateResponse();
+        }
+
+        public async Task<APIResponse> UpdateAdminAccount(AdminAccount model)
+        {
+            await UpdateAndReturnUserAsync(new RegisterDto
+            {
+                Firstname = model.FirstName,
+                Email = model.Email,
+                Lastname = model.LastName,
+                Username = model.Email,
+                UserType = UserType.Internal,
+                Phone = model.Phone,
+            }, model.AppUserId);
+
+            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Updated Successfully").GenerateResponse();
         }
     }
 }

@@ -62,7 +62,7 @@ namespace vendtechext.BLL.Services
 
         private async Task CreateCommision(Deposit deposit, Guid integratorid, Wallet wallet)
         {
-            decimal.TryParse("1.0", out decimal percentage);
+            decimal.TryParse("1.5", out decimal percentage);
 
             decimal commission = deposit.Amount * percentage / 100;
 
@@ -195,8 +195,7 @@ namespace vendtechext.BLL.Services
 
             query = FilterQuery(req, query);
 
-            Wallet wallet = await _walletRepository.GetWalletByIntegratorId(req.IntegratorId.Value);
-            return await query.Select(d => new DepositExcelDto(d, wallet)).ToListAsync();
+            return await query.Select(d => new DepositExcelDto(d)).ToListAsync();
         }
 
         public APIResponse GetTodaysTransaction(Guid integratorId) {

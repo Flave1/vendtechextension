@@ -53,5 +53,6 @@ namespace vendtechext.Controllers
             var result = await service.EnableDisable(businessUser);
             return Ok(result);
         }
+
     }
 }

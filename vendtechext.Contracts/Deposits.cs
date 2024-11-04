@@ -44,9 +44,9 @@ namespace vendtechext.Contracts
         public string WalletId { get; set; }
         public string IntegratorName { get; set; }
         public string Date { get; set; }
-        public DepositExcelDto(Deposit d, Wallet wallet)
+        public DepositExcelDto(Deposit d)
         {
-            WalletId = wallet.WALLET_ID;
+            WalletId = d.Integrator.Wallet.WALLET_ID;
             Reference = d.Reference;
             BalanceBefore = d.BalanceBefore;
             Amount = d.Amount;

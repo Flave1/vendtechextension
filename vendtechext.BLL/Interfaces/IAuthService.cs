@@ -17,5 +17,6 @@ namespace vendtechext.BLL.Interfaces
         Task<APIResponse> GeneratePasswordResetToken(string email);
         Task<APIResponse> ChangePassword(string userId, string oldPassword, string newPassword);
         Task<APIResponse> RefreshTokenAsync(RefreshTokenDto request);
+        Task<APIResponse> UpdateAdminAccount(AdminAccount model);
     }
 }

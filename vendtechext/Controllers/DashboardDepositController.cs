@@ -40,8 +40,11 @@ namespace vendtechext.Controllers
         [HttpPost("export-report")]
         public async Task<IActionResult> ExportToExcel(PaginatedSearchRequest request)
         {
-            var integrator_id = Guid.Parse(_contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "integrator_id")?.Value ?? "");
-            request.IntegratorId = integrator_id;
+            if (User.IsInRole("Integrator"))
+            {
+                var integrator_id = Guid.Parse(_contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "integrator_id")?.Value ?? "");
+                request.IntegratorId = integrator_id;
+            }
             List<DepositExcelDto> transactions = await _service.GetDepositReportForExportAsync(request);
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -80,5 +83,6 @@ namespace vendtechext.Controllers
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Deposits.xlsx");
             }
         }
+   
     }
 }

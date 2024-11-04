@@ -11,38 +11,38 @@ namespace vendtechext.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly ILogger<AuthenticationController> _logger;
-        private readonly IAuthService _authService;
+        private readonly IAuthService _service;
 
         public AuthenticationController(ILogger<AuthenticationController> logger, IAuthService authService)
         {
             _logger = logger;
-            _authService = authService;
+            _service = authService;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
-            var result = await _authService.LoginAsync(request);
+            var result = await _service.LoginAsync(request);
             return Ok(result);
         }
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto request)
         {
-            var result = await _authService.RefreshTokenAsync(request);
+            var result = await _service.RefreshTokenAsync(request);
             return Ok(result);
         }
 
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ChangeForgottenPassword([FromBody] ForgotPassword request)
         {
-            var result = await _authService.ChangeForgottenPassword(request.AppUserId, request.Token, request.NewPassword);
+            var result = await _service.ChangeForgottenPassword(request.AppUserId, request.Token, request.NewPassword);
             return Ok(result);
         }
 
         [HttpPost("generate-password-reset-token")]
         public async Task<IActionResult> GenerateResetLink([FromBody] ResetToken request)
         {
-            var result = await _authService.GeneratePasswordResetToken(request.Email);
+            var result = await _service.GeneratePasswordResetToken(request.Email);
             return Ok(result);
         }
 
@@ -51,7 +51,7 @@ namespace vendtechext.Controllers
         public async Task<IActionResult> ChangePsssword([FromBody] ChangePassword request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var result = await _authService.ChangePassword(userId, request.OldPassword, request.NewPassword);
+            var result = await _service.ChangePassword(userId, request.OldPassword, request.NewPassword);
             return Ok(result);
         }
 
@@ -60,7 +60,14 @@ namespace vendtechext.Controllers
         public async Task<IActionResult> GetProfile()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var result = await _authService.GetProfileAsync(userId);
+            var result = await _service.GetProfileAsync(userId);
+            return Ok(result);
+        }
+
+        [HttpPost("update-admin-account")]
+        public async Task<IActionResult> UpdateUser([FromBody] AdminAccount request)
+        {
+            var result = await _service.UpdateAdminAccount(request);
             return Ok(result);
         }
     }
