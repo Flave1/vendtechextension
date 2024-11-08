@@ -62,20 +62,22 @@ namespace vendtechext.BLL.Services
 
         private async Task CreateCommision(Deposit deposit, Guid integratorid, Wallet wallet)
         {
-            decimal.TryParse("1.5", out decimal percentage);
+            SettingsPayload settings = AppConfiguration.GetSettings();
+            string commissionLevel = settings.Commission.First(d => d.Id == wallet.CommissionId).Percentage.ToString();
+            decimal.TryParse(commissionLevel, out decimal percentage);
 
             decimal commission = deposit.Amount * percentage / 100;
 
             CreateDepositDto commsionDto = new CreateDepositDto
             {
                 Reference = deposit.Reference,
-                BalanceBefore = wallet.Balance,
+                BalanceBefore = deposit.BalanceAfter,
                 Amount = commission,
-                BalanceAfter = wallet.Balance + commission,
+                BalanceAfter = deposit.BalanceAfter + commission,
                 IntegratorId = integratorid
             };
             await _repository.CreateDepositTransaction(commsionDto, DepositStatus.Approved);
-            await _walletRepository.UpdateWalletRealBalance(wallet, deposit.BalanceAfter);
+            await _walletRepository.UpdateWalletRealBalance(wallet, commsionDto.BalanceAfter);
         }
 
         public async Task<APIResponse> GetIntegratorDeposits(PaginatedSearchRequest req)

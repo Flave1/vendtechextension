@@ -17,11 +17,12 @@ namespace vendtechext.BLL.Repository
             _context = context;
         }
 
-        public async Task<Wallet> CreateWallet(Guid integratorId)
+        public async Task<Wallet> CreateWallet(Guid integratorId, int CommissionLevel)
         {
             var wallet = new WalletBuilder()
-                .SetIntegratorId(integratorId)
                 .SetWalletId(UniqueIDGenerator.GenerateAccountNumber("000"))
+                .SetCommission(CommissionLevel)
+                .SetIntegratorId(integratorId)
                 .SetBalance(0)
                 .Build();
 
@@ -49,10 +50,7 @@ namespace vendtechext.BLL.Repository
 
         public async Task UpdateWalletRealBalance(Wallet wallet, decimal newBalance)
         {
-            new WalletBuilder(wallet)
-                .SetBalance(newBalance)
-                .Build();
-
+            new WalletBuilder(wallet).SetBalance(newBalance).Build();
             await _context.SaveChangesAsync();
         }
         public async Task UpdateWalletBookBalance(Wallet wallet, decimal newBalance)
@@ -63,6 +61,7 @@ namespace vendtechext.BLL.Repository
 
             await _context.SaveChangesAsync();
         }
+
 
         public async Task MarkWalletAsDeleted(Wallet wallet)
         {
@@ -83,8 +82,8 @@ namespace vendtechext.BLL.Repository
             var todaysDate = DateTime.UtcNow.Date;
 
             var res = new TodaysTransaction();
-            res.Deposits = _context.Deposits.FirstOrDefault(d => d.Deleted == false && d.IntegratorId == integratorId && d.CreatedAt.Date == todaysDate && d.Status == (int)DepositStatus.Approved)?.Amount ?? 0;
-            res.Sales = _context.Transactions.FirstOrDefault(d => d.Deleted == false && d.IntegratorId == integratorId && d.TransactionStatus == (int)TransactionStatus.Success && d.CreatedAt.Date == todaysDate)?.Amount ?? 0;
+            res.Deposits = _context.Deposits.Where(d => d.Deleted == false && d.IntegratorId == integratorId && d.CreatedAt.Date == todaysDate && d.Status == (int)DepositStatus.Approved).Sum(g => g.Amount);
+            res.Sales = _context.Transactions.Where(d => d.Deleted == false && d.IntegratorId == integratorId && d.TransactionStatus == (int)TransactionStatus.Success && d.CreatedAt.Date == todaysDate).Sum(g => g.Amount);
 
             return res;
         }
@@ -94,8 +93,8 @@ namespace vendtechext.BLL.Repository
             var todaysDate = DateTime.UtcNow.Date;
 
             var res = new TodaysTransaction();
-            res.Deposits = _context.Transactions.FirstOrDefault(d => d.Deleted == false && d.TransactionStatus == (int)TransactionStatus.Success && d.CreatedAt.Date == todaysDate)?.Amount ?? 0;
-            res.Sales = _context.Wallets.FirstOrDefault(d => d.Deleted == false && d.CreatedAt.Date == todaysDate)?.Balance ?? 0;
+            res.Deposits = _context.Deposits.Where(d => d.Deleted == false && d.CreatedAt.Date == todaysDate && d.Status == (int)DepositStatus.Approved).Sum(g => g.Amount);
+            res.Sales = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == (int)TransactionStatus.Success && d.CreatedAt.Date == todaysDate).Sum(g => g.Amount);
 
             return res;
         }

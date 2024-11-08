@@ -20,7 +20,7 @@ namespace vendtechext.TEST.Sales
         }
 
         [Theory]
-        [InlineData("GWNeK8vXswba1VPuDiWaWDLBD9zP7nbc96aRDUx1AMYiw6pTLOlU+myx9ujctiu5", 40, "98000142897", "7", HttpStatusCode.OK)]
+        [InlineData("FCcHkRm7bBTaJkjgFyL6C2FH6RSGy6ff0YX3zK1kok87R+HL4blEj+PygevBefS0", 4, "98000142897", "7", HttpStatusCode.OK)]
         public async Task Test_for_successful_response(
             string apiKey, 
             decimal amount,

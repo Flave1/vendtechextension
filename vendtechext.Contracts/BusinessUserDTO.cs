@@ -13,8 +13,10 @@ namespace vendtechext.Contracts
         public string Email { get; set; }
         public string AppUserId { get; set; }
         public string Phone { get; set; }
+        public int CommissionLevel { get; set; }
         public BusinessUserDTO(Integrator x)
         {
+
             Id = x.Id;
             FirstName = x.AppUser.FirstName;
             LastName = x.AppUser.LastName;
@@ -45,7 +47,9 @@ namespace vendtechext.Contracts
         public string WalletId { get; set; }
         public int UserAccountStatus { get; set; }
         public decimal Balance { get; set; }
-        public BusinessUserListDTO(Integrator x)
+        public int CommissionLevel { get; set; }
+        public double CommissionLevelName { get; set; }
+        public BusinessUserListDTO(Integrator x, List<Commission> commissions)
         {
             Id = x.Id;
             FirstName = x.AppUser.FirstName;
@@ -59,6 +63,8 @@ namespace vendtechext.Contracts
             WalletId = x.Wallet.WALLET_ID;
             UserAccountStatus = x.AppUser.UserAccountStatus;
             Balance = x.Wallet.Balance;
+            CommissionLevel = x.Wallet.CommissionId;
+            CommissionLevelName = commissions.FirstOrDefault(d => d.Id == CommissionLevel)?.Percentage ?? 0;
         }
     }
 
@@ -70,6 +76,7 @@ namespace vendtechext.Contracts
         public string LastName { get; set; }
         public string Phone { get; set; }
         public string About { get; set; }
+        public int CommissionLevel { get; set; }
     }
 
     public class EnableIntegrator

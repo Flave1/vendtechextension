@@ -10,6 +10,7 @@ namespace vendtechext.DAL.Models
         public string WALLET_ID { get; set; }
         public decimal Balance { get; set; }
         public decimal BookBalance { get; set; }
+        public int CommissionId { get; set; }
         public Guid IntegratorId { get; set; }
         [ForeignKey("IntegratorId")]
         public virtual Integrator Integrator { get; set; }

@@ -46,6 +46,12 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public WalletBuilder SetCommission(int commissionId)
+        {
+            _wallet.CommissionId = commissionId;
+            return this;
+        }
+
         public WalletBuilder SetDeleted(bool deleted)
         {
             _wallet.Deleted = deleted;

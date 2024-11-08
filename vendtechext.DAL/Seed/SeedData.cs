@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using vendtechext.DAL.Models;
 
@@ -34,6 +35,18 @@ namespace vendtechext.DAL.Seed
                     await userManager.AddToRoleAsync(superAdminUser, "Super Admin");
                 }
             }
+        }
+
+        public static async Task Settings(IServiceProvider serviceProvider)
+        {
+            var conext = serviceProvider.GetRequiredService<DataContext>();
+            AppSetting setting = await conext.AppSettings.FirstOrDefaultAsync();
+            if(setting != null)
+                return;
+            setting = new AppSetting();
+            setting.Value = "";
+            conext.AppSettings.Add(setting);
+            await conext.SaveChangesAsync();
         }
     }
 }

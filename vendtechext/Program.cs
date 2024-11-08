@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using vendtechext.DAL.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -142,6 +143,7 @@ builder.Services.AddScoped<RequestExecutionContext>();
 builder.Services.AddScoped<TransactionRepository>();
 builder.Services.AddScoped<HttpRequestService>();
 builder.Services.AddScoped<WalletRepository>();
+builder.Services.AddScoped<AppConfiguration>();
 builder.Services.AddScoped<EmailHelper>();
 builder.Services.AddScoped<LogService>();
 
@@ -176,6 +178,7 @@ app.UseAuthorization();
 //{
 //    var services = scope.ServiceProvider;
 //    await SeedData.Initialize(services);
+//    await SeedData.Settings(services);
 //}
 
 // Map Controllers

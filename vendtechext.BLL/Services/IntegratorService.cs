@@ -76,7 +76,7 @@ namespace vendtechext.BLL.Services
                 _dbcxt.Integrators.Add(account);
                 await _dbcxt.SaveChangesAsync();
 
-                await _walletRepository.CreateWallet(account.Id);
+                await _walletRepository.CreateWallet(account.Id, model.CommissionLevel);
             }
 
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully created integrator").WithType(model).GenerateResponse();
@@ -109,6 +109,10 @@ namespace vendtechext.BLL.Services
                 .WithAbout(model.About)
                 .WithId(model.Id)
                 .Build();
+
+            Wallet wallet = await _dbcxt.Wallets.FirstOrDefaultAsync(d => d.IntegratorId == model.Id);
+            wallet = new WalletBuilder(wallet).SetCommission(model.CommissionLevel).Build();
+
             await _dbcxt.SaveChangesAsync();
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully updated account").WithType(model).GenerateResponse();
         }
@@ -138,7 +142,8 @@ namespace vendtechext.BLL.Services
 
             query = query.Skip((req.PageNumber - 1) * req.PageSize).Take(req.PageSize);
 
-            List<BusinessUserListDTO> transactions = await query.Select(d => new BusinessUserListDTO(d)).ToListAsync();
+            SettingsPayload settings = AppConfiguration.GetSettings();
+            List<BusinessUserListDTO> transactions = await query.Select(d => new BusinessUserListDTO(d, settings.Commission)).ToListAsync();
 
             PagedResponse<BusinessUserListDTO> result = new PagedResponse<BusinessUserListDTO>(transactions, totalRecords, req.PageNumber, req.PageSize);
 
@@ -147,8 +152,9 @@ namespace vendtechext.BLL.Services
 
         public async Task<APIResponse> GetIntegrator(Guid id)
         {
+            SettingsPayload settings = AppConfiguration.GetSettings();
             BusinessUserListDTO result = await _dbcxt.Integrators.Where(d => d.Deleted == false && d.Id == id)
-                .Include(d => d.AppUser).Include(d => d.Wallet).Select(d => new BusinessUserListDTO(d)).FirstOrDefaultAsync();
+                .Include(d => d.AppUser).Include(d => d.Wallet).Select(d => new BusinessUserListDTO(d, settings.Commission)).FirstOrDefaultAsync();
 
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }

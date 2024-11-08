@@ -7,6 +7,7 @@ using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
 using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
+using vendtechext.Helper;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace vendtechext.BLL.Repository
@@ -147,6 +148,11 @@ namespace vendtechext.BLL.Repository
 
         public async Task SalesInternalValidation(Wallet wallet, ElectricitySaleRequest request, Guid integratorid)
         {
+            SettingsPayload settings = AppConfiguration.GetSettings();
+            int minimumVend = settings.Threshholds.MinimumVend;
+            if(request.Amount < minimumVend)
+                throw new BadRequestException($"Provided amount can not be below {minimumVend}");
+
             if (await _context.Transactions.AnyAsync(d => d.IntegratorId == integratorid && d.TransactionUniqueId == request.TransactionId))
                 throw new BadRequestException("Transaction ID already exist for this terminal.");
 

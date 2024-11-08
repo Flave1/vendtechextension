@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using System;
 using vendtechext.BLL.Interfaces;
+using vendtechext.Contracts;
 
 namespace vendtechext.BLL.Middlewares
 {
@@ -47,11 +50,18 @@ namespace vendtechext.BLL.Middlewares
             }
             if(integrator == ("403", "forbidden"))
             {
+                APIResponse response = new Response().WithStatus("failed")
+                   .WithStatusCode(403)
+                   .WithMessage("API Vending is Disabled")
+                   .WithDetail("API Vending is Disabled")
+                   .GenerateResponse();
+
+                var jsonResponse = JsonConvert.SerializeObject(response);
 
                 context.Result = new ContentResult
                 {
                     StatusCode = StatusCodes.Status403Forbidden,
-                    Content = "API Vending is Disabled",
+                    Content = jsonResponse,
                     ContentType = "application/json"
                 };
                 return;

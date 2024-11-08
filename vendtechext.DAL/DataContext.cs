@@ -29,6 +29,7 @@ public partial class DataContext : IdentityDbContext<AppUser>
     public virtual DbSet<Log> Logs { get; set; }
     public virtual DbSet<Wallet> Wallets { get; set; }
     public virtual DbSet<Deposit> Deposits { get; set; }
+    public virtual DbSet<AppSetting> AppSettings { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
