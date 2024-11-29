@@ -15,17 +15,27 @@ namespace vendtechext.BLL.Services
     {
         private readonly TransactionRepository _repository;
         private readonly WalletRepository _walletRepository;
+        private readonly EmailHelper _emailHelper;
+        private readonly IAuthService _authService;
+        private readonly NotificationHelper notification;
+
         public DepositService(
-            TransactionRepository transactionRepository, 
-            WalletRepository walletRepository)
+            TransactionRepository transactionRepository,
+            WalletRepository walletRepository,
+            EmailHelper emailHelper,
+            IAuthService authService,
+            NotificationHelper notification)
         {
             _repository = transactionRepository;
             _walletRepository = walletRepository;
+            _emailHelper = emailHelper;
+            _authService = authService;
+            this.notification = notification;
         }
 
         public async Task<APIResponse> CreateDeposit(DepositRequest request, Guid integratorid)
         {
-            var wallet = await _walletRepository.GetWalletByIntegratorId(integratorid);
+            var wallet = await _walletRepository.GetWalletByIntegratorId(integratorid, true);
             CreateDepositDto dto = new CreateDepositDto
             {
                 Reference = request.Reference,
@@ -40,6 +50,13 @@ namespace vendtechext.BLL.Services
             if(deposit != null) 
                 await _walletRepository.UpdateWalletBookBalance(wallet, deposit.BalanceAfter);
 
+            SettingsPayload settings = AppConfiguration.GetSettings();
+            if (settings.Notification.SendAdminDepositEmail)
+            {
+                AppUser user = await _authService.FindAdminUser();
+                new Emailer(_emailHelper, notification).SendEmailToAdminOnPendingDeposits(deposit, wallet, user);
+            }
+            
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully created deposit").WithType(request).GenerateResponse();
         }
 
@@ -56,6 +73,13 @@ namespace vendtechext.BLL.Services
             await _repository.ApproveDepositTransaction(deposit);
             await _walletRepository.UpdateWalletBookBalance(wallet, deposit.BalanceAfter);
             await CreateCommision(deposit, request.IntegratorId, wallet);
+
+            SettingsPayload settings = AppConfiguration.GetSettings();
+            if (settings.Notification.SendDepositApprovalEmailToUser)
+            {
+                AppUser user = await _authService.FindUserByIntegratorId(request.IntegratorId);
+                new Emailer(_emailHelper, notification).SendEmailToIntegratorOnDepositApproval(deposit, wallet, user);
+            }
 
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully approved deposit").WithType(request).GenerateResponse();
         }

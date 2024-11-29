@@ -92,7 +92,7 @@ namespace vendtechext.BLL.Middleware
             var jsonResponse = JsonConvert.SerializeObject(response);
 
             if(context.Response.StatusCode != 400)
-                _log.Log(LogType.Error, context.Response.StatusCode.ToString(), jsonResponse);
+                _log.Log(LogType.Error, context.Response.StatusCode.ToString(), jsonResponse, exception.StackTrace);
 
             context.Response.WriteAsync(jsonResponse);
         }

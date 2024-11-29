@@ -18,6 +18,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using vendtechext.DAL.Seed;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -135,12 +137,14 @@ builder.Services.AddSignalR();
 
 // Dependency Injection
 builder.Services.AddScoped<IIntegratorService, IntegratorService>();
+builder.Services.AddScoped<IMobilePushService, MobilePushService>();
 builder.Services.AddScoped<IAPISalesService, APISalesService>();
 builder.Services.AddScoped<IDepositService, DepositService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RequestExecutionContext>();
 builder.Services.AddScoped<TransactionRepository>();
+builder.Services.AddScoped<NotificationHelper>();
 builder.Services.AddScoped<HttpRequestService>();
 builder.Services.AddScoped<WalletRepository>();
 builder.Services.AddScoped<AppConfiguration>();
@@ -183,5 +187,10 @@ app.UseAuthorization();
 
 // Map Controllers
 app.MapControllers();
+
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "fb_private_key.json")),
+});
 
 app.Run();

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "vendtech-25f36",
+  "private_key_id": "566295b2267deda01dba4908891966eaa0692f53",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDzWZUT92ViqVcA\ntiiEN+FAMeAaf1NHA8HN61UHQvKDNO2QCLvqJGf1rZCbmpM+a8FQsFgSUNRSYi6q\n1GooPrLlM+Owz8FqSRAqz92iRvRLEFXM3P/VHbGPUHRz/dZV5H/x9pSKxH6zaozj\nue5snXcidhupuLdZ3gguUCUx5JDCPy0go21lM3UjshMhJ7tZbb062gkGTqcmBlLP\ngs441JGxU+wsw4Z0zedslMjyRPMDZdz6PtDYzyduTtkXvjgecdU2dHVKy/Wy/sRU\nRCN13I7cSW9/4GrdP43FXSAtLSpFjbSH5dMNiKQJYfPz/VIDCvdDKDu1SB3f4V7o\nJV8oANUDAgMBAAECggEAE02LUDqjDajuEE3it94w3WU3aBKqeesX3+wnYfyS/Qph\nP7gZo9CAeJHscxNXU6+7dVmPmuBTfzdviThxNUEH8rtjd757EqG6CRNU+s7TCPNC\nQw5SssZ4s6wHmL3NVyHZbkmHbdx5SmUMyPGSMoZpEVA6EIPo81Vz46ySzrrZKrct\nlFs08L+aq811hAO810BCNMQo0x/ycvYjjKgK8i6ZSEKi90Sp1bJwy1AHItNk+4GY\nXXVRLeNWBpDOG39n+hNDtfYhn4OaQKkfbPY5VcopEeIRxu5rTzNYOmxIK3KcG8Zf\ng8Jwq45+fV+2SLPV+P5YkXjCaWvG5bPTiYPNjZ3FeQKBgQD96JTjtfXgEw7Knf73\ngnYVgAe3Rf3tTrk2r5BTrc8eM93Hv36n66FjC64rUBrs+4KKjZoddmhjZkGAXd3p\nRQnRO3rrvQjVasdwko719Ys3wIstKNVlZu7jbx77McmfbVlBwQ7l0UZA8a+xQT9O\nc5Y2Q35FfJC0gJbYT3Kc5DxCGwKBgQD1WrxbpIcPS60Xih1r0JwisXi8/idU95oB\nXsd7lztZ/PXyTNW34qm/XI0qL5HRGOxEKlN24HfCb5LKvOdzJMnZ6f42ICgKYTbO\nTHK0/4SJjsXJJelZvTIWdzY2Ie8TQkE83x6bMYQNj3/ZvJwmPLvDGb9jnEGA40Gy\n+VlzIcwnOQKBgQDcTZP562RVslNwLBwQZwrL5tVLCJik8Vw0fantYO5HV1tDt/xN\n+F2EEZtiC1QBcMw4KVqh254BOLT2ivtDLdqxxzkFF3R1r/sxyofuEslja1WWrkpR\nfDkj7sNj0jQNdxQtwDOL5cNeEBWP53vlNtcLaA5EfisT4kp/jpd0V3eNJwKBgQCU\nt4bsVXG4B7rHReRHcY7ySHhStgrJKbujkPuBIk3LYdUCJSh16WHSqBq4s1TDVUQA\nnVcx+yUcKdzkHlR8KpRfDcIUtLEQeZRqv1PX+fkwF+Yy4lPrHQ67J08oyLDND5/T\ncbpvfzf3sD9ijzxmwPFedMDZc+EQaq9r+FALxTSloQKBgQC6xkXEvcunmUYGPziO\n4CAfFarbipZPX6nSGlbh+pr+iDkoeozOZDqZmw50iaBtf+DPPgzEql6XUWTrptXy\n745LsIk8x8EwtNDdtakDCZSUo8v2QfNIAmAVV+E2gQF7SL/Y/tD/MiMbGUWMKcrp\nkIxXJ21NykoZMlMsEWbZ7gBPCw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-rkmhg@vendtech-25f36.iam.gserviceaccount.com",
+  "client_id": "113388453349973826706",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-rkmhg%40vendtech-25f36.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

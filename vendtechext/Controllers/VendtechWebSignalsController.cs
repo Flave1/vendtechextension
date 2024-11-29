@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using signalrserver.HubConnection;
+using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 
 namespace vendtechext.Controllers
@@ -12,12 +13,14 @@ namespace vendtechext.Controllers
         private readonly ILogger<VendtechWebSignalsController> _logger;
         private readonly IHubContext<CustomersHub, IMessageHub> customerhubContext;
         private readonly IHubContext<AdminHub, IMessageHub> adminHubContext;
+        private readonly IMobilePushService _pushService;
 
-        public VendtechWebSignalsController(ILogger<VendtechWebSignalsController> logger, IHubContext<CustomersHub, IMessageHub> customerhubContext, IHubContext<AdminHub, IMessageHub> adminHubContext)
+        public VendtechWebSignalsController(ILogger<VendtechWebSignalsController> logger, IHubContext<CustomersHub, IMessageHub> customerhubContext, IHubContext<AdminHub, IMessageHub> adminHubContext, IMobilePushService pushService)
         {
             _logger = logger;
             this.customerhubContext = customerhubContext;
             this.adminHubContext = adminHubContext;
+            _pushService = pushService;
         }
 
 
@@ -55,6 +58,13 @@ namespace vendtechext.Controllers
         {
             adminHubContext.Clients.All.UpdateAdminNotificationCount(request.Message);
             return Ok(request);
+        }
+
+        [HttpPost("push_to_mobile", Name = "push_to_mobile")]
+        public async Task<IActionResult> PushMessageToMobileAsync([FromBody] MessageRequest request)
+        {
+            await _pushService.Push(request);
+            return Ok("Message sent successfully!");
         }
     }
 }

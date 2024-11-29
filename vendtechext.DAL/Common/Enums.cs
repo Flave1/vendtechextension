@@ -54,4 +54,18 @@ namespace vendtechext.DAL.Common
         Disabled = 0,
         Active = 1,
     }
+
+    public enum NotificationTypeEnum
+    {
+        MeterRecharge = 1,
+        DepositStatusChange = 2,
+        AirtimeRecharge = 3
+    }
+
+    public enum NotificationType
+    {
+        DepositRequested = 1,
+        DepositApproved = 2,
+        Sales = 2,
+    }
 }

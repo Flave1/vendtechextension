@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using vendtechext.DAL.Models;
 
@@ -11,9 +12,11 @@ using vendtechext.DAL.Models;
 namespace vendtechext.DAL.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241129101358_db_notification")]
+    partial class db_notification
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -413,9 +416,6 @@ namespace vendtechext.DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Reciver")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")

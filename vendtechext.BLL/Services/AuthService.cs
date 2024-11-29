@@ -52,9 +52,21 @@ namespace vendtechext.BLL.Services
         {
             return await _userManager.FindByEmailAsync(email);
         }
+
+        public async Task<AppUser> FindAdminUser()
+        {
+            IList<AppUser> users = await _userManager.GetUsersInRoleAsync("Super Admin");
+            return users[0];
+        }
         public async Task<AppUser> FindUserById(string id)
         {
             return await _userManager.FindByIdAsync(id);
+        }
+        public async Task<AppUser> FindUserByIntegratorId(Guid id)
+        {
+            return await _dataContext.Integrators
+                .Where(d => d.Id == id).Include(f => f.AppUser)
+                .Select(d => d.AppUser).FirstOrDefaultAsync();
         }
 
         public async Task<AppUser> RegisterAndReturnUserAsync(RegisterDto registerDto)

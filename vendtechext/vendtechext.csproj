@@ -27,4 +27,10 @@
     <ProjectReference Include="..\vendtechext.DAL\vendtechext.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="fb_private_key.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

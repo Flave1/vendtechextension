@@ -18,5 +18,7 @@ namespace vendtechext.BLL.Interfaces
         Task<APIResponse> ChangePassword(string userId, string oldPassword, string newPassword);
         Task<APIResponse> RefreshTokenAsync(RefreshTokenDto request);
         Task<APIResponse> UpdateAdminAccount(AdminAccount model);
+        Task<AppUser> FindAdminUser();
+        Task<AppUser> FindUserByIntegratorId(Guid id);
     }
 }

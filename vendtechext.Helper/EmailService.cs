@@ -2,6 +2,9 @@
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
+using vendtechext.BLL.Services;
+using vendtechext.Contracts;
+using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper
 {
@@ -14,35 +17,71 @@ namespace vendtechext.Helper
             _configuration = configuration;
         }
 
+        public void SendEmail(List<string> to, string sub, string body)
+        {
+            if (!SendNotification)
+                return;
+
+
+            string displayName = _configuration["ClieEmailServicent:displayName"];
+            var mimeMsg = new MimeMessage();
+            var tos = new List<MailboxAddress>();
+            to.ForEach(d =>
+            {
+                tos.Add(new MailboxAddress(displayName, d));
+            });
+            mimeMsg.To.AddRange(tos);
+            mimeMsg.Subject = sub;
+
+            mimeMsg.Body = new TextPart("html")
+            {
+                Text = body
+            };
+            Send(mimeMsg);
+        }
         public void SendEmail(string to, string sub, string body)
         {
             if (!SendNotification)
                 return;
-            string from = _configuration["EmailService:from"];
-            string password = _configuration["EmailService:password"];
+
             string displayName = _configuration["ClieEmailServicent:displayName"];
-            string smtp = _configuration["EmailService:smtp"];
-            int port = Convert.ToInt16(_configuration["EmailService:port"]);
+            var mimeMsg = new MimeMessage();
+        
+            var tos = new List<MailboxAddress>
+                {
+                     new MailboxAddress(displayName, to),
+                };
+            mimeMsg.To.AddRange(tos);
+            mimeMsg.Subject = sub;
+
+            mimeMsg.Body = new TextPart("html")
+            {
+                Text = body
+            };
+            Send(mimeMsg);
+        }
+
+        public string GetEmailTemplate(string template)
+        {
+            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", $"{template}.html");
+            return File.ReadAllText(filePath);
+        }
+
+        void Send(MimeMessage mimeMsg)
+        {
             try
             {
-                var mimeMsg = new MimeMessage();
+                string displayName = _configuration["ClieEmailServicent:displayName"];
+                string from = _configuration["EmailService:from"];
+                string password = _configuration["EmailService:password"];
+                string smtp = _configuration["EmailService:smtp"];
+                int port = Convert.ToInt16(_configuration["EmailService:port"]);
                 var frms = new List<MailboxAddress>
                 {
                      new MailboxAddress(displayName, from),
                 };
-                var tos = new List<MailboxAddress>
-                {
-                     new MailboxAddress(displayName, to),
-                };
+
                 mimeMsg.From.AddRange(frms);
-                mimeMsg.To.AddRange(tos);
-                mimeMsg.Subject = sub;
-
-                mimeMsg.Body = new TextPart("html")
-                {
-                    Text = body
-                };
-
                 using (var client = new SmtpClient())
                 {
                     client.ServerCertificateValidationCallback += (o, c, ch, er) => true;
@@ -66,7 +105,64 @@ namespace vendtechext.Helper
             {
                 return;
             }
+        }
+    }
 
+
+    public class Emailer
+    {
+        private readonly EmailHelper helper;
+        public readonly NotificationHelper notificationHelper;
+        public Emailer(EmailHelper helper, NotificationHelper notificationHelper)
+        {
+            this.helper = helper;
+            this.notificationHelper = notificationHelper;
+        }
+        public void SendEmailToAdminOnPendingDeposits(Deposit deposit, Wallet wallet, AppUser user)
+        {
+            try
+            {
+                string msg = $@"
+                <p>This is to inform you that there is a deposit awaiting for your approval</p>
+                <strong>Details:</strong>
+                <p>Wallet ID: {wallet.WALLET_ID}</p>
+                <p>Integrator: {wallet.Integrator.BusinessName}</p>
+                <p>Amount: SLE {deposit.Amount}</p>
+                <p>Request Date: {Utils.formatDate(deposit.CreatedAt)}</p>
+                ";
+                string subject = "PENDING DEPOSIT APPROVAL";
+                string emailBody = helper.GetEmailTemplate("simple");
+                emailBody = emailBody.Replace("[recipient]", user.FirstName);
+                emailBody = emailBody.Replace("[body]", msg);
+
+                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositRequested, deposit.Id.ToString());
+                helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        public void SendEmailToIntegratorOnDepositApproval(Deposit deposit, Wallet wallet, AppUser user)
+        {
+            try
+            {
+                string msg = $@"
+                <p>This is to inform you that your deposit of SLE: {deposit.Amount} has been approved</p>
+                ";
+                string subject = "PENDING DEPOSIT APPROVED";
+                string emailBody = helper.GetEmailTemplate("simple");
+                emailBody = emailBody.Replace("[recipient]", user.FirstName);
+                emailBody = emailBody.Replace("[body]", msg);
+
+                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositApproved, deposit.Id.ToString());
+                helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
         }
     }
 }

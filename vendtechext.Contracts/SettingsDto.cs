@@ -17,6 +17,8 @@
         public bool Deposits { get; set; }
         public bool LowBalance { get; set; }
         public bool ServiceDisabled { get; set; }
+        public bool SendAdminDepositEmail { get; set; }
+        public bool SendDepositApprovalEmailToUser { get; set; }
     }
 
     public class Commission

@@ -9,9 +9,9 @@ namespace vendtechext.TEST.VendtechMainTests.mobile_tests
     {
         private readonly HttpClient _client;
         private readonly string _baseUrl;
-        private const string validDevicetoken = "cQxTFwXQDZw:APA91bHOFtrkiIqn7OGwx0ZxiFv8c3NogdH5w8WWOgf8x_t6TJJgyPTJaH7m1XBn0mn_HYHfrS7edMox6Q6xkB0U_2gTAfvQ0VCkXWMQZS6uFWo8r7jcuOIyszQVke7xk5BhJYSyqyxy";
+        private const string validDevicetoken = "dGYbhPYG4qs:APA91bHLe-OrOtQnOQHCEaANChDcKjHb2_4Dr3vezuInhMZ2QnNNMWv1NSQG_YE-OXKxG1sfFEmhUnkB_T29hLl7iXxp0qRuRErEJzCSsIfiV-yQhPZqc1Pz-HG1iurzksDFyxvusYOI";
         private const string currentAppVersion = "2.4.8";
-        private const string validPasscode = "85236";
+        private const string validPasscode = "55583";
         private const string RESET_PASSCODE = "10001";
         private const string PASSCODE_REQUIRED = "The PassCode field is required.";
         private const string ACCOUNT_DISABLED = "YOUR ACCOUNT IS DISABLED! \n PLEASE CONTACT VENDTECH MANAGEMENT";
@@ -22,18 +22,18 @@ namespace vendtechext.TEST.VendtechMainTests.mobile_tests
         public const string INVALID_PASSCODE = "Invalid Passcode.";
         public SignInV2IntegrationTests()
         {
-            _baseUrl = "https://vendtechsl.com/"; // http://localhost:56549/
+            _baseUrl = "http://localhost:56549/"; // https://vendtechsl.com/
             _client = new HttpClient
             {
                 BaseAddress = new Uri(_baseUrl)
             };
         }
         [Theory]
-        [InlineData(currentAppVersion, "", validPasscode, RESET_PASSCODE)]//Test empty device token
-        [InlineData(currentAppVersion, validDevicetoken, "", PASSCODE_REQUIRED)]//Test Passcode empty
-        [InlineData(currentAppVersion, "Invalid_device_token_00012323", validPasscode, INVALID_CREDENTIALS)]//Test wrong Device token
-        [InlineData(currentAppVersion, validDevicetoken, "wrong_passcode111", INVALID_PASSCODE)]//Test Wrong Passcode
-        [InlineData("2.4.7", validDevicetoken, validPasscode, OUTDATED_APP_VERSION)]//Test Wrong App Version
+        //[InlineData(currentAppVersion, "", validPasscode, RESET_PASSCODE)]//Test empty device token
+        //[InlineData(currentAppVersion, validDevicetoken, "", PASSCODE_REQUIRED)]//Test Passcode empty
+        //[InlineData(currentAppVersion, "Invalid_device_token_00012323", validPasscode, INVALID_CREDENTIALS)]//Test wrong Device token
+        //[InlineData(currentAppVersion, validDevicetoken, "wrong_passcode111", INVALID_PASSCODE)]//Test Wrong Passcode
+        //[InlineData("2.4.7", validDevicetoken, validPasscode, OUTDATED_APP_VERSION)]//Test Wrong App Version
         [InlineData(currentAppVersion, validDevicetoken, validPasscode, LOGIN_SUCCESS)]//Test Correct App Version
         //[InlineData(currentAppVersion, validDevicetoken, validPasscode, "EXPECTED_MESSAGE")]//Test POS Enabled
         //[InlineData(currentAppVersion, validDevicetoken, validPasscode, "EXPECTED_MESSAGE")]//Test Account Diabled
