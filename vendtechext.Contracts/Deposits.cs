@@ -92,6 +92,7 @@ namespace vendtechext.Contracts
     {
         public string AccountNumber { get; set; }
         public string AccountName { get; set; }
+        public string Logo { get; set; }
         public decimal BookBalance { get; set; }
         public decimal WalletBalance { get; set; }
         public List<LastDeposit> LastDeposit { get; set; }

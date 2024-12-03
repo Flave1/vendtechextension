@@ -65,7 +65,7 @@ namespace vendtechext.Controllers
         }
 
         [HttpPost("update-admin-account")]
-        public async Task<IActionResult> UpdateUser([FromBody] AdminAccount request)
+        public async Task<IActionResult> UpdateUser([FromForm] AdminAccount request)
         {
             var result = await _service.UpdateAdminAccount(request);
             return Ok(result);

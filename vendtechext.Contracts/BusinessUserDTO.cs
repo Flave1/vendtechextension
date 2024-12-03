@@ -1,4 +1,5 @@
-﻿using vendtechext.DAL.Models;
+﻿using Microsoft.AspNetCore.Http;
+using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
 {
@@ -14,6 +15,7 @@ namespace vendtechext.Contracts
         public string AppUserId { get; set; }
         public string Phone { get; set; }
         public int CommissionLevel { get; set; }
+        public IFormFile image { get; set; }
         public BusinessUserDTO(Integrator x)
         {
 
@@ -49,6 +51,7 @@ namespace vendtechext.Contracts
         public decimal Balance { get; set; }
         public int CommissionLevel { get; set; }
         public double CommissionLevelName { get; set; }
+        public string Logo { get; set; }
         public BusinessUserListDTO(Integrator x, List<Commission> commissions)
         {
             Id = x.Id;
@@ -64,6 +67,7 @@ namespace vendtechext.Contracts
             UserAccountStatus = x.AppUser.UserAccountStatus;
             Balance = x.Wallet.Balance;
             CommissionLevel = x.Wallet.CommissionId;
+            Logo = x.Logo;
             CommissionLevelName = commissions.FirstOrDefault(d => d.Id == CommissionLevel)?.Percentage ?? 0;
         }
     }
@@ -77,6 +81,7 @@ namespace vendtechext.Contracts
         public string Phone { get; set; }
         public string About { get; set; }
         public int CommissionLevel { get; set; }
+        public IFormFile image { get; set; }
     }
 
     public class EnableIntegrator

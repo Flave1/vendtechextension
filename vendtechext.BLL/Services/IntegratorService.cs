@@ -16,11 +16,13 @@ namespace vendtechext.BLL.Services
         private readonly DataContext _dbcxt;
         private readonly IAuthService _authService;
         private readonly WalletRepository _walletRepository;
-        public IntegratorService(DataContext dbcxt, IAuthService authService, WalletRepository walletRepository)
+        private readonly FileHelper _fileHelper;
+        public IntegratorService(DataContext dbcxt, IAuthService authService, WalletRepository walletRepository, FileHelper fileHelper)
         {
             this._dbcxt = dbcxt;
             _authService = authService;
             _walletRepository = walletRepository;
+            _fileHelper = fileHelper;
         }
 
         async Task<BusinessUserDTO> IIntegratorService.GetIntegrator(string apiKey)
@@ -63,6 +65,7 @@ namespace vendtechext.BLL.Services
                 Phone = model.Phone,
             });
 
+            string imgPath = await _fileHelper.CreateFile(model.image);
             if (userAccount != null)
             {
                 Integrator account = new IntegratorsBuilder()
@@ -71,6 +74,7 @@ namespace vendtechext.BLL.Services
                 .WithAppUserId(userAccount.Id)
                 .WithAbout(model.About)
                 .WithDisabled(false)
+                .WithLogo(imgPath)
                 .Build();
 
                 _dbcxt.Integrators.Add(account);
@@ -93,7 +97,7 @@ namespace vendtechext.BLL.Services
             {
                 throw new BadRequestException("Business Account with name already  exist");
             }
-
+             
             AppUser userAccount = await _authService.UpdateAndReturnUserAsync(new RegisterDto
             {
                 Firstname = model.FirstName,
@@ -104,9 +108,12 @@ namespace vendtechext.BLL.Services
                 Phone = model.Phone,
             }, model.AppUserId);
 
+            string imgPath = await _fileHelper.UpdateFile(model.image, account.Logo);
+
             account = new IntegratorsBuilder(account)
                 .WithBusinessName(model.BusinessName)
                 .WithAbout(model.About)
+                .WithLogo(imgPath)
                 .WithId(model.Id)
                 .Build();
 

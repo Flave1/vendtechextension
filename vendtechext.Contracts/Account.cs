@@ -61,7 +61,9 @@ namespace vendtechext.Contracts
         public string Description { get; set; }
         public string Phone { get; set; }
         public string ApiKey { get; set; }
-        public ProfileDto(AppUser x, string businessName, string description, string apiKey) {
+        public string Logo { get; set; }
+        public ProfileDto(AppUser x, string businessName, string description, string apiKey, string logo = "")
+        {
 
             Firstname = x.FirstName;
             Lastname = x.LastName;
@@ -72,6 +74,7 @@ namespace vendtechext.Contracts
             Description = description;
             Phone = x.PhoneNumber;
             ApiKey = apiKey;
+            Logo = logo;
         }
 
     }
@@ -83,5 +86,6 @@ namespace vendtechext.Contracts
         public string LastName { get; set; }
         public string Phone { get; set; }
         public string AppUserId { get; set; }
+        public string image { get; set; }
     }
 }

@@ -150,6 +150,7 @@ builder.Services.AddScoped<WalletRepository>();
 builder.Services.AddScoped<AppConfiguration>();
 builder.Services.AddScoped<EmailHelper>();
 builder.Services.AddScoped<LogService>();
+builder.Services.AddScoped<FileHelper>();
 
 var app = builder.Build();
 
@@ -192,5 +193,5 @@ FirebaseApp.Create(new AppOptions()
 {
     Credential = GoogleCredential.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "fb_private_key.json")),
 });
-
+app.UseStaticFiles();
 app.Run();

@@ -197,6 +197,7 @@ namespace vendtechext.BLL.Services
                 BookBalance = wallet.BookBalance,
                 WalletBalance = wallet.Balance,
                 LastDeposit = lastDeposit,
+                Logo = wallet.Integrator.Logo
             };
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
         }

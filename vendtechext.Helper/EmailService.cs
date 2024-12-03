@@ -12,9 +12,11 @@ namespace vendtechext.Helper
     {
         public readonly IConfiguration _configuration;
         public static bool SendNotification = true;
+        private readonly string _dir;
         public EmailHelper(IConfiguration configuration)
         {
             _configuration = configuration;
+            _dir = "EmailTemplates";
         }
 
         public void SendEmail(List<string> to, string sub, string body)
@@ -63,7 +65,7 @@ namespace vendtechext.Helper
 
         public string GetEmailTemplate(string template)
         {
-            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", $"{template}.html");
+            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", _dir, $"{template}.html");
             return File.ReadAllText(filePath);
         }
 

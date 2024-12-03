@@ -103,7 +103,6 @@ namespace vendtechext.BLL.Services
             user.LastName = registerDto.Lastname;
             user.UserType = (int)registerDto.UserType;
             user.PhoneNumber = registerDto.Phone;
-
             IdentityResult result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
@@ -207,25 +206,28 @@ namespace vendtechext.BLL.Services
             string businessName;
             string about;
             string apiKey;
+            string logo = "";
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
                 throw new BadRequestException("User does not exist");
 
             if (user.UserType == (int)UserType.External)
             {
-                var integrator = _dataContext.Integrators.FirstOrDefault(d => d.AppUserId == user.Id);
+                var integrator = _dataContext.Integrators.Where(d => d.AppUserId == user.Id).FirstOrDefault();
                 businessName = integrator.BusinessName;
                 about = integrator.About;
                 apiKey = integrator.ApiKey;
+                logo = integrator.Logo;
             }
             else
             {
                 businessName = "VENDTECH";
                 about = "About";
                 apiKey = "";
+                logo = "https://www.vendtechsl.com:459/images/f0d5d635-a463-4c4a-b4a6-2c224442fd9d.png";
             }
 
-            var profile = new ProfileDto(user, businessName, about, apiKey);
+            var profile = new ProfileDto(user, businessName, about, apiKey, logo);
 
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(profile).GenerateResponse();
         }

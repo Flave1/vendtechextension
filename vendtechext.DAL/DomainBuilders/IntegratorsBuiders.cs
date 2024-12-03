@@ -29,7 +29,11 @@ namespace vendtechext.DAL.DomainBuilders
             _integrator.About = about;
             return this;
         }
-
+        public IntegratorsBuilder WithLogo(string logo)
+        {
+            _integrator.Logo = logo;
+            return this;
+        }
         public IntegratorsBuilder WithBusinessName(string businessName)
         {
             _integrator.BusinessName = businessName;

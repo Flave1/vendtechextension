@@ -18,14 +18,14 @@ namespace vendtechext.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateBusinessUser([FromBody] BusinessUserCommandDTO businessUser)
+        public async Task<IActionResult> CreateBusinessUser([FromForm] BusinessUserCommandDTO businessUser)
         {
             var result = await service.CreateBusinessAccount(businessUser);
             return Ok(result);
         }
 
         [HttpPost("update")]
-        public async Task<IActionResult> UpdateBusinessUser([FromBody] BusinessUserDTO businessUser)
+        public async Task<IActionResult> UpdateBusinessUser([FromForm] BusinessUserDTO businessUser)
         {
             var result = await service.UpdateBusinessAccount(businessUser);
             return Ok(result);
