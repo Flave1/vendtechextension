@@ -12,6 +12,7 @@ namespace vendtechext.TEST.Sales
     {
         private readonly HttpClient _client;
         private readonly Mock<IAPISalesService> _mockSalesService;
+        const string transactionId = "265515";
         public PurchaseElectricitySalesTest()
         {
             TestServerFixture testServer = new TestServerFixture();
@@ -20,7 +21,7 @@ namespace vendtechext.TEST.Sales
         }
 
         [Theory]
-        [InlineData("FCcHkRm7bBTaJkjgFyL6C2FH6RSGy6ff0YX3zK1kok87R+HL4blEj+PygevBefS0", 4, "98000142897", "7", HttpStatusCode.OK)]
+        [InlineData("FCcHkRm7bBTaJkjgFyL6C2FH6RSGy6ff0YX3zK1kok87R+HL4blEj+PygevBefS0", 40, "98000142897", transactionId, HttpStatusCode.OK)]
         public async Task Test_for_successful_response(
             string apiKey, 
             decimal amount,
@@ -42,6 +43,37 @@ namespace vendtechext.TEST.Sales
             content.Headers.Add("X-Api-Key", apiKey);
             // Act
             var response = await _client.PostAsync("/sales/v1/buy", content);
+
+            // Assert
+            //response.EnsureSuccessStatusCode();
+            var responseString = await response.Content.ReadAsStringAsync();
+            APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+            // Additional assertions to validate the response
+        }
+
+
+        [Theory]
+        [InlineData("FCcHkRm7bBTaJkjgFyL6C2FH6RSGy6ff0YX3zK1kok87R+HL4blEj+PygevBefS0", transactionId, HttpStatusCode.OK)]
+        public async Task Test_for_successful_query(
+           string apiKey,
+           string transactionId,
+           HttpStatusCode expectedStatusCode)
+        {
+            // Arrange
+            var requestModel = new SaleStatusRequest
+            {
+                TransactionId = transactionId,
+            };
+
+            var json = System.Text.Json.JsonSerializer.Serialize(requestModel);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            content.Headers.Add("X-Api-Key", apiKey);
+            // Act
+            var response = await _client.PostAsync("/sales/v1/status", content);
 
             // Assert
             //response.EnsureSuccessStatusCode();

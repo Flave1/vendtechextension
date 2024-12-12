@@ -31,6 +31,7 @@ namespace vendtechext.BLL.Services
             Transaction transactionLog = await _repository.CreateSaleTransactionLog(request, integratorid);
 
             await _repository.DeductFromWallet(wallet, transactionLog);
+            request.TransactionId = transactionLog.VendtechTransactionID;
 
             ExecutionResult executionResult = await _executionContext.ExecuteTransaction(request, integratorid, integratorName);
             if (executionResult.Status == "success")
@@ -59,7 +60,13 @@ namespace vendtechext.BLL.Services
             Transaction transaction = await _repository.GetSaleTransaction(request.TransactionId, integratorid);
             
             if(transaction == null)
-                executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
+            {
+                //131fece5-61be-4bc7-2618-08dceb87f9b5
+                //executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
+                executionResult = new ExecutionResult(false);
+                executionResult.Status = "failed";
+             
+            }
             else if (transaction.Finalized)
             {
                 executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
@@ -67,7 +74,7 @@ namespace vendtechext.BLL.Services
             }
             else if (!transaction.Finalized)
             {
-                executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
+                executionResult = await _executionContext.ExecuteTransaction(transaction.VendtechTransactionID, integratorid, integratorName);
             }
             return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
         }

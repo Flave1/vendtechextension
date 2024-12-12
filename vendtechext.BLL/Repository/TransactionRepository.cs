@@ -2,6 +2,7 @@
 using Org.BouncyCastle.Ocsp;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
+using vendtechext.BLL.Services;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
@@ -15,6 +16,7 @@ namespace vendtechext.BLL.Repository
     public class TransactionRepository
     {
         private readonly DataContext _context;
+        private readonly VendtechTransactionsService _vendtech;
         private readonly List<PaymentType> _types = new List<PaymentType>
             {
                 new PaymentType{ Id = 1, Name = "BANK DEPOSIT", Description = "A payment method where funds are deposited directly into a bank account through a branch or electronic means."},
@@ -22,9 +24,10 @@ namespace vendtechext.BLL.Repository
                 new PaymentType{ Id = 3, Name = "CASH", Description = "A physical payment made using paper currency or coins, often handled in person for immediate transactions."},
             };
 
-        public TransactionRepository(DataContext context)
+        public TransactionRepository(DataContext context, VendtechTransactionsService vendtech)
         {
             _context = context;
+            _vendtech = vendtech;
         }
 
         #region COMMON
@@ -180,8 +183,12 @@ namespace vendtechext.BLL.Repository
 
         public async Task<Transaction> CreateSaleTransactionLog(ElectricitySaleRequest request, Guid integratorId)
         {
+            dynamic transaction = await _vendtech.CreateRecordBeforeVend(request.MeterNumber, request.Amount);
+            string transactionId = UniqueIDGenerator.NewSaleTransactionId();
+            string newTrxid =transaction.TransactionId; //264713
+
             var trans = new TransactionsBuilder()
-                .WithTransactionId(UniqueIDGenerator.NewSaleTransactionId())
+                .WithTransactionId(newTrxid)
                 .WithTransactionStatus(TransactionStatus.Pending)
                 .WithTransactionUniqueId(request.TransactionId)
                 .WithMeterNumber(request.MeterNumber)

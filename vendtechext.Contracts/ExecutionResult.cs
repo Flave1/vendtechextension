@@ -84,6 +84,10 @@ namespace vendtechext.Contracts
     {
         public string ErrorMessage { get; set; }
         public string ErrorDetail { get; set; }
+        public FailedResponse()
+        {
+                
+        }
         public FailedResponse(string Detail, string SystemError)
         {
             ErrorDetail = Detail;
@@ -133,6 +137,11 @@ namespace vendtechext.Contracts
                 SuccessResponse = new SuccessResponse(x);
             else
                 FailedResponse = new FailedResponse(x);
+        }
+        public ExecutionResult(bool isSuccessful)
+        {
+            if (!isSuccessful)
+                FailedResponse = new FailedResponse {  ErrorMessage = "Transaction not found", ErrorDetail= "Transaction not found: Please contact vendtech or submit a ticket" };
         }
 
         public ExecutionResult InitializeRequestAndResponse(string requestAsString, string responseAsString)

@@ -140,6 +140,7 @@ builder.Services.AddScoped<IIntegratorService, IntegratorService>();
 builder.Services.AddScoped<IMobilePushService, MobilePushService>();
 builder.Services.AddScoped<IAPISalesService, APISalesService>();
 builder.Services.AddScoped<IDepositService, DepositService>();
+builder.Services.AddScoped<VendtechTransactionsService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RequestExecutionContext>();

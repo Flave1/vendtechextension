@@ -1,4 +1,5 @@
-﻿using vendtechext.DAL.Common;
+﻿using Microsoft.AspNetCore.Http;
+using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
@@ -13,6 +14,7 @@ namespace vendtechext.Contracts
         public string Password { get; set; }
         public UserType UserType { get; set; }
         public int CommissionLevel { get; set; }
+        public IFormFile image { get; set; }
     }
     public class ChangePassword
     {
@@ -86,6 +88,6 @@ namespace vendtechext.Contracts
         public string LastName { get; set; }
         public string Phone { get; set; }
         public string AppUserId { get; set; }
-        public string image { get; set; }
+        public IFormFile image { get; set; }
     }
 }

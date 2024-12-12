@@ -26,14 +26,16 @@ namespace vendtechext.BLL.Services
         private readonly IConfiguration _configuration;
         private readonly DataContext _dataContext;
         private readonly EmailHelper _emailHelper;
+        private readonly FileHelper _fileHelper;
 
-        public AuthService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration configuration, DataContext dataContext, EmailHelper emailHelper)
+        public AuthService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration configuration, DataContext dataContext, EmailHelper emailHelper, FileHelper fileHelper)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _dataContext = dataContext;
             _emailHelper = emailHelper;
+            _fileHelper = fileHelper;
         }
 
         public async Task<IdentityResult> RegisterAsync(RegisterDto registerDto)
@@ -97,12 +99,15 @@ namespace vendtechext.BLL.Services
             if(user == null)
                 throw new BadRequestException("User account not found");
 
+            string img = await _fileHelper.UpdateFile(registerDto.image, user.ProfilePic);
+
             user.UserName = registerDto.Username;
             user.Email = registerDto.Email;
             user.FirstName = registerDto.Firstname;
             user.LastName = registerDto.Lastname;
             user.UserType = (int)registerDto.UserType;
             user.PhoneNumber = registerDto.Phone;
+            user.ProfilePic = img;
             IdentityResult result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
@@ -224,7 +229,7 @@ namespace vendtechext.BLL.Services
                 businessName = "VENDTECH";
                 about = "About";
                 apiKey = "";
-                logo = "https://www.vendtechsl.com:459/images/f0d5d635-a463-4c4a-b4a6-2c224442fd9d.png";
+                logo = user.ProfilePic;
             }
 
             var profile = new ProfileDto(user, businessName, about, apiKey, logo);
@@ -291,6 +296,7 @@ namespace vendtechext.BLL.Services
                 Username = model.Email,
                 UserType = UserType.Internal,
                 Phone = model.Phone,
+                image = model.image,
             }, model.AppUserId);
 
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Updated Successfully").GenerateResponse();

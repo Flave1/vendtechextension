@@ -205,6 +205,7 @@ namespace vendtechext.BLL.Services
         public async Task<APIResponse> GetAdminBalance()
         {
             var balance = await _walletRepository.GetAdminBalance();
+            var user = await _authService.FindAdminUser();
             var result = new WalletDTO
             {
                 AccountName = "Administrator",
@@ -212,6 +213,7 @@ namespace vendtechext.BLL.Services
                 BookBalance = 0,
                 WalletBalance = balance,
                 LastDeposit = null,
+                Logo = user.ProfilePic
             };
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
         }
