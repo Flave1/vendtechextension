@@ -44,7 +44,6 @@ public partial class DataContext : IdentityDbContext<AppUser>
     {
         base.OnModelCreating(modelBuilder);
 
-        // Override default AspNet Identity table names
         modelBuilder.Entity<AppUser>(entity => { entity.ToTable(name: "Users"); });
         modelBuilder.Entity<IdentityRole>(entity => { entity.ToTable(name: "Roles"); });
         modelBuilder.Entity<IdentityUserRole<string>>(entity => { entity.ToTable("UserRoles"); });
