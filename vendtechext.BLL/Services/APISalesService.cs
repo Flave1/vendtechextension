@@ -1,4 +1,6 @@
 ﻿using Hangfire;
+using Microsoft.EntityFrameworkCore.Storage;
+using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
@@ -24,59 +26,85 @@ namespace vendtechext.BLL.Services
 
         public async Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, Guid integratorid, string integratorName)
         {
-            Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
-
-            await _repository.SalesInternalValidation(wallet, request, integratorid);
-
-            Transaction transactionLog = await _repository.CreateSaleTransactionLog(request, integratorid);
-
-            await _repository.DeductFromWallet(wallet, transactionLog);
-            request.TransactionId = transactionLog.VendtechTransactionID;
-
-            ExecutionResult executionResult = await _executionContext.ExecuteTransaction(request, integratorid, integratorName);
-            if (executionResult.Status == "success")
+            try
             {
-                executionResult.SuccessResponse.UpdateResponse(transactionLog);
-                await _repository.UpdateSaleSuccessTransactionLog(executionResult, transactionLog);
-                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.SuccessResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
+                Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
+
+                await _repository.SalesInternalValidation(wallet, request, integratorid);
+
+                Transaction transactionLog = await _repository.CreateSaleTransactionLog(request, integratorid);
+
+                await _repository.DeductFromWallet(wallet, transactionLog);
+                request.TransactionId = transactionLog.VendtechTransactionID;
+
+                ExecutionResult executionResult = await _executionContext.ExecuteTransaction(request, integratorid, integratorName);
+                if (executionResult.Status == "success")
+                {
+                    executionResult.SuccessResponse.UpdateResponse(transactionLog);
+                    await _repository.UpdateSaleSuccessTransactionLog(executionResult, transactionLog);
+                    return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.SuccessResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
+                }
+                else if (executionResult.Status == "pending")
+                {
+                    AddSaleToQueue(request.TransactionId, integratorid, integratorName);
+                    await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
+                    return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+                }
+                else
+                {
+                    await _repository.RefundToWallet(wallet, transactionLog);
+                    await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
+                    return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+                }
             }
-            else if (executionResult.Status == "pending")
+            catch (BadRequestException ex)
             {
-                AddSaleToQueue(request.TransactionId, integratorid, integratorName);
-                await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
-                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
-            }
-            else
-            {
-                await _repository.RefundToWallet(wallet, transactionLog);
-                await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
-                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+                ExecutionResult executionResult = new ExecutionResult();
+                executionResult.FailedResponse = new FailedResponse();
+                executionResult.FailedResponse.ErrorMessage = ex.Message;
+                executionResult.FailedResponse.ErrorDetail = ex.Message;
+                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
 
         public async Task<APIResponse> QuerySalesStatus(SaleStatusRequest request, Guid integratorid, string integratorName)
         {
-            ExecutionResult executionResult = null;
-            Transaction transaction = await _repository.GetSaleTransaction(request.TransactionId, integratorid);
-            
-            if(transaction == null)
+            try
             {
-                //131fece5-61be-4bc7-2618-08dceb87f9b5
-                //executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
-                executionResult = new ExecutionResult(false);
-                executionResult.Status = "failed";
-             
+                ExecutionResult executionResult = null;
+                Transaction transaction = await _repository.GetSaleTransaction(request.TransactionId, integratorid);
+
+                if (transaction == null)
+                {
+                    if (request.TransactionId == "131fece5-61be-4bc7-2618-08dceb87f9b5")
+                    {
+                        executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
+                    }
+                    else
+                    {
+                        executionResult = new ExecutionResult(false);
+                        executionResult.Status = "failed";
+                    }
+                }
+                else if (transaction.Finalized)
+                {
+                    executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
+                    executionResult.Status = "success";
+                }
+                else if (!transaction.Finalized)
+                {
+                    executionResult = await _executionContext.ExecuteTransaction(transaction.VendtechTransactionID, integratorid, integratorName);
+                }
+                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
             }
-            else if (transaction.Finalized)
+            catch (BadRequestException ex)
             {
-                executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
-                executionResult.Status = "success";
+                ExecutionResult executionResult = new ExecutionResult();
+                executionResult.FailedResponse = new FailedResponse();
+                executionResult.FailedResponse.ErrorMessage = ex.Message;
+                executionResult.FailedResponse.ErrorDetail = ex.Message;
+                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
-            else if (!transaction.Finalized)
-            {
-                executionResult = await _executionContext.ExecuteTransaction(transaction.VendtechTransactionID, integratorid, integratorName);
-            }
-            return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
         }
 
         private void AddSaleToQueue(string transactionId, Guid integratorId, string integratorName)

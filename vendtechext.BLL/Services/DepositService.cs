@@ -87,7 +87,7 @@ namespace vendtechext.BLL.Services
         private async Task CreateCommision(Deposit deposit, Guid integratorid, Wallet wallet)
         {
             SettingsPayload settings = AppConfiguration.GetSettings();
-            string commissionLevel = settings.Commission.First(d => d.Id == wallet.CommissionId).Percentage.ToString();
+            string commissionLevel = settings.Commission.FirstOrDefault(d => d.Id == wallet.CommissionId).Percentage.ToString();
             decimal.TryParse(commissionLevel, out decimal percentage);
 
             decimal commission = deposit.Amount * percentage / 100;

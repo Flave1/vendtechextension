@@ -12,7 +12,7 @@ namespace vendtechext.TEST.Sales
     {
         private readonly HttpClient _client;
         private readonly Mock<IAPISalesService> _mockSalesService;
-        const string transactionId = "265515";
+        const string transactionId = "268017";
         public PurchaseElectricitySalesTest()
         {
             TestServerFixture testServer = new TestServerFixture();

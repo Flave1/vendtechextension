@@ -19,6 +19,7 @@ namespace vendtechext.DAL.Common
         Pending = 2,
         Failed = 3,
         Error = 4,
+        All = 100
     }
 
     public enum LogType

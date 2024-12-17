@@ -143,6 +143,7 @@ namespace vendtechext.BLL.Repository
                 .WithTransactionStatus(TransactionStatus.Failed)
                 .WithReceivedFrom(executionResult.ReceivedFrom)
                 .WithResponse(executionResult.Response)
+                .WithBalanceAfter(trans.BalanceBefore)
                 .WithRequest(executionResult.Request)
                 .Build();
 
@@ -183,9 +184,9 @@ namespace vendtechext.BLL.Repository
 
         public async Task<Transaction> CreateSaleTransactionLog(ElectricitySaleRequest request, Guid integratorId)
         {
-            dynamic transaction = await _vendtech.CreateRecordBeforeVend(request.MeterNumber, request.Amount);
+            //dynamic transaction = await _vendtech.CreateRecordBeforeVend(request.MeterNumber, request.Amount);
             string transactionId = UniqueIDGenerator.NewSaleTransactionId();
-            string newTrxid =transaction.TransactionId; //264713
+            string newTrxid = transactionId;// request.TransactionId; //264713
 
             var trans = new TransactionsBuilder()
                 .WithTransactionId(newTrxid)
@@ -204,7 +205,7 @@ namespace vendtechext.BLL.Repository
 
         public IQueryable<Transaction> GetSalesTransactionQuery(int status, int claimedStatus)
         {
-            if(claimedStatus == (int)ClaimedStatus.All)
+            if(status != (int)TransactionStatus.All)
             {
                 var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status)
                     .Include(d => d.Integrator).ThenInclude(d => d.Wallet);
@@ -212,7 +213,7 @@ namespace vendtechext.BLL.Repository
             }
             else
             {
-                var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status && d.ClaimedStatus == claimedStatus)
+                var query = _context.Transactions.Where(d => d.Deleted == false)
                             .Include(d => d.Integrator).ThenInclude(d => d.Wallet);
                 return query;
             }
