@@ -1,0 +1,44 @@
+name: .NET Core CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build project
+      run: dotnet build --configuration Release
+
+    - name: Publish application
+      run: dotnet publish --configuration Release --output ./published
+
+    - name: Deploy to IIS
+      uses: appleboy/ssh-action@v0.1.0
+      with:
+        host: ${{ secrets.IIS_SERVER_HOST }}
+        username: ${{ secrets.IIS_SERVER_USERNAME }}
+        password: ${{ secrets.IIS_SERVER_PASSWORD }}
+        port: 22
+        script: |
+          cd C:\inetpub\vhosts\vendtechsl.com\signalrdomain
+          rm -rf *
+          cp -r ./published/* C:\inetpub\vhosts\vendtechsl.com\signalrdomain
+          iisreset
