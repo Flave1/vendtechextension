@@ -66,10 +66,6 @@ namespace vendtechext.BLL.Services
                 return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
-        private string SwappedTransactionID(string toBeReplacedId, string replacingId)
-        {
-            return replacingId;
-        }
         public async Task<APIResponse> QuerySalesStatus(SaleStatusRequest request, Guid integratorid, string integratorName)
         {
             try
