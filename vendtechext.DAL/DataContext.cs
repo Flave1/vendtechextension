@@ -36,7 +36,7 @@ public partial class DataContext : IdentityDbContext<AppUser>
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseSqlServer("Server=92.205.181.48;Database=VENDTECHEXT_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;");
+            optionsBuilder.UseSqlServer("Server=92.205.181.48;Database=VENDTECHEXT_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;");
         }
     }
 
@@ -44,7 +44,6 @@ public partial class DataContext : IdentityDbContext<AppUser>
     {
         base.OnModelCreating(modelBuilder);
 
-        // Override default AspNet Identity table names
         modelBuilder.Entity<AppUser>(entity => { entity.ToTable(name: "Users"); });
         modelBuilder.Entity<IdentityRole>(entity => { entity.ToTable(name: "Roles"); });
         modelBuilder.Entity<IdentityUserRole<string>>(entity => { entity.ToTable("UserRoles"); });

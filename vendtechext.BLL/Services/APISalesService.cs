@@ -46,7 +46,7 @@ namespace vendtechext.BLL.Services
                 }
                 else if (executionResult.Status == "pending")
                 {
-                    AddSaleToQueue(request.TransactionId, integratorid, integratorName);
+                    AddSaleToQueue(transactionLog.TransactionUniqueId, integratorid, integratorName);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
                     return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
                 }
@@ -66,7 +66,6 @@ namespace vendtechext.BLL.Services
                 return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
-
         public async Task<APIResponse> QuerySalesStatus(SaleStatusRequest request, Guid integratorid, string integratorName)
         {
             try
@@ -94,6 +93,41 @@ namespace vendtechext.BLL.Services
                 else if (!transaction.Finalized)
                 {
                     executionResult = await _executionContext.ExecuteTransaction(transaction.VendtechTransactionID, integratorid, integratorName);
+                }
+                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
+            }
+            catch (BadRequestException ex)
+            {
+                ExecutionResult executionResult = new ExecutionResult();
+                executionResult.FailedResponse = new FailedResponse();
+                executionResult.FailedResponse.ErrorMessage = ex.Message;
+                executionResult.FailedResponse.ErrorDetail = ex.Message;
+                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+            }
+        }
+        public async Task<APIResponse> PurchaseElectricityForSandbox(ElectricitySaleRequest request, Guid integratorid, string integratorName)
+        {
+            try
+            {
+                ExecutionResult executionResult = null;
+                Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
+                await _repository.SalesInternalValidation(wallet, request, integratorid);
+                Transaction existingTransaction = await _repository.GetSaleTransactionByRandom(request.MeterNumber);
+                Transaction transactionLog = await _repository.CreateSaleTransactionLog(request, integratorid);
+
+                if (existingTransaction == null)
+                {
+                    executionResult = new ExecutionResult(false);
+                    executionResult.Status = "failed";
+                }
+                else if (existingTransaction.Finalized)
+                {
+                    executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
+                    executionResult.Status = "success";
+                }
+                else if (!existingTransaction.Finalized)
+                {
+                    executionResult = await _executionContext.ExecuteTransaction(existingTransaction.VendtechTransactionID, integratorid, integratorName);
                 }
                 return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
             }
