@@ -182,11 +182,37 @@ namespace vendtechext.BLL.Repository
             return trans;
         }
 
+        public async Task<Transaction> GetSaleTransactionByRandom(string meterNumber)
+        {
+            var trans = await _context.Transactions.FirstOrDefaultAsync(d => d.MeterNumber == meterNumber) ?? null;
+            return trans;
+        }
+
         public async Task<Transaction> CreateSaleTransactionLog(ElectricitySaleRequest request, Guid integratorId)
         {
             //dynamic transaction = await _vendtech.CreateRecordBeforeVend(request.MeterNumber, request.Amount);
             string transactionId = UniqueIDGenerator.NewSaleTransactionId();
-            string newTrxid = transactionId;// request.TransactionId; //264713
+            string newTrxid = transactionId;
+
+            var trans = new TransactionsBuilder()
+                .WithTransactionId(newTrxid)
+                .WithTransactionStatus(TransactionStatus.Pending)
+                .WithTransactionUniqueId(request.TransactionId)
+                .WithMeterNumber(request.MeterNumber)
+                .WithIntegratorId(integratorId)
+                .WithCreatedAt(DateTime.Now)
+                .WithAmount(request.Amount)
+                .Build();
+
+            _context.Transactions.Add(trans);
+            await _context.SaveChangesAsync();
+            return trans;
+        }
+
+        public async Task<Transaction> CopySaleTransaction(ElectricitySaleRequest request, Guid integratorId)
+        {
+            string transactionId = UniqueIDGenerator.NewSaleTransactionId();
+            string newTrxid = transactionId;
 
             var trans = new TransactionsBuilder()
                 .WithTransactionId(newTrxid)

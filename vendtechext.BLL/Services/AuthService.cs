@@ -194,7 +194,7 @@ namespace vendtechext.BLL.Services
                     new Claim(JwtRegisteredClaimNames.Iss, "vendtech"),
                     new Claim(ClaimTypes.Role, user_role)
                 }),
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddMinutes(60),
 
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };

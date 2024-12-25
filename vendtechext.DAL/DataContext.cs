@@ -36,7 +36,7 @@ public partial class DataContext : IdentityDbContext<AppUser>
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseSqlServer("Server=92.205.181.48;Database=VENDTECHEXT_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;");
+            optionsBuilder.UseSqlServer("Server=92.205.181.48;Database=VENDTECHEXT_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;");
         }
     }
 

@@ -25,11 +25,12 @@ namespace vendtechext.Controllers
         [HttpPost("buy")]
         public async Task<IActionResult> PurchaseElectricity([FromBody] ElectricitySaleRequest request)
         {
-            var integratorId = Guid.Parse(HttpContext.Items["IntegratorId"] as string ?? "") ; 
+            var integratorId = Guid.Parse(HttpContext.Items["IntegratorId"] as string ?? "");
             var integratorName = HttpContext.Items["IntegratorName"] as string;
 
             _log.Log(LogType.Infor, $"received request for {request.TransactionId} from {integratorName}", request);
             APIResponse reponse = await service.PurchaseElectricity(request, integratorId, integratorName);
+            //APIResponse reponse = await service.PurchaseElectricityForSandbox(request, integratorId, integratorName);
             _log.Log(LogType.Infor, $"response sent for {request.TransactionId} to {integratorName}", reponse);
 
             return Ok(reponse);
