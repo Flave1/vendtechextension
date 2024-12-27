@@ -140,7 +140,6 @@ namespace vendtechext.BLL.Services
                 return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
-
         private void AddSaleToQueue(string transactionId, Guid integratorId, string integratorName)
         {
             string jobId = $"{integratorName}_{transactionId}";
