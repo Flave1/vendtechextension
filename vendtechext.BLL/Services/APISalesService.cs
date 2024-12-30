@@ -124,10 +124,56 @@ namespace vendtechext.BLL.Services
                 {
                     executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
                     executionResult.Status = "success";
+                    executionResult.SuccessResponse.UpdateResponse(transactionLog);
+                    await _repository.UpdateSaleSuccessTransactionLog(executionResult, transactionLog);
                 }
                 else if (!existingTransaction.Finalized)
                 {
-                    executionResult = await _executionContext.ExecuteTransaction(existingTransaction.VendtechTransactionID, integratorid, integratorName);
+                    executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
+                    executionResult.Status = "pending";
+                    AddSaleToQueue(transactionLog.TransactionUniqueId, integratorid, integratorName);
+                    await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
+                }
+                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
+            }
+            catch (BadRequestException ex)
+            {
+                ExecutionResult executionResult = new ExecutionResult();
+                executionResult.FailedResponse = new FailedResponse();
+                executionResult.FailedResponse.ErrorMessage = ex.Message;
+                executionResult.FailedResponse.ErrorDetail = ex.Message;
+                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+            }
+            }
+        public async Task<APIResponse> QuerySalesStatusForSandbox(SaleStatusRequest request, Guid integratorid, string integratorName)
+        {
+            try
+            {
+                ExecutionResult executionResult = null;
+                Transaction transaction = await _repository.GetSaleTransaction(request.TransactionId, integratorid);
+
+                if (transaction == null)
+                {
+                    if (request.TransactionId == "131fece5-61be-4bc7-2618-08dceb87f9b5")
+                    {
+                        executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
+                    }
+                    else
+                    {
+                        executionResult = new ExecutionResult(false);
+                        executionResult.Status = "failed";
+                    }
+                }
+                else if (transaction.Finalized)
+                {
+                    executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
+                    executionResult.Status = "success";
+                }
+                else if (!transaction.Finalized)
+                {
+                    executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
+                    executionResult.Status = "pending";
+                    //executionResult = await _executionContext.ExecuteTransaction(transaction.VendtechTransactionID, integratorid, integratorName);
                 }
                 return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
             }

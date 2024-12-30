@@ -13,7 +13,7 @@ namespace vendtechext.TEST.Sales
     {
         private readonly HttpClient _client;
         private readonly Mock<IAPISalesService> _mockSalesService;
-        const string transactionId = "276039";//274733
+        const string transactionId = "274867";//274733
         const string devApikey = "FCcHkRm7bBTaJkjgFyL6C2FH6RSGy6ff0YX3zK1kok87R+HL4blEj+PygevBefS0";
         const string liveApikey = "e+KZgZZl1GZcLUHQkZ2lqQmWwAHBQvyQZ99ChmNOd4+HCoVqRm/trmKOztwiv7LB";
         private readonly string _connectionString;
@@ -22,16 +22,15 @@ namespace vendtechext.TEST.Sales
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
             _mockSalesService = new Mock<IAPISalesService>();
-            _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
+            _connectionString = "Server=92.205.181.48;Database=STAGING_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
         }
 
         [Theory]
-        [InlineData(liveApikey, 40, "98000142897", transactionId, HttpStatusCode.OK)]
+        [InlineData(devApikey, 40, "98000142897", HttpStatusCode.OK)]
         public async Task Test_for_successful_response(
             string apiKey, 
             decimal amount,
             string meterNumber,
-            string transactionId,
             HttpStatusCode expectedStatusCode)
         
         {
@@ -63,7 +62,7 @@ namespace vendtechext.TEST.Sales
 
 
         [Theory]
-        [InlineData(liveApikey, transactionId, HttpStatusCode.OK)]
+        [InlineData(devApikey, transactionId, HttpStatusCode.OK)]
         public async Task Test_for_successful_query(
            string apiKey,
            string transactionId,

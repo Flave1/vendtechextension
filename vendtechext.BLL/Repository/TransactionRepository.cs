@@ -184,7 +184,11 @@ namespace vendtechext.BLL.Repository
 
         public async Task<Transaction> GetSaleTransactionByRandom(string meterNumber)
         {
-            var trans = await _context.Transactions.FirstOrDefaultAsync(d => d.MeterNumber == meterNumber) ?? null;
+            var trans = await _context.Transactions
+                .Where(d => d.MeterNumber == meterNumber)
+                .OrderBy(x => Guid.NewGuid())
+                .FirstOrDefaultAsync();
+
             return trans;
         }
 
