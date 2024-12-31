@@ -14,6 +14,8 @@ namespace vendtechext.DAL.Models
         public string Reference { get; set; }
         public string TransactionId { get; set; }
         public int PaymentTypeId { get; set; }
+        [ForeignKey("PaymentTypeId")]
+        public PaymentMethod PaymentMethod { get; set; }
         public Guid IntegratorId { get; set; }
         [ForeignKey("IntegratorId")]
         public virtual Integrator Integrator { get; set; }

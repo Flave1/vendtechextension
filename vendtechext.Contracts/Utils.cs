@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
 {
@@ -33,5 +34,7 @@ namespace vendtechext.Contracts
                 return amt == null ? "0" : string.Format("{0:N0}", amt) + "";
             }
         }
+
+       
     }
 }

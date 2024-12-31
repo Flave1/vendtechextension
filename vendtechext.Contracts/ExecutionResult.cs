@@ -78,6 +78,7 @@ namespace vendtechext.Contracts
         public int StatusRequestCount { get; set; }
         public string VoucherSerialNumber { get; set; }
         public string VendStatusDescription { get; set; }
+        public decimal DealerBalance { get; set; }
 
     }
     public class FailedResponse

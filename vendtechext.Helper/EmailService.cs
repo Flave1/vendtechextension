@@ -120,24 +120,26 @@ namespace vendtechext.Helper
             this.helper = helper;
             this.notificationHelper = notificationHelper;
         }
-        public void SendEmailToAdminOnPendingDeposits(Deposit deposit, Wallet wallet, AppUser user)
+        public void SendEmailToAdminOnPendingDeposits(string WALLET_ID, string BusinessName, int CommissionId, decimal Amount, Guid DepositId, DateTime CreatedAt, AppUser user)
         {
             try
             {
+                decimal commission = AppConfiguration.ProcessCommsion(Amount, CommissionId);
                 string msg = $@"
                 <p>This is to inform you that there is a deposit awaiting for your approval</p>
                 <strong>Details:</strong>
-                <p>Wallet ID: {wallet.WALLET_ID}</p>
-                <p>Integrator: {wallet.Integrator.BusinessName}</p>
-                <p>Amount: SLE {deposit.Amount}</p>
-                <p>Request Date: {Utils.formatDate(deposit.CreatedAt)}</p>
+                <p>Wallet ID: {WALLET_ID}</p>
+                <p>Integrator: {BusinessName}</p>
+                <p>Amount: SLE {Utils.FormatAmount(Amount + commission)}</p>
+                <p>Request Date: {Utils.formatDate(CreatedAt)}</p>
                 ";
                 string subject = "PENDING DEPOSIT APPROVAL";
                 string emailBody = helper.GetEmailTemplate("simple");
                 emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", msg);
 
-                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositRequested, deposit.Id.ToString());
+                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositRequested, DepositId.ToString());
+                //
                 helper.SendEmail(user.Email, subject, emailBody);
             }
             catch (Exception)
@@ -146,19 +148,25 @@ namespace vendtechext.Helper
             }
         }
 
-        public void SendEmailToIntegratorOnDepositApproval(Deposit deposit, Wallet wallet, AppUser user)
+        public void SendEmailToIntegratorOnDepositApproval(decimal Amount, Guid DeposiId, int CommissionId, AppUser user)
         {
             try
             {
+                decimal commission = AppConfiguration.ProcessCommsion(Amount, CommissionId);
                 string msg = $@"
-                <p>This is to inform you that your deposit of SLE: {deposit.Amount} has been approved</p>
+                <p>This is to inform you that your deposit of SLE: {Utils.FormatAmount(Amount)} has been approved</p>
+                <strong>Details:</strong>
+                <p>Amount: {Utils.FormatAmount(Amount)}</p>
+                <p>Commission: SLE {Utils.FormatAmount(commission)}</p>
+                <p>Total: {Utils.FormatAmount(Amount + commission)}</p>
                 ";
                 string subject = "PENDING DEPOSIT APPROVED";
                 string emailBody = helper.GetEmailTemplate("simple");
                 emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", msg);
 
-                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositApproved, deposit.Id.ToString());
+                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositApproved, DeposiId.ToString());
+                //
                 helper.SendEmail(user.Email, subject, emailBody);
             }
             catch (Exception)

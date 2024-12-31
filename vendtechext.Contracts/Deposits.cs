@@ -28,7 +28,7 @@ namespace vendtechext.Contracts
             TransactionId = d.TransactionId;
             Id = d.Id;
             IntegratorName = d.Integrator.BusinessName;
-            PaymentTypeName = "CASH";
+            PaymentTypeName = d.PaymentMethod.Name;
             Date = d.CreatedAt.ToString("dd-MM-yyyy hh:mm");
         }
     }
@@ -53,7 +53,7 @@ namespace vendtechext.Contracts
             BalanceAfter = d.BalanceAfter;
             TransactionId = d.TransactionId;
             IntegratorName = d.Integrator.BusinessName;
-            PaymentTypeName = "CASH";
+            PaymentTypeName = d.PaymentMethod.Name;
             Date = d.CreatedAt.ToString("dd-MM-yyyy hh:mm");
         }
     }
@@ -81,7 +81,7 @@ namespace vendtechext.Contracts
         public Guid IntegratorId { get; set; }
     }
 
-    public class PaymentType
+    public class PaymentTypeDto
     {
         public int Id { get; set; }
         public string Name { get; set; }

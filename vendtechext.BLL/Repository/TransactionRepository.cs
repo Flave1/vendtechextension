@@ -16,13 +16,7 @@ namespace vendtechext.BLL.Repository
     public class TransactionRepository
     {
         private readonly DataContext _context;
-        private readonly VendtechTransactionsService _vendtech;
-        private readonly List<PaymentType> _types = new List<PaymentType>
-            {
-                new PaymentType{ Id = 1, Name = "BANK DEPOSIT", Description = "A payment method where funds are deposited directly into a bank account through a branch or electronic means."},
-                new PaymentType{ Id = 2, Name = "TRANSFER", Description = "An electronic method of transferring funds between accounts, typically using bank services or third-party platforms."},
-                new PaymentType{ Id = 3, Name = "CASH", Description = "A physical payment made using paper currency or coins, often handled in person for immediate transactions."},
-            };
+        private readonly VendtechTransactionsService _vendtech; 
 
         public TransactionRepository(DataContext context, VendtechTransactionsService vendtech)
         {
@@ -106,14 +100,19 @@ namespace vendtechext.BLL.Repository
             return trans;
         }
 
-        public async Task<List<PaymentType>> GetPaymentTypes()
+        public async Task<List<PaymentTypeDto>> GetPaymentTypes()
         {
-            return await Task.Run(() => _types);
+            return await _context.PaymentMethod.Where(d => d.Deleted == false).Select(f => new PaymentTypeDto { 
+            Description = f.Description,
+            Id  = f.Id,
+            Name = f.Name,
+            }).ToListAsync();
         }
 
         public IQueryable<Deposit> GetDepositsQuery(DepositStatus status)
         {
             IQueryable<Deposit> query = _context.Deposits.Where(d => d.Deleted == false && d.Status == (int)status)
+                .Include(d => d.PaymentMethod)
                 .Include(t => t.Integrator).ThenInclude(d => d.Wallet);
             return query;
         }
