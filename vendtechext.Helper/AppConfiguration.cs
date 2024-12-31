@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using vendtechext.Contracts;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper
@@ -39,6 +40,22 @@ namespace vendtechext.Helper
             if( _settingsPayload == null)
                 new AppConfiguration();
             return _settingsPayload;
+        }
+
+        public static decimal ProcessCommsion(decimal amount, int commissionId)
+        {
+            try
+            {
+                SettingsPayload settings = GetSettings();
+                string commissionLevel = settings.Commission.FirstOrDefault(d => d.Id == commissionId).Percentage.ToString();
+                decimal.TryParse(commissionLevel, out decimal percentage);
+
+                return Math.Round(amount * percentage / 100, 2);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
         }
     }
 }

@@ -180,12 +180,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 //Seed Default User
-//using (var scope = app.Services.CreateScope())
-//{
-//    var services = scope.ServiceProvider;
-//    await SeedData.Initialize(services);
-//    await SeedData.Settings(services);
-//}
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await SeedData.Initialize(services);
+    await SeedData.Settings(services);
+    await SeedData.PaymentMethods(services);
+}
 
 // Map Controllers
 app.MapControllers();

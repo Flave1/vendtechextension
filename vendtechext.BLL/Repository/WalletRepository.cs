@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.Contracts;
@@ -45,7 +46,17 @@ namespace vendtechext.BLL.Repository
             return wallet;
         }
 
-        public async Task<decimal> GetAdminBalance() => await _context.Wallets.Where(d => d.Deleted == false).SumAsync(d => d.Balance);
+        public async Task<decimal> GetAdminBalance()
+        {
+            Transaction lastTransaction = await _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == (int)TransactionStatus.Success).OrderByDescending(d => d.CreatedAt).FirstOrDefaultAsync();
+            if(lastTransaction != null && !string.IsNullOrEmpty(lastTransaction.Response))
+            {
+                RTSResponse x = JsonConvert.DeserializeObject<RTSResponse>(lastTransaction.Response);
+                var respo = x.Content.Data.Data.FirstOrDefault();
+                return respo.DealerBalance;
+            }
+            return 0;
+        }
 
 
         public async Task UpdateWalletRealBalance(Wallet wallet, decimal newBalance)

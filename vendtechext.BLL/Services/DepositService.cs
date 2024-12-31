@@ -1,7 +1,5 @@
-﻿using MailKit.Search;
+﻿using Hangfire;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using vendtechext.BLL.Common;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
@@ -18,19 +16,22 @@ namespace vendtechext.BLL.Services
         private readonly EmailHelper _emailHelper;
         private readonly IAuthService _authService;
         private readonly NotificationHelper notification;
+        private readonly IBackgroundJobClient _backgroundJobClient;
 
         public DepositService(
             TransactionRepository transactionRepository,
             WalletRepository walletRepository,
             EmailHelper emailHelper,
             IAuthService authService,
-            NotificationHelper notification)
+            NotificationHelper notification,
+            IBackgroundJobClient backgroundJobClient)
         {
             _repository = transactionRepository;
             _walletRepository = walletRepository;
             _emailHelper = emailHelper;
             _authService = authService;
             this.notification = notification;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         public async Task<APIResponse> CreateDeposit(DepositRequest request, Guid integratorid)
@@ -50,14 +51,18 @@ namespace vendtechext.BLL.Services
             if(deposit != null) 
                 await _walletRepository.UpdateWalletBookBalance(wallet, deposit.BalanceAfter);
 
+
             SettingsPayload settings = AppConfiguration.GetSettings();
             if (settings.Notification.SendAdminDepositEmail)
-            {
-                AppUser user = await _authService.FindAdminUser();
-                new Emailer(_emailHelper, notification).SendEmailToAdminOnPendingDeposits(deposit, wallet, user);
-            }
-            
+                _backgroundJobClient.Enqueue(() => CreateDepositNotification(wallet.WALLET_ID, deposit.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, deposit.CreatedAt));
+
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully created deposit").WithType(request).GenerateResponse();
+        }
+
+        public async Task CreateDepositNotification(string WALLET_ID, string BusinessName, int CommissionId, decimal Amount, Guid DepositId, DateTime CreatedAt)
+        {
+            AppUser user = await _authService.FindAdminUser();
+            new Emailer(_emailHelper, notification).SendEmailToAdminOnPendingDeposits(WALLET_ID, BusinessName, CommissionId, Amount, DepositId, CreatedAt, user);
         }
 
         public async Task<APIResponse> ApproveDeposit(ApproveDepositRequest request)
@@ -76,21 +81,20 @@ namespace vendtechext.BLL.Services
 
             SettingsPayload settings = AppConfiguration.GetSettings();
             if (settings.Notification.SendDepositApprovalEmailToUser)
-            {
-                AppUser user = await _authService.FindUserByIntegratorId(request.IntegratorId);
-                new Emailer(_emailHelper, notification).SendEmailToIntegratorOnDepositApproval(deposit, wallet, user);
-            }
+                _backgroundJobClient.Enqueue(() => ApproveDepositNotification(request.IntegratorId, deposit.Amount, deposit.Id, wallet.CommissionId));
 
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully approved deposit").WithType(request).GenerateResponse();
         }
 
+        public async Task ApproveDepositNotification(Guid integratorId, decimal Amount, Guid DeposiId, int CommissionId)
+        {
+            AppUser user = await _authService.FindUserByIntegratorId(integratorId);
+            new Emailer(_emailHelper, notification).SendEmailToIntegratorOnDepositApproval(Amount, DeposiId, CommissionId, user);
+        }
+
         private async Task CreateCommision(Deposit deposit, Guid integratorid, Wallet wallet)
         {
-            SettingsPayload settings = AppConfiguration.GetSettings();
-            string commissionLevel = settings.Commission.FirstOrDefault(d => d.Id == wallet.CommissionId).Percentage.ToString();
-            decimal.TryParse(commissionLevel, out decimal percentage);
-
-            decimal commission = deposit.Amount * percentage / 100;
+            decimal commission = AppConfiguration.ProcessCommsion(deposit.Amount, wallet.CommissionId);
 
             CreateDepositDto commsionDto = new CreateDepositDto
             {
@@ -98,7 +102,8 @@ namespace vendtechext.BLL.Services
                 BalanceBefore = deposit.BalanceAfter,
                 Amount = commission,
                 BalanceAfter = deposit.BalanceAfter + commission,
-                IntegratorId = integratorid
+                IntegratorId = integratorid,
+                PaymentTypeId = deposit.PaymentTypeId,
             };
             await _repository.CreateDepositTransaction(commsionDto, DepositStatus.Approved);
             await _walletRepository.UpdateWalletRealBalance(wallet, commsionDto.BalanceAfter);

@@ -7,6 +7,7 @@ namespace vendtechext.DAL.Seed
 {
     public static class SeedData
     {
+
         public static async Task Initialize(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -46,6 +47,22 @@ namespace vendtechext.DAL.Seed
             setting = new AppSetting();
             setting.Value = "";
             conext.AppSettings.Add(setting);
+            await conext.SaveChangesAsync();
+        }
+
+        public static async Task PaymentMethods(IServiceProvider serviceProvider)
+        {
+             List<PaymentMethod> _types = new List<PaymentMethod>
+            {
+                new PaymentMethod{ Id = 1, Name = "BANK DEPOSIT", Description = "A payment method where funds are deposited directly into a bank account through a branch or electronic means."},
+                new PaymentMethod{ Id = 2, Name = "TRANSFER", Description = "An electronic method of transferring funds between accounts, typically using bank services or third-party platforms."},
+                new PaymentMethod{ Id = 3, Name = "CASH", Description = "A physical payment made using paper currency or coins, often handled in person for immediate transactions."},
+            };
+            var conext = serviceProvider.GetRequiredService<DataContext>();
+            List<PaymentMethod> paymentMethod = await conext.PaymentMethod.Where(d => d.Deleted == false).ToListAsync();
+            if (paymentMethod.Count > 0)
+                return;
+            conext.PaymentMethod.AddRange(_types);
             await conext.SaveChangesAsync();
         }
     }
