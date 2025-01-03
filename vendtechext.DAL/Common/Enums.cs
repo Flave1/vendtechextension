@@ -27,6 +27,7 @@ namespace vendtechext.DAL.Common
         Error = 0,
         Infor = 1,
         Warning = 2,
+        Refund = 3
     }
 
     public enum DepositStatus
@@ -68,5 +69,12 @@ namespace vendtechext.DAL.Common
         DepositRequested = 1,
         DepositApproved = 2,
         Sales = 2,
+    }
+
+    public enum PaymentStatus
+    {
+        Pending = 0,
+        Deducted = 1,
+        Refunded = 2
     }
 }

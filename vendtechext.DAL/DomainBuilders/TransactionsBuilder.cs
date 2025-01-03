@@ -62,6 +62,12 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public TransactionsBuilder WithPaymentStatus(PaymentStatus paymentStatus)
+        {
+            _transaction.PaymentStatus = (int)paymentStatus;
+            return this;
+        }
+
         public TransactionsBuilder WithBalanceAfter(decimal balanceAfter)
         {
             _transaction.BalanceAfter = balanceAfter;
