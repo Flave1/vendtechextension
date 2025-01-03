@@ -147,25 +147,25 @@ namespace vendtechext.Controllers
 
                     // Add headers
                     worksheet.Cells[1, 1].Value = "Date";
-                    worksheet.Cells[1, 2].Value = "Wallet ID";
-                    worksheet.Cells[1, 3].Value = "Reference";
-                    worksheet.Cells[1, 4].Value = "Payment Type";
-                    worksheet.Cells[1, 5].Value = "Transaction ID";
-                    worksheet.Cells[1, 6].Value = "Balance Before";
-                    worksheet.Cells[1, 7].Value = "Amount";
-                    worksheet.Cells[1, 8].Value = "Balance After";
+                    //worksheet.Cells[1, 2].Value = "Wallet ID";
+                    worksheet.Cells[1, 2].Value = "Reference";
+                    worksheet.Cells[1, 3].Value = "Payment Type";
+                    worksheet.Cells[1, 4].Value = "Transaction ID";
+                    worksheet.Cells[1, 5].Value = "Balance Before";
+                    worksheet.Cells[1, 6].Value = "Amount";
+                    worksheet.Cells[1, 7].Value = "Balance After";
 
                     // Add data
                     for (int i = 0; i < transactions.Count; i++)
                     {
                         worksheet.Cells[i + 2, 1].Value = transactions[i].Date;
-                        worksheet.Cells[i + 2, 2].Value = transactions[i].WalletId;
-                        worksheet.Cells[i + 2, 3].Value = transactions[i].Reference;
-                        worksheet.Cells[i + 2, 4].Value = transactions[i].PaymentTypeName;
-                        worksheet.Cells[i + 2, 5].Value = transactions[i].TransactionId;
-                        worksheet.Cells[i + 2, 6].Value = transactions[i].BalanceBefore;
-                        worksheet.Cells[i + 2, 7].Value = transactions[i].Amount;
-                        worksheet.Cells[i + 2, 8].Value = transactions[i].BalanceAfter;
+                        //worksheet.Cells[i + 2, 2].Value = transactions[i].WalletId;
+                        worksheet.Cells[i + 2, 2].Value = transactions[i].Reference;
+                        worksheet.Cells[i + 2, 3].Value = transactions[i].PaymentTypeName;
+                        worksheet.Cells[i + 2, 4].Value = transactions[i].TransactionId;
+                        worksheet.Cells[i + 2, 5].Value = transactions[i].BalanceBefore;
+                        worksheet.Cells[i + 2, 6].Value = transactions[i].Amount;
+                        worksheet.Cells[i + 2, 7].Value = transactions[i].BalanceAfter;
                     }
 
                     var stream = new MemoryStream();
@@ -186,7 +186,7 @@ namespace vendtechext.Controllers
                 // Add headers
                 var table = new iTextSharp.text.pdf.PdfPTable(8);
                 table.AddCell("Date");
-                table.AddCell("Wallet ID");
+                //table.AddCell("Wallet ID");
                 table.AddCell("Reference");
                 table.AddCell("Payment Type");
                 table.AddCell("Transaction ID");
@@ -198,7 +198,7 @@ namespace vendtechext.Controllers
                 foreach (var transaction in transactions)
                 {
                     table.AddCell(transaction.Date.ToString());
-                    table.AddCell(transaction.WalletId);
+                    //table.AddCell(transaction.WalletId);
                     table.AddCell(transaction.Reference);
                     table.AddCell(transaction.PaymentTypeName);
                     table.AddCell(transaction.TransactionId);

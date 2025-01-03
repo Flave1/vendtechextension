@@ -1,27 +1,27 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Ocsp;
+using Newtonsoft.Json;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Services;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace vendtechext.BLL.Repository
 {
     public class TransactionRepository
     {
         private readonly DataContext _context;
-        private readonly VendtechTransactionsService _vendtech; 
+        private readonly VendtechTransactionsService _vendtech;
+        private readonly LogService _logService;
 
-        public TransactionRepository(DataContext context, VendtechTransactionsService vendtech)
+        public TransactionRepository(DataContext context, VendtechTransactionsService vendtech, LogService logService)
         {
             _context = context;
             _vendtech = vendtech;
+            _logService = logService;
         }
 
         #region COMMON
@@ -165,15 +165,28 @@ namespace vendtechext.BLL.Repository
 
         public async Task DeductFromWallet(Wallet wallet, Transaction transaction)
         {
-            transaction.BalanceBefore = wallet.Balance;
-            wallet.Balance = (wallet.Balance - transaction.Amount);
-            transaction.BalanceAfter = wallet.Balance;
-            await _context.SaveChangesAsync();
+            if(transaction.PaymentStatus != (int)PaymentStatus.Deducted)
+            {
+                transaction.BalanceBefore = wallet.Balance;
+                wallet.Balance = (wallet.Balance - transaction.Amount);
+                transaction.BalanceAfter = wallet.Balance;
+                transaction.PaymentStatus = (int)PaymentStatus.Deducted;
+                await _context.SaveChangesAsync();
+            }
         }
         public async Task RefundToWallet(Wallet wallet, Transaction transaction)
         {
-            wallet.Balance = (wallet.Balance + transaction.Amount);
-            await _context.SaveChangesAsync();
+            if(transaction.PaymentStatus != (int)PaymentStatus.Refunded)
+            {
+                wallet.Balance = (wallet.Balance + transaction.Amount);
+                transaction.PaymentStatus = (int)PaymentStatus.Refunded;
+                await _context.SaveChangesAsync();
+                _logService.Log(LogType.Refund, $"refunded {transaction.Amount} to {wallet.WALLET_ID} for {transaction.VendtechTransactionID} ID", JsonConvert.SerializeObject(transaction));
+            }
+            else
+            {
+                _logService.Log(LogType.Refund, $"attempted refund {transaction.Amount} to {wallet.WALLET_ID} for {transaction.VendtechTransactionID} ID", JsonConvert.SerializeObject(transaction));
+            }
         }
         public async Task<Transaction> GetSaleTransaction(string transactionId, Guid integratorid)
         {
@@ -197,6 +210,7 @@ namespace vendtechext.BLL.Repository
                 .WithTransactionId(newTrxid)
                 .WithTransactionStatus(TransactionStatus.Pending)
                 .WithTransactionUniqueId(request.TransactionId)
+                .WithPaymentStatus(PaymentStatus.Pending)
                 .WithMeterNumber(request.MeterNumber)
                 .WithIntegratorId(integratorId)
                 .WithCreatedAt(DateTime.Now)

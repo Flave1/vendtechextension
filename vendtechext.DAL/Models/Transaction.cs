@@ -22,6 +22,7 @@ namespace vendtechext.DAL.Models
         public string Request { get; set; }
         public string Response { get; set; }
         public string ReceivedFrom { get; set; }
+        public int PaymentStatus { get; set; }
         public Guid IntegratorId { get; set; }
         [ForeignKey("IntegratorId")]
         public virtual Integrator Integrator { get; set; }
