@@ -165,7 +165,7 @@ namespace vendtechext.BLL.Repository
 
         public async Task DeductFromWallet(Wallet wallet, Transaction transaction)
         {
-            if(transaction.PaymentStatus != (int)PaymentStatus.Deducted)
+            if(transaction.PaymentStatus == (int)PaymentStatus.Pending)
             {
                 transaction.BalanceBefore = wallet.Balance;
                 wallet.Balance = (wallet.Balance - transaction.Amount);
@@ -176,16 +176,18 @@ namespace vendtechext.BLL.Repository
         }
         public async Task RefundToWallet(Wallet wallet, Transaction transaction)
         {
-            if(transaction.PaymentStatus != (int)PaymentStatus.Refunded)
+            if(transaction.PaymentStatus == (int)PaymentStatus.Deducted)
             {
                 wallet.Balance = (wallet.Balance + transaction.Amount);
                 transaction.PaymentStatus = (int)PaymentStatus.Refunded;
                 await _context.SaveChangesAsync();
-                _logService.Log(LogType.Refund, $"refunded {transaction.Amount} to {wallet.WALLET_ID} for {transaction.VendtechTransactionID} ID", JsonConvert.SerializeObject(transaction));
+                _logService.Log(LogType.Refund, $"refunded {transaction.Amount} to {wallet.WALLET_ID} " +
+                    $"for {transaction.VendtechTransactionID} ID", JsonConvert.SerializeObject(transaction));
             }
             else
             {
-                _logService.Log(LogType.Refund, $"attempted refund {transaction.Amount} to {wallet.WALLET_ID} for {transaction.VendtechTransactionID} ID", JsonConvert.SerializeObject(transaction));
+                _logService.Log(LogType.Refund, $"attempted refund {transaction.Amount} to {wallet.WALLET_ID} " +
+                    $"for {transaction.VendtechTransactionID} ID", JsonConvert.SerializeObject(transaction));
             }
         }
         public async Task<Transaction> GetSaleTransaction(string transactionId, Guid integratorid)
