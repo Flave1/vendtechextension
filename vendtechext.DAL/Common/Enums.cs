@@ -27,7 +27,8 @@ namespace vendtechext.DAL.Common
         Error = 0,
         Infor = 1,
         Warning = 2,
-        Refund = 3
+        Refund = 3,
+        QeueJob = 4
     }
 
     public enum DepositStatus

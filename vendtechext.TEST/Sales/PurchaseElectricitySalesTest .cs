@@ -22,17 +22,17 @@ namespace vendtechext.TEST.Sales
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
             _mockSalesService = new Mock<IAPISalesService>();
-            _connectionString = "Server=92.205.181.48;Database=STAGING_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
+            _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
         }
 
         [Theory]
-        [InlineData(devApikey, 40, "98000142897", HttpStatusCode.OK)]
+        [InlineData(liveApikey, 40, "98000142897", HttpStatusCode.OK)]
         public async Task Test_for_successful_response(
-            string apiKey, 
+            string apiKey,
             decimal amount,
             string meterNumber,
             HttpStatusCode expectedStatusCode)
-        
+
         {
 
             dynamic transaction = await CreateRecordBeforeVend(meterNumber, amount);

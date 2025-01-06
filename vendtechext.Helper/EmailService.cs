@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using MimeKit;
 using vendtechext.BLL.Services;
 using vendtechext.Contracts;
+using vendtechext.Contracts.VtchMainModels;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper
@@ -168,6 +169,34 @@ namespace vendtechext.Helper
                 notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositApproved, DeposiId.ToString());
                 //
                 helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        public void SendReconcilationEmail(TransactionDetail record, string firstName, string email)
+        {
+            try
+            {
+                string msg = $@"
+                <p>This is to inform you that your account has been refunded with SLE: {Utils.FormatAmount(record.Amount)}. </p>
+                <p>This is in respect to the unsuccessful sales below</p>
+                <strong>Details:</strong>
+                <p>Amount: {Utils.FormatAmount(record.Amount)}</p>
+                <p>Transaction ID: {record.TransactionId}</p>
+                <p>Transaction ID: {record.TransactionId}</p>
+                <p>Transaction ID: {record.TransactionId}</p>
+                <p>Transaction ID: {record.TransactionId}</p>
+                <p>Transaction ID: {record.TransactionId}</p>
+                ";
+                string subject = $"BALANCE REFUND {record.Amount}";
+                string emailBody = helper.GetEmailTemplate("simple");
+                emailBody = emailBody.Replace("[recipient]", firstName);
+                emailBody = emailBody.Replace("[body]", msg);
+
+                helper.SendEmail(email, subject, emailBody);
             }
             catch (Exception)
             {

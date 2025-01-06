@@ -136,6 +136,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSignalR();
 
 // Dependency Injection
+builder.Services.AddScoped<IVendtechReconcillationService, VendtechReconcillationService>();
 builder.Services.AddScoped<IIntegratorService, IntegratorService>();
 builder.Services.AddScoped<IMobilePushService, MobilePushService>();
 builder.Services.AddScoped<IAPISalesService, APISalesService>();
@@ -180,13 +181,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 //Seed Default User
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await SeedData.Initialize(services);
-    await SeedData.Settings(services);
-    await SeedData.PaymentMethods(services);
-}
+///
+///REMOVE THE COMMENT TO SEED INTO A NEW DATABASE
+///
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
+//    await SeedData.Initialize(services);
+//    await SeedData.Settings(services);
+//    await SeedData.PaymentMethods(services);
+//}
 
 // Map Controllers
 app.MapControllers();

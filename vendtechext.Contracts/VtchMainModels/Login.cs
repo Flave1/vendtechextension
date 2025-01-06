@@ -21,4 +21,19 @@
         public string Message { get; set; }
         public object TotalCount { get; set; }
     }
+
+    public class ReconcileRequest
+    {
+        public string TransactionId { get; set; }
+    }
+
+    public class TransactionDetail
+    {
+        public long UserId { get; set; }
+        public decimal Amount { get; set; }
+        public string TransactionId { get; set; }
+        public int Status { get; set; }
+        public long POSId { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
 }

@@ -61,9 +61,9 @@ namespace vendtechext.Helper
         {
             _httpResponse = await _webRequest.SendPostAsync(_url, _requestObject);
         }
-        public async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRequest request, Guid integratorId, string integratorName)
+        public async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRTO request, Guid integratorId, string integratorName)
         {
-            InitializeIntegratorData(integratorId, integratorName, request.TransactionId, request.Amount, request.MeterNumber);
+            InitializeIntegratorData(integratorId, integratorName, request.VendtechTransactionId, request.Amount, request.MeterNumber);
 
             _log.Log(LogType.Infor, $"executing request for {request.TransactionId} from {integratorName}", requestAsString);
             await ExecuteRequest();
