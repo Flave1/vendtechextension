@@ -4,6 +4,7 @@ using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
+using vendtechext.Contracts.VtchMainModels;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
@@ -39,24 +40,27 @@ namespace vendtechext.BLL.Services
 
                 await _repository.DeductFromWallet(wallet, transactionLog);
 
-                ExecutionResult executionResult = await _executionContext.ExecuteTransaction(TransferedRequest(request, transactionLog.VendtechTransactionID), integratorid, integratorName);
+                ElectricitySaleRTO requestDto = TransferRequestToRTO(request, transactionLog.VendtechTransactionID);
+
+                ExecutionResult executionResult = await _executionContext.ExecuteTransaction(requestDto, integratorid, integratorName);
+
                 if (executionResult.Status == "success")
                 {
                     executionResult.SuccessResponse.UpdateResponse(transactionLog);
                     await _repository.UpdateSaleSuccessTransactionLog(executionResult, transactionLog);
-                    return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.SuccessResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
+                    return Response.WithStatus(executionResult.Status).WithStatusCode(executionResult.StatusCode).WithMessage(executionResult.SuccessResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
                 }
                 else if (executionResult.Status == "pending")
                 {
                     AddSaleToQueue(transactionLog.TransactionUniqueId, transactionLog.VendtechTransactionID, integratorid, integratorName);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
-                    return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+                    return Response.WithStatus(executionResult.Status).WithStatusCode(executionResult.StatusCode).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
                 }
                 else
                 {
-                    await _repository.RefundToWallet(wallet, transactionLog);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
-                    return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+                    await _repository.RefundToWallet(wallet, transactionLog);
+                    return Response.WithStatus(executionResult.Status).WithStatusCode(executionResult.StatusCode).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
                 }
             }
             catch (BadRequestException ex)
@@ -225,7 +229,7 @@ namespace vendtechext.BLL.Services
             await Task.CompletedTask;
         }
 
-        private ElectricitySaleRTO TransferedRequest(ElectricitySaleRequest x, string vendtechTransactionId) => 
+        private ElectricitySaleRTO TransferRequestToRTO(ElectricitySaleRequest x, string vendtechTransactionId) => 
             new ElectricitySaleRTO { Amount = x.Amount, MeterNumber = x.MeterNumber, TransactionId = x.TransactionId, VendtechTransactionId = vendtechTransactionId };
     }
 }

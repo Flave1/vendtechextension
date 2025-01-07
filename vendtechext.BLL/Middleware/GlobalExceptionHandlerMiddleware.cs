@@ -29,40 +29,40 @@ namespace vendtechext.BLL.Middleware
             catch (BadRequestException ex)
             {
                 _logger.LogError(ex, "Bad request error.");
-                HandleExceptionAsync(httpContext, ex, ex.Message);
+                await HandleExceptionAsync(httpContext, ex, ex.Message);
             }
             catch (JsonException ex)
             {
                 _logger.LogError(ex, "JSON deserialization error.");
-                HandleExceptionAsync(httpContext, ex, "Invalid JSON format.");
+                await HandleExceptionAsync(httpContext, ex, "Invalid JSON format.");
             }
             catch (ArgumentNullException ex)
             {
                 _logger.LogError(ex, "JSON deserialization error: input is null.");
-                HandleExceptionAsync(httpContext, ex, "Request body is null.");
+                await HandleExceptionAsync(httpContext, ex, "Request body is null.");
             }
             catch (NotSupportedException ex)
             {
                 _logger.LogError(ex, "JSON deserialization error: unsupported type.");
-                HandleExceptionAsync(httpContext, ex, "Unsupported type for deserialization.");
+                await HandleExceptionAsync(httpContext, ex, "Unsupported type for deserialization.");
             }
             catch (InvalidOperationException ex)
             {
                 _logger.LogError(ex, "JSON deserialization error: invalid operation.");
-                HandleExceptionAsync(httpContext, ex, "Invalid operation during deserialization.");
+                await HandleExceptionAsync(httpContext, ex, "Invalid operation during deserialization.");
             }
             catch (UnauthorizedAccessException ex)
             {
-                HandleExceptionAsync(httpContext, ex, "Invalid operation during deserialization.");
+                await HandleExceptionAsync(httpContext, ex, "Invalid operation during deserialization.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unhandled exception occurred.");
-                HandleExceptionAsync(httpContext, ex, "Internal Server Error from the middleware server.");
+                await HandleExceptionAsync(httpContext, ex, "Internal Server Error from the middleware server.");
             }
         }
 
-        private void HandleExceptionAsync(HttpContext context, Exception exception, string message = null)
+        private async Task HandleExceptionAsync(HttpContext context, Exception exception, string message = null)
         {
 
             var _log = context.RequestServices.GetRequiredService<LogService>();
@@ -94,7 +94,7 @@ namespace vendtechext.BLL.Middleware
             if(context.Response.StatusCode != 400)
                 _log.Log(LogType.Error, context.Response.StatusCode.ToString(), jsonResponse, exception.StackTrace);
 
-            context.Response.WriteAsync(jsonResponse);
+            await context.Response.WriteAsync(jsonResponse);
         }
     }
 }
