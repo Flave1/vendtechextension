@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
+using vendtechext.DAL.Models;
 using vendtechext.Helper.Configurations;
 
 namespace vendtechext.Helper
@@ -98,6 +99,7 @@ namespace vendtechext.Helper
             {
                 salesResponse = new ExecutionResult(_integrator.successResponse);
                 salesResponse.Status = "success";
+                salesResponse.StatusCode = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
             }
             else
             {
@@ -106,11 +108,14 @@ namespace vendtechext.Helper
                 
                 if (_integrator.isFinalized)
                     salesResponse.Status = "pending";
+
+                salesResponse.StatusCode = _integrator.ReadErrorMessage(salesResponse.FailedResponse.ErrorMessage);
             }
             _integrator.Dispose();
             salesResponse.ReceivedFrom = _integrator.ReceivedFrom;
             return salesResponse;
         }
+   
         public async Task<ExecutionResult> ProcessStatusResponse()
         {
             string resultAsString = await _httpResponse.Content.ReadAsStringAsync();

@@ -16,22 +16,23 @@ namespace vendtechext.TEST.Sales
         const string transactionId = "274867";//274733
         const string devApikey = "FCcHkRm7bBTaJkjgFyL6C2FH6RSGy6ff0YX3zK1kok87R+HL4blEj+PygevBefS0";
         const string liveApikey = "e+KZgZZl1GZcLUHQkZ2lqQmWwAHBQvyQZ99ChmNOd4+HCoVqRm/trmKOztwiv7LB";
+        const string meternumber = "98000142897";
         private readonly string _connectionString;
         public PurchaseElectricitySalesTest()
         {
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
             _mockSalesService = new Mock<IAPISalesService>();
-            _connectionString = "Server=92.205.181.48;Database=VENDTECH_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
+            _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
         }
 
         [Theory]
-        [InlineData(devApikey, 40, "98000142897", HttpStatusCode.OK)]
+        [InlineData(liveApikey, 40, "11111111111", 2002)]
         public async Task Test_for_successful_response(
             string apiKey,
             decimal amount,
             string meterNumber,
-            HttpStatusCode expectedStatusCode)
+            int expectedStatusCode)
 
         {
 
@@ -55,8 +56,7 @@ namespace vendtechext.TEST.Sales
             //response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
             APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
-            Assert.NotNull(result);
-            Assert.Equal(expectedStatusCode, response.StatusCode);
+            Assert.Equal(expectedStatusCode, result.StatusCode);
             // Additional assertions to validate the response
         }
 

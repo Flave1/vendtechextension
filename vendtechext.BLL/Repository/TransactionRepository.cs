@@ -180,14 +180,13 @@ namespace vendtechext.BLL.Repository
             {
                 wallet.Balance = (wallet.Balance + transaction.Amount);
                 transaction.PaymentStatus = (int)PaymentStatus.Refunded;
+                transaction.BalanceAfter = transaction.BalanceBefore;
                 await _context.SaveChangesAsync();
-                _logService.Log(LogType.Refund, $"refunded {transaction.Amount} to {wallet.WALLET_ID} " +
-                    $"for {transaction.VendtechTransactionID} ID", JsonConvert.SerializeObject(transaction));
+                _logService.Log(LogType.Refund, $"refunded {transaction.Amount} to {wallet.WALLET_ID} " + $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
             }
             else
             {
-                _logService.Log(LogType.Refund, $"attempted refund {transaction.Amount} to {wallet.WALLET_ID} " +
-                    $"for {transaction.VendtechTransactionID} ID", JsonConvert.SerializeObject(transaction));
+                _logService.Log(LogType.Refund, $"attempted refund {transaction.Amount} to {wallet.WALLET_ID} " +  $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
             }
         }
         public async Task<Transaction> GetSaleTransaction(string transactionId, Guid integratorid)

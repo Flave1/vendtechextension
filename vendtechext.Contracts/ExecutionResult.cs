@@ -103,6 +103,7 @@ namespace vendtechext.Contracts
     public class ExecutionResult
     {
         public string Status { get; set; }
+        public int StatusCode { get; set; }
         public SuccessResponse SuccessResponse { get; set; }
         public FailedResponse FailedResponse { get; set; }
         public string Request;
