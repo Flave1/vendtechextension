@@ -121,26 +121,32 @@ namespace vendtechext.BLL.Services
                 Transaction existingTransaction = await _repository.GetSaleTransactionByRandom(request.MeterNumber);
                 Transaction transactionLog = await _repository.CreateSaleTransactionLog(request, integratorid);
 
+                await _repository.DeductFromWallet(wallet, transactionLog);
+
                 if (existingTransaction == null)
                 {
                     executionResult = new ExecutionResult(false);
                     executionResult.Status = "failed";
+                    executionResult.StatusCode = API_MESSAGE_CONSTANCE.BAD_REQUEST;
+
+                    await _repository.RefundToWallet(wallet, transactionLog);
                 }
                 else if (existingTransaction.Finalized)
                 {
                     executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
                     executionResult.Status = "success";
                     executionResult.SuccessResponse.UpdateResponse(transactionLog);
+                    executionResult.StatusCode = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
                     await _repository.UpdateSaleSuccessTransactionLog(executionResult, transactionLog);
                 }
                 else if (!existingTransaction.Finalized)
                 {
                     executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
                     executionResult.Status = "pending";
-                    AddSaleToQueue(transactionLog.TransactionUniqueId, transactionLog.VendtechTransactionID, integratorid, integratorName);
+                    executionResult.StatusCode = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
                 }
-                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
+                return Response.WithStatus(executionResult.Status).WithStatusCode(executionResult.StatusCode).WithMessage("").WithType(executionResult).GenerateResponse();
             }
             catch (BadRequestException ex)
             {
