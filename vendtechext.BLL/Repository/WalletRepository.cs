@@ -48,7 +48,8 @@ namespace vendtechext.BLL.Repository
 
         public async Task<decimal> GetAdminBalance()
         {
-            Transaction lastTransaction = await _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == (int)TransactionStatus.Success).OrderByDescending(d => d.CreatedAt).FirstOrDefaultAsync();
+            Transaction lastTransaction = await _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == (int)TransactionStatus.Success)
+                .OrderByDescending(d => d.CreatedAt).FirstOrDefaultAsync();
             if(lastTransaction != null && !string.IsNullOrEmpty(lastTransaction.Response))
             {
                 RTSResponse x = JsonConvert.DeserializeObject<RTSResponse>(lastTransaction.Response);

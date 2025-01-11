@@ -17,17 +17,18 @@ namespace vendtechext.TEST.Sales
         const string devApikey = "FCcHkRm7bBTaJkjgFyL6C2FH6RSGy6ff0YX3zK1kok87R+HL4blEj+PygevBefS0";
         const string liveApikey = "e+KZgZZl1GZcLUHQkZ2lqQmWwAHBQvyQZ99ChmNOd4+HCoVqRm/trmKOztwiv7LB";
         const string meternumber = "98000142897";
+
         private readonly string _connectionString;
         public PurchaseElectricitySalesTest()
         {
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
             _mockSalesService = new Mock<IAPISalesService>();
-            _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
+            _connectionString = "Server=92.205.181.48;Database=VENDTECH_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
         }
 
         [Theory]
-        [InlineData(liveApikey, 40, "11111111111", 2002)]
+        [InlineData(devApikey, 40, meternumber, 2002)]
         public async Task Test_for_successful_response(
             string apiKey,
             decimal amount,

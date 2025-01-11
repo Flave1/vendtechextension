@@ -16,12 +16,14 @@ namespace vendtechext.BLL.Repository
         private readonly DataContext _context;
         private readonly VendtechTransactionsService _vendtech;
         private readonly LogService _logService;
+        private readonly TransactionIdGenerator _idgenerator;
 
-        public TransactionRepository(DataContext context, VendtechTransactionsService vendtech, LogService logService)
+        public TransactionRepository(DataContext context, VendtechTransactionsService vendtech, LogService logService, TransactionIdGenerator idgenerator)
         {
             _context = context;
             _vendtech = vendtech;
             _logService = logService;
+            _idgenerator = idgenerator;
         }
 
         #region COMMON
@@ -207,8 +209,8 @@ namespace vendtechext.BLL.Repository
 
         public async Task<Transaction> CreateSaleTransactionLog(ElectricitySaleRequest request, Guid integratorId)
         {
-            //dynamic transaction = await _vendtech.CreateRecordBeforeVend(request.MeterNumber, request.Amount);
-            string transactionId = UniqueIDGenerator.NewSaleTransactionId();
+            //string transactionId = UniqueIDGenerator.NewSaleTransactionId();
+            string transactionId = await _idgenerator.GenerateNewTransactionId();
             string newTrxid = transactionId;
 
             var trans = new TransactionsBuilder()
@@ -227,25 +229,6 @@ namespace vendtechext.BLL.Repository
             return trans;
         }
 
-        public async Task<Transaction> CopySaleTransaction(ElectricitySaleRequest request, Guid integratorId)
-        {
-            string transactionId = UniqueIDGenerator.NewSaleTransactionId();
-            string newTrxid = transactionId;
-
-            var trans = new TransactionsBuilder()
-                .WithTransactionId(newTrxid)
-                .WithTransactionStatus(TransactionStatus.Pending)
-                .WithTransactionUniqueId(request.TransactionId)
-                .WithMeterNumber(request.MeterNumber)
-                .WithIntegratorId(integratorId)
-                .WithCreatedAt(DateTime.Now)
-                .WithAmount(request.Amount)
-                .Build();
-
-            _context.Transactions.Add(trans);
-            await _context.SaveChangesAsync();
-            return trans;
-        }
 
         public IQueryable<Transaction> GetSalesTransactionQuery(int status, int claimedStatus)
         {

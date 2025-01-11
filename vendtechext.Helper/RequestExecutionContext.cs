@@ -99,7 +99,7 @@ namespace vendtechext.Helper
             {
                 salesResponse = new ExecutionResult(_integrator.successResponse);
                 salesResponse.Status = "success";
-                salesResponse.StatusCode = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                salesResponse.Code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
             }
             else
             {
@@ -109,7 +109,7 @@ namespace vendtechext.Helper
                 if (_integrator.isFinalized)
                     salesResponse.Status = "pending";
 
-                salesResponse.StatusCode = _integrator.ReadErrorMessage(salesResponse.FailedResponse.ErrorMessage);
+                salesResponse.Code = _integrator.ReadErrorMessage(salesResponse.FailedResponse.ErrorMessage);
             }
             _integrator.Dispose();
             salesResponse.ReceivedFrom = _integrator.ReceivedFrom;
