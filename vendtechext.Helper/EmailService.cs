@@ -176,27 +176,24 @@ namespace vendtechext.Helper
             }
         }
 
-        public void SendReconcilationEmail(TransactionDetail record, string firstName, string email)
+        public void SendReconcilationEmail(UserDetail user, TransactionDetail record)
         {
             try
             {
                 string msg = $@"
-                <p>This is to inform you that your account has been refunded with SLE: {Utils.FormatAmount(record.Amount)}. </p>
-                <p>This is in respect to the unsuccessful sales below</p>
+                <p>This is to inform you that your account has been refunded with SLE: {Utils.FormatAmount(record.Amount)}.</p>
+                <p>This is for the unsuccessful sale that happened on the {Utils.formatDate(record.CreatedAt)}.</p>
                 <strong>Details:</strong>
                 <p>Amount: {Utils.FormatAmount(record.Amount)}</p>
                 <p>Transaction ID: {record.TransactionId}</p>
-                <p>Transaction ID: {record.TransactionId}</p>
-                <p>Transaction ID: {record.TransactionId}</p>
-                <p>Transaction ID: {record.TransactionId}</p>
-                <p>Transaction ID: {record.TransactionId}</p>
+                <p>Date: {Utils.formatDate(record.CreatedAt)}</p>
                 ";
                 string subject = $"BALANCE REFUND {record.Amount}";
                 string emailBody = helper.GetEmailTemplate("simple");
-                emailBody = emailBody.Replace("[recipient]", firstName);
+                emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", msg);
-
-                helper.SendEmail(email, subject, emailBody);
+                //
+                helper.SendEmail(user.Email, subject, emailBody);
             }
             catch (Exception)
             {
