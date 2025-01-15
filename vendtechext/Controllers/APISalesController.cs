@@ -29,8 +29,8 @@ namespace vendtechext.Controllers
             var integratorName = HttpContext.Items["IntegratorName"] as string;
 
             _log.Log(LogType.Infor, $"received request for {request.TransactionId} from {integratorName}", request);
-            //APIResponse reponse = await service.PurchaseElectricity(request, integratorId, integratorName);
-            APIResponse reponse = await service.PurchaseElectricityForSandbox(request, integratorId, integratorName);
+            APIResponse reponse = await service.PurchaseElectricity(request, integratorId, integratorName);
+            //APIResponse reponse = await service.PurchaseElectricityForSandbox(request, integratorId, integratorName);
             _log.Log(LogType.Infor, $"response sent for {request.TransactionId} to {integratorName}", reponse);
 
             return Ok(reponse);
