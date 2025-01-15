@@ -72,6 +72,12 @@ namespace vendtechext.BLL.Services
             return notifications;
         }
 
+        public long? GetNotificationId(string targetId)
+        {
+            var id = _context.Notifications.Where(n => n.TargetId == targetId).FirstOrDefault()?.Id ?? null;
+            return id;
+        }
+
         // 3. Updates notification read status
         public void UpdateNotificationReadStatus(long id, string userId)
         {

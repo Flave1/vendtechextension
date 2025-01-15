@@ -41,6 +41,7 @@ namespace vendtechext.BLL.Services
                     // Refund the user
                     await RefundUserAsync(transaction.UserId, transaction.POSId, transaction.Amount, newTransactionId);
 
+                    //Notify User
                     UserDetail user = await GetUserAsync(transaction.UserId);
                     _backgroundJobClient.Enqueue(() => CreateDepositNotification(user, transaction));
                 }
@@ -225,18 +226,18 @@ namespace vendtechext.BLL.Services
                             paymentType: 1,
                             balanceBefore: balanceBefore,
                             amount: amount,
-                            percentageAmount: null,
+                            percentageAmount: amount,
                             newBalance: newBalance,
                             agencyCommission: 0,
                             checkNumberOrSlipId: "SALES REVERSAL",
-                            comments: "",
+                            comments: "SALES REVERSAL",
                             status: 1,
-                            chequeBankName: null,
+                            chequeBankName: "VENDTECHSL",
                             nameOnCheque: null,
                             updatedAt: null,
                             bankAccountId: 1,
                             isAudit: true,
-                            valueDate: DateTime.Now.ToString("yyyy-MM-dd"),
+                            valueDate: DateTime.Now.ToString(),
                             nextReminderDate: null,
                             isDeleted: false,
                             valueDateStamp: null,

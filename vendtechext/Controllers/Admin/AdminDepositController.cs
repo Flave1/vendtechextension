@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 
@@ -11,15 +12,19 @@ namespace vendtechext.Controllers
     public class AdminDepositController : ControllerBase
     {
         private readonly IDepositService _service;
+        private readonly IHttpContextAccessor _contextAccessor;
 
-        public AdminDepositController(IDepositService service)
+        public AdminDepositController(IDepositService service, IHttpContextAccessor contextAccessor)
         {
             _service = service;
+            _contextAccessor = contextAccessor;
         }
 
         [HttpPost("aprrove")]
-        public async Task<IActionResult> Create([FromBody] ApproveDepositRequest request)
+        public async Task<IActionResult> ApproveDeposit([FromBody] ApproveDepositRequest request)
         {
+            var currentUserid = _contextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (currentUserid != null) request.ApprovingUserId = currentUserid;
             var result = await _service.ApproveDeposit(request);
             return Ok(result);
         }

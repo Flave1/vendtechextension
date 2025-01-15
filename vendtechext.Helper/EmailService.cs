@@ -165,7 +165,6 @@ namespace vendtechext.Helper
                 string emailBody = helper.GetEmailTemplate("simple");
                 emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", msg);
-
                 notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositApproved, DeposiId.ToString());
                 //
                 helper.SendEmail(user.Email, subject, emailBody);

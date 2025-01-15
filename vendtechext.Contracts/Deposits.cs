@@ -79,6 +79,7 @@ namespace vendtechext.Contracts
         public bool Approve { get; set; }
         public Guid DepositId { get; set; }
         public Guid IntegratorId { get; set; }
+        public string ApprovingUserId;
     }
 
     public class PaymentTypeDto
