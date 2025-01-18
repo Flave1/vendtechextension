@@ -7,5 +7,6 @@
         public const int AMOUNT_TOO_LOW = 4094;
         public const int BAD_REQUEST = 4004;
         public const int OKAY_REQEUST = 2002;
+        public const int REQUEST_PENDING = 2022;
     }
 }

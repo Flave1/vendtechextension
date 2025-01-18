@@ -33,6 +33,12 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public TransactionsBuilder WithSellerTransactionId(string sellerTransactionId)
+        {
+            _transaction.SellerTransactionID = sellerTransactionId;
+            return this;
+        }
+
         public TransactionsBuilder WithTransactionId(string transactionId)
         {
             _transaction.VendtechTransactionID = transactionId;

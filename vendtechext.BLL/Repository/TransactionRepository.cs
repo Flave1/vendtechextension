@@ -127,6 +127,7 @@ namespace vendtechext.BLL.Repository
         {
             new TransactionsBuilder(trans)
                 .WithVendStatusDescription(executionResult.SuccessResponse.Voucher.VendStatusDescription)
+                .WithSellerTransactionId(executionResult.SuccessResponse.Voucher.RTSUniqueID)
                 .WithTransactionStatus(TransactionStatus.Success)
                 .WithReceivedFrom(executionResult.ReceivedFrom)
                 .WithResponse(executionResult.Response)

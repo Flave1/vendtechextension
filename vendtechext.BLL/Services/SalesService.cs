@@ -59,6 +59,7 @@ namespace vendtechext.BLL.Services
                 query = query.Where(p => p.CreatedAt.Date <= toDate);
             }
 
+
             if (Utils.IsAscending(req.SortOrder))
                 query = query.OrderBy(d => d.CreatedAt);
             else

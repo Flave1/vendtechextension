@@ -54,7 +54,7 @@ namespace vendtechext.BLL.Repository
             {
                 RTSResponse x = JsonConvert.DeserializeObject<RTSResponse>(lastTransaction.Response);
                 var respo = x.Content.Data.Data.FirstOrDefault();
-                return respo.DealerBalance;
+                return respo.DealerBalance - respo.Denomination;
             }
             return 0;
         }

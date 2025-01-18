@@ -1,4 +1,5 @@
 ﻿using vendtechext.DAL.Common;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
@@ -75,6 +76,7 @@ namespace vendtechext.Contracts
         public decimal BalanceBefore { get; set; }
         public decimal Amount { get; set; }
         public decimal BalanceAfter { get; set; }
+        public string SellerTransactionId { get; set; }
         public TransactionExportDto(Transaction x)
         {
             Date = Utils.formatDate(x.CreatedAt);
@@ -87,6 +89,7 @@ namespace vendtechext.Contracts
             BalanceBefore = x.BalanceBefore;
             Amount = x.Amount;
             BalanceAfter = x.BalanceAfter;
+            SellerTransactionId = x.SellerTransactionID;
         }
     }
 }

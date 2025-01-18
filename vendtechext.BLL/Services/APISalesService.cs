@@ -89,18 +89,30 @@ namespace vendtechext.BLL.Services
                     {
                         executionResult = new ExecutionResult(false);
                         executionResult.Status = "failed";
+                        executionResult.Code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
                     }
+
+                    return Response.WithStatus(executionResult.Status).WithStatusCode(executionResult.Code).WithMessage(executionResult.SuccessResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
                 }
                 else if (transaction.Finalized)
                 {
                     executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
                     executionResult.Status = "success";
+                    executionResult.Code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+
+                    return Response.WithStatus(executionResult.Status).WithStatusCode(executionResult.Code).WithMessage(executionResult.SuccessResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
                 }
                 else if (!transaction.Finalized)
                 {
                     executionResult = await _executionContext.ExecuteTransaction(transaction.VendtechTransactionID, integratorid, integratorName);
+                    if (executionResult.Status == "success")
+                    {
+                        executionResult.SuccessResponse.UpdateResponse(transaction);
+                        await _repository.UpdateSaleSuccessTransactionLog(executionResult, transaction);
+                        return Response.WithStatus(executionResult.Status).WithStatusCode(executionResult.Code).WithMessage(executionResult.SuccessResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
+                    }
                 }
-                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
+                return Response.WithStatus(executionResult.Status).WithStatusCode(executionResult.Code).WithMessage(executionResult.FailedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
             }
             catch (BadRequestException ex)
             {
@@ -148,7 +160,7 @@ namespace vendtechext.BLL.Services
                 executionResult.FailedResponse = new FailedResponse();
                 executionResult.FailedResponse.ErrorMessage = ex.Message;
                 executionResult.FailedResponse.ErrorDetail = ex.Message;
-                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+                return Response.WithStatus("failed").WithStatusCode(400).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
             }
         public async Task<APIResponse> QuerySalesStatusForSandbox(SaleStatusRequest request, Guid integratorid, string integratorName)
@@ -168,18 +180,20 @@ namespace vendtechext.BLL.Services
                     {
                         executionResult = new ExecutionResult(false);
                         executionResult.Status = "failed";
+                        executionResult.Code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
                     }
                 }
                 else if (transaction.Finalized)
                 {
                     executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
                     executionResult.Status = "success";
+                    executionResult.Code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
                 }
                 else if (!transaction.Finalized)
                 {
                     executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
                     executionResult.Status = "pending";
-                    //executionResult = await _executionContext.ExecuteTransaction(transaction.VendtechTransactionID, integratorid, integratorName);
+                    executionResult.Code = API_MESSAGE_CONSTANCE.REQUEST_PENDING;
                 }
                 return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
             }

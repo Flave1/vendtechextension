@@ -42,7 +42,7 @@ namespace vendtechext.Controllers
             var integratorId = Guid.Parse(HttpContext.Items["IntegratorId"] as string ?? "");
             var integratorName = HttpContext.Items["IntegratorName"] as string;
 
-            APIResponse reponse = await service.QuerySalesStatusForSandbox(request, integratorId, integratorName);
+            APIResponse reponse = await service.QuerySalesStatus(request, integratorId, integratorName);
 
             return Ok(reponse);
         }

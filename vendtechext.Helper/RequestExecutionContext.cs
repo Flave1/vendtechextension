@@ -94,7 +94,7 @@ namespace vendtechext.Helper
         {
             string resultAsString = await _httpResponse.Content.ReadAsStringAsync();
             responseAsString = resultAsString;
-            _integrator.ProcessResponse(resultAsString);
+            _integrator.DestructureInitialResponse(resultAsString);
             if (_integrator.isSuccessful)
             {
                 salesResponse = new ExecutionResult(_integrator.successResponse);
@@ -120,7 +120,7 @@ namespace vendtechext.Helper
         {
             string resultAsString = await _httpResponse.Content.ReadAsStringAsync();
             responseAsString = resultAsString;
-            _integrator.ProcessStatusResponse(resultAsString);
+            _integrator.DestructureStatusResponse(resultAsString);
             if (_integrator.isSuccessful)
             {
                 salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);

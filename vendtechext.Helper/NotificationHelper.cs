@@ -55,7 +55,7 @@ namespace vendtechext.BLL.Services
         public List<NotificationDto> GetNotifications(string receiver)
         {
             var notifications = _context.Notifications
-                .Where(n => n.Reciver == receiver)
+                .Where(n => n.Reciver == receiver && n.Deleted == false)
                 .OrderByDescending(n => n.CreatedAt)
                 .Select(n => new NotificationDto
                 {
@@ -67,7 +67,7 @@ namespace vendtechext.BLL.Services
                     Type = n.Type,
                     Date = Utils.formatDate(n.CreatedAt), 
                     TargetId = n.TargetId
-                }).ToList();
+                }).Take(20).ToList();
 
             return notifications;
         }
@@ -82,7 +82,7 @@ namespace vendtechext.BLL.Services
         public void UpdateNotificationReadStatus(long id, string userId)
         {
             var notification = _context.Notifications.Find(id);
-
+            notification.Deleted = true;
             if (notification != null)
             {
                 // If 'Read' is empty or does not contain the userId, append the userId
