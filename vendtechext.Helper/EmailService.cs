@@ -132,7 +132,7 @@ namespace vendtechext.Helper
                 <p>Wallet ID: {WALLET_ID}</p>
                 <p>Integrator: {BusinessName}</p>
                 <p>Amount: SLE {Utils.FormatAmount(Amount + commission)}</p>
-                <p>Request Date: {Utils.formatDate(CreatedAt)}</p>
+                <p>request Date: {Utils.formatDate(CreatedAt)}</p>
                 ";
                 string subject = "PENDING DEPOSIT APPROVAL";
                 string emailBody = helper.GetEmailTemplate("simple");
@@ -165,7 +165,6 @@ namespace vendtechext.Helper
                 string emailBody = helper.GetEmailTemplate("simple");
                 emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", msg);
-
                 notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositApproved, DeposiId.ToString());
                 //
                 helper.SendEmail(user.Email, subject, emailBody);
@@ -176,27 +175,24 @@ namespace vendtechext.Helper
             }
         }
 
-        public void SendReconcilationEmail(TransactionDetail record, string firstName, string email)
+        public void SendReconcilationEmail(UserDetail user, TransactionDetail record)
         {
             try
             {
                 string msg = $@"
-                <p>This is to inform you that your account has been refunded with SLE: {Utils.FormatAmount(record.Amount)}. </p>
-                <p>This is in respect to the unsuccessful sales below</p>
+                <p>This is to inform you that your account has been refunded with SLE: {Utils.FormatAmount(record.Amount)}.</p>
+                <p>This is for the unsuccessful sale that happened on the {Utils.formatDate(record.CreatedAt)}.</p>
                 <strong>Details:</strong>
                 <p>Amount: {Utils.FormatAmount(record.Amount)}</p>
                 <p>Transaction ID: {record.TransactionId}</p>
-                <p>Transaction ID: {record.TransactionId}</p>
-                <p>Transaction ID: {record.TransactionId}</p>
-                <p>Transaction ID: {record.TransactionId}</p>
-                <p>Transaction ID: {record.TransactionId}</p>
+                <p>Date: {Utils.formatDate(record.CreatedAt)}</p>
                 ";
                 string subject = $"BALANCE REFUND {record.Amount}";
                 string emailBody = helper.GetEmailTemplate("simple");
-                emailBody = emailBody.Replace("[recipient]", firstName);
+                emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", msg);
-
-                helper.SendEmail(email, subject, emailBody);
+                //
+                helper.SendEmail(user.Email, subject, emailBody);
             }
             catch (Exception)
             {

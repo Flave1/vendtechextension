@@ -15,7 +15,7 @@ namespace vendtechext.Controllers
         private readonly ISalesService _service;
         private readonly IHttpContextAccessor _contextAccessor;
 
-        public DashboardSalesController(ILogger<APISalesController> logger, ISalesService salesService, IHttpContextAccessor contextAccessor) : base(logger)
+        public DashboardSalesController(ILogger<DashboardSalesController> logger, ISalesService salesService, IHttpContextAccessor contextAccessor) : base(logger)
         {
             _service = salesService;
             _contextAccessor = contextAccessor;

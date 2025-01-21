@@ -20,6 +20,7 @@ using Microsoft.OpenApi.Models;
 using vendtechext.DAL.Seed;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using vendtechext.BLL.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -135,6 +136,9 @@ builder.Services.AddSwaggerGen(c =>
 // SignalR Configuration
 builder.Services.AddSignalR();
 
+//Cache
+builder.Services.AddMemoryCache();
+
 // Dependency Injection
 builder.Services.AddScoped<IVendtechReconcillationService, VendtechReconcillationService>();
 builder.Services.AddScoped<IIntegratorService, IntegratorService>();
@@ -143,6 +147,7 @@ builder.Services.AddScoped<IAPISalesService, APISalesService>();
 builder.Services.AddScoped<IDepositService, DepositService>();
 builder.Services.AddScoped<VendtechTransactionsService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
+builder.Services.AddScoped<TransactionIdGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RequestExecutionContext>();
 builder.Services.AddScoped<TransactionRepository>();

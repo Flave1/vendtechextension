@@ -16,7 +16,7 @@ namespace vendtechext.TEST.Sales
         public async Task InvokeAsync_ValidJson_SuccessfulResponse()
         {
             // Arrange
-            var validJson = @"{ ""Auth"": { ""UserName"": ""username"", ""Password"": ""password"" }, ""Request"": ""ProcessPrePaidVendingV1"", ""Parameters"": [ ""param1"", ""param2"" ] }";
+            var validJson = @"{ ""Auth"": { ""UserName"": ""username"", ""Password"": ""password"" }, ""request"": ""ProcessPrePaidVendingV1"", ""Parameters"": [ ""param1"", ""param2"" ] }";
             var content = new StringContent(validJson, Encoding.UTF8, "application/json");
 
             // Act

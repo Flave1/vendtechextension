@@ -23,7 +23,7 @@ namespace vendtechext.Controllers
         [HttpPost("start")]
         public async Task<IActionResult> start([FromBody] ReconcileRequest request)
         {
-            await service.ProcessRefundsAsync();
+            await service.ProcessRefundsAsync(request.TransactionId);
             return Ok();
         }
 

@@ -1,6 +1,7 @@
 ﻿using FirebaseAdmin.Messaging;
 using Hangfire;
 using Microsoft.Data.SqlClient;
+using System.Data;
 using System.Text;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts.VtchMainModels;
@@ -13,28 +14,36 @@ namespace vendtechext.BLL.Services
     {
         private readonly string _connectionString;
         private readonly IBackgroundJobClient _backgroundJobClient;
-
-        public VendtechReconcillationService(IBackgroundJobClient backgroundJobClient)
+        private readonly EmailHelper _emailHelper;
+        private readonly NotificationHelper _notificationHelper;
+        public VendtechReconcillationService(IBackgroundJobClient backgroundJobClient, EmailHelper emailHelper, NotificationHelper notificationHelper)
         {
-            _connectionString = "Server=92.205.181.48;Database=VENDTECH_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
+            _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
             _backgroundJobClient = backgroundJobClient;
+            _emailHelper = emailHelper;
+            _notificationHelper = notificationHelper;
         }
 
-        public async Task ProcessRefundsAsync()
+        public async Task ProcessRefundsAsync(string transactionId)
         {
+            string[] transactionIds = []; //"283508"
             try
             {
                 // Fetch all unsuccessful transactions
                 var unsuccessfulTransactions = await GetUnsuccessfulTransactionsAsync();
 
-                foreach (var transaction in unsuccessfulTransactions)
+                List<TransactionDetail>  filtereRecord = unsuccessfulTransactions.Where(d => !transactionIds.Contains(d.TransactionId) && d.TransactionId == transactionId).ToList();
+                foreach (var transaction in filtereRecord)
                 {
                     // Generate new TransactionId
                     var newTransactionId = await GenerateNewTransactionIdAsync();
 
                     // Refund the user
                     await RefundUserAsync(transaction.UserId, transaction.POSId, transaction.Amount, newTransactionId);
-                    //_backgroundJobClient.Enqueue(() => CreateDepositNotification(wallet.WALLET_ID, deposit.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, deposit.CreatedAt));
+
+                    //Notify User
+                    UserDetail user = await GetUserAsync(transaction.UserId);
+                    _backgroundJobClient.Enqueue(() => CreateDepositNotification(user, transaction));
                 }
             }
             catch (Exception ex)
@@ -53,19 +62,19 @@ namespace vendtechext.BLL.Services
 
                 string query = @"
             SELECT 
-                aa.Response,
+                aa.response,
                 aa.UserId,
                 aa.TransactionId, 
-                aa.Status,
+                aa.status,
                 aa.CreatedAt,
                 aa.Amount, 
                 aa.MeterNumber1,
                 aa.POSId
                 FROM [VENDTECH_MAIN].[dbo].[TransactionDetails] AS aa
-                WHERE aa.Status = 1 
+                WHERE aa.status = 1
               AND aa.PlatFormId = 1
               AND aa.CreatedAt >= CONVERT(DATETIME2, '2025-01-03 19:44:16.1647156', 121) 
-              AND aa.CreatedAt <= CONVERT(DATETIME2, '2025-01-04 01:26:01.080', 121)";
+              AND aa.CreatedAt <= CONVERT(DATETIME2, '2025-01-04 10:50:14.967', 121)"; //2025-01-04 01:26:01.080
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
@@ -80,7 +89,7 @@ namespace vendtechext.BLL.Services
                                 UserId = reader.GetInt64(reader.GetOrdinal("UserId")),
                                 Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
                                 TransactionId = reader.GetString(reader.GetOrdinal("TransactionId")),
-                                Status = reader.GetInt32(reader.GetOrdinal("Status")),
+                                Status = reader.GetInt32(reader.GetOrdinal("status")),
                                 POSId = reader.GetInt64(reader.GetOrdinal("POSId")),
                                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
                             });
@@ -91,12 +100,52 @@ namespace vendtechext.BLL.Services
 
                 return transactions;
             }
-            catch (Exception sx)
+            catch (Exception)
             {
 
                 throw;
             }
         }
+
+        private async Task<UserDetail> GetUserAsync(long userId)
+        {
+            try
+            {
+                var user = new UserDetail();
+
+                string query = @"
+                    SELECT UserId, Email, Vendor
+                    FROM Users
+                    WHERE UserId = @UserId";
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        // Use parameter with explicit type and size
+                        command.Parameters.Add("@UserId", SqlDbType.BigInt).Value = userId;
+
+                        using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync()) // Use if since only one record is expected
+                            {
+                                user.UserId = reader.GetInt64(reader.GetOrdinal("UserId"));
+                                user.Email = reader.GetString(reader.GetOrdinal("Email"));
+                                user.FirstName = reader.GetString(reader.GetOrdinal("Vendor"));
+                            }
+                        }
+                    }
+                }
+                return user;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (use a logging library like Serilog, NLog, etc.)
+                throw new Exception("An error occurred while retrieving user details.", ex);
+            }
+        }
+
 
         private async Task<string> GenerateNewTransactionIdAsync()
         {
@@ -177,18 +226,18 @@ namespace vendtechext.BLL.Services
                             paymentType: 1,
                             balanceBefore: balanceBefore,
                             amount: amount,
-                            percentageAmount: null,
+                            percentageAmount: amount,
                             newBalance: newBalance,
                             agencyCommission: 0,
                             checkNumberOrSlipId: "SALES REVERSAL",
-                            comments: "",
+                            comments: "SALES REVERSAL",
                             status: 1,
-                            chequeBankName: null,
+                            chequeBankName: "VENDTECHSL",
                             nameOnCheque: null,
                             updatedAt: null,
                             bankAccountId: 1,
                             isAudit: true,
-                            valueDate: DateTime.Now.ToString("yyyy-MM-dd"),
+                            valueDate: DateTime.Now.ToString(),
                             nextReminderDate: null,
                             isDeleted: false,
                             valueDateStamp: null,
@@ -241,7 +290,7 @@ namespace vendtechext.BLL.Services
 
             query.Append("[UserId], [POSId], [CreatedAt], [TransactionId], [PaymentType], [BalanceBefore], ");
             query.Append("[Amount], [PercentageAmount], [NewBalance], [AgencyCommission], [CheckNumberOrSlipId], ");
-            query.Append("[Comments], [Status], [ChequeBankName], [NameOnCheque], [UpdatedAt], [BankAccountId], ");
+            query.Append("[Comments], [status], [ChequeBankName], [NameOnCheque], [UpdatedAt], [BankAccountId], ");
             query.Append("[isAudit], [ValueDate], [NextReminderDate], [IsDeleted], [ValueDateStamp], [InitiatingTransactionId]) ");
             query.Append("VALUES (");
 
@@ -276,9 +325,9 @@ namespace vendtechext.BLL.Services
         }
 
 
-        public async Task CreateDepositNotification(string WALLET_ID, string BusinessName, int CommissionId, decimal Amount, Guid DepositId, DateTime CreatedAt)
+        public void CreateDepositNotification(UserDetail user, TransactionDetail transaction)
         {
-            //new Emailer(_emailHelper, notification).SendEmailToAdminOnPendingDeposits(WALLET_ID, BusinessName, CommissionId, Amount, DepositId, CreatedAt, user);
+            new Emailer(_emailHelper, _notificationHelper).SendReconcilationEmail(user, transaction);
         }
     }
 

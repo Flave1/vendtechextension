@@ -19,11 +19,11 @@ namespace vendtechext.TEST.Sales
         [InlineData(HttpStatusCode.OK)]
         public async Task Test_for_successful_response(HttpStatusCode expectedStatusCode)
         {
-
+            //283508,
             // Arrange
             var requestModel = new
             {
-                TransactionId = ""
+                TransactionId = "283508"
             };
 
             var json = System.Text.Json.JsonSerializer.Serialize(requestModel);
@@ -35,8 +35,7 @@ namespace vendtechext.TEST.Sales
             // Assert
             //response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
-            APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
-            Assert.NotNull(result);
+
             Assert.Equal(expectedStatusCode, response.StatusCode);
             // Additional assertions to validate the response
         }

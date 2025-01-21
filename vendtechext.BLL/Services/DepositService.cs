@@ -1,5 +1,8 @@
 ﻿using Hangfire;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
@@ -71,6 +74,11 @@ namespace vendtechext.BLL.Services
             if (!request.Approve)
             {
                 await _repository.DeleteDepositTransaction(deposit);
+                long? notificationId = notification.GetNotificationId(request.DepositId.ToString());
+                if (notificationId != null && notificationId.Value > 0)
+                {
+                    notification.UpdateNotificationReadStatus(notificationId.Value, request.ApprovingUserId);
+                }
                 return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully Cancelled deposit").WithType(request).GenerateResponse();
             }
 
@@ -81,13 +89,18 @@ namespace vendtechext.BLL.Services
 
             SettingsPayload settings = AppConfiguration.GetSettings();
             if (settings.Notification.SendDepositApprovalEmailToUser)
-                _backgroundJobClient.Enqueue(() => ApproveDepositNotification(request.IntegratorId, deposit.Amount, deposit.Id, wallet.CommissionId));
+                _backgroundJobClient.Enqueue(() => ApproveDepositNotification(request.IntegratorId, deposit.Amount, deposit.Id, wallet.CommissionId, request.ApprovingUserId));
 
             return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully approved deposit").WithType(request).GenerateResponse();
         }
 
-        public async Task ApproveDepositNotification(Guid integratorId, decimal Amount, Guid DeposiId, int CommissionId)
+        public async Task ApproveDepositNotification(Guid integratorId, decimal Amount, Guid DeposiId, int CommissionId, string currentAdminUserId)
         {
+            long? notificationId = notification.GetNotificationId(DeposiId.ToString());
+            if(notificationId != null && notificationId.Value > 0)
+            {
+                notification.UpdateNotificationReadStatus(notificationId.Value, currentAdminUserId);
+            }
             AppUser user = await _authService.FindUserByIntegratorId(integratorId);
             new Emailer(_emailHelper, notification).SendEmailToIntegratorOnDepositApproval(Amount, DeposiId, CommissionId, user);
         }

@@ -86,7 +86,7 @@ namespace vendtechext.Helper
             };
         }
         
-        public void ProcessResponse(string resultAsString)
+        public void DestructureInitialResponse(string resultAsString)
         {
             ReceivedFrom = "rts_init";
             try
@@ -101,7 +101,7 @@ namespace vendtechext.Helper
             }
         }
 
-        public void ProcessStatusResponse(string resultAsString)
+        public void DestructureStatusResponse(string resultAsString)
         {
             ReceivedFrom = "rts_status";
             statusResponse = JsonConvert.DeserializeObject<RTSStatusResponse>(resultAsString);

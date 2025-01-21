@@ -17,7 +17,7 @@ namespace vendtechext.Controllers
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IDepositService _depositService;
 
-        public ExportController(ILogger<APISalesController> logger, ISalesService salesService, IHttpContextAccessor contextAccessor, IDepositService depositService) : base(logger)
+        public ExportController(ILogger<ExportController> logger, ISalesService salesService, IHttpContextAccessor contextAccessor, IDepositService depositService) : base(logger)
         {
             _salesService = salesService;
             _contextAccessor = contextAccessor;
@@ -55,6 +55,7 @@ namespace vendtechext.Controllers
                     worksheet.Cells[1, 6].Value = "BALANCE BEFORE";
                     worksheet.Cells[1, 7].Value = "AMOUNT";
                     worksheet.Cells[1, 8].Value = "BAL AFTER";
+                    worksheet.Cells[1, 9].Value = "SELLER TRANX ID";
 
                     // Add data
                     for (int i = 0; i < transactions.Count; i++)
@@ -69,6 +70,7 @@ namespace vendtechext.Controllers
                         worksheet.Cells[i + 2, 6].Value = transactions[i].BalanceBefore;
                         worksheet.Cells[i + 2, 7].Value = transactions[i].Amount;
                         worksheet.Cells[i + 2, 8].Value = transactions[i].BalanceAfter;
+                        worksheet.Cells[i + 2, 9].Value = transactions[i].SellerTransactionId;
                     }
 
                     var stream = new MemoryStream();
@@ -99,6 +101,7 @@ namespace vendtechext.Controllers
                 table.AddCell("BALANCE BEFORE");
                 table.AddCell("AMOUNT");
                 table.AddCell("BAL AFTER");
+                table.AddCell("SELLER TRANX ID");
 
                 // Add data rows
                 foreach (var transaction in transactions)
@@ -113,6 +116,7 @@ namespace vendtechext.Controllers
                     table.AddCell(transaction.BalanceBefore.ToString());
                     table.AddCell(transaction.Amount.ToString());
                     table.AddCell(transaction.BalanceAfter.ToString());
+                    table.AddCell(transaction.SellerTransactionId);
                 }
 
                 document.Add(table);
