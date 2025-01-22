@@ -33,7 +33,7 @@ namespace vendtechext.BLL.Services
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    Console.WriteLine("Message sent successfully!");
+                    Console.WriteLine("message sent successfully!");
                 }
                 else
                 {

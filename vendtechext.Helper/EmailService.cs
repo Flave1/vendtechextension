@@ -132,7 +132,7 @@ namespace vendtechext.Helper
                 <p>Wallet ID: {WALLET_ID}</p>
                 <p>Integrator: {BusinessName}</p>
                 <p>Amount: SLE {Utils.FormatAmount(Amount + commission)}</p>
-                <p>Request Date: {Utils.formatDate(CreatedAt)}</p>
+                <p>request Date: {Utils.formatDate(CreatedAt)}</p>
                 ";
                 string subject = "PENDING DEPOSIT APPROVAL";
                 string emailBody = helper.GetEmailTemplate("simple");

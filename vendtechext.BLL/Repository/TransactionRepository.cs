@@ -126,12 +126,12 @@ namespace vendtechext.BLL.Repository
         public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
             new TransactionsBuilder(trans)
-                .WithVendStatusDescription(executionResult.SuccessResponse.Voucher.VendStatusDescription)
-                .WithSellerTransactionId(executionResult.SuccessResponse.Voucher.RTSUniqueID)
+                .WithVendStatusDescription(executionResult.successResponse.Voucher.VendStatusDescription)
+                .WithSellerTransactionId(executionResult.successResponse.Voucher.RTSUniqueID)
                 .WithTransactionStatus(TransactionStatus.Success)
-                .WithReceivedFrom(executionResult.ReceivedFrom)
-                .WithResponse(executionResult.Response)
-                .WithRequest(executionResult.Request)
+                .WithReceivedFrom(executionResult.receivedFrom)
+                .WithResponse(executionResult.response)
+                .WithRequest(executionResult.request)
                 .WithFinalized(true)
                 .Build();
 

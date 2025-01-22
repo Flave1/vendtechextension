@@ -98,21 +98,21 @@ namespace vendtechext.Helper
             if (_integrator.isSuccessful)
             {
                 salesResponse = new ExecutionResult(_integrator.successResponse);
-                salesResponse.Status = "success";
-                salesResponse.Code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                salesResponse.status = "success";
+                salesResponse.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
             }
             else
             {
                 salesResponse = new ExecutionResult(_integrator.errorResponse);
-                salesResponse.Status = "failed";
+                salesResponse.status = "failed";
                 
                 if (_integrator.isFinalized)
-                    salesResponse.Status = "pending";
+                    salesResponse.status = "pending";
 
-                salesResponse.Code = _integrator.ReadErrorMessage(salesResponse.FailedResponse.ErrorMessage);
+                salesResponse.code = _integrator.ReadErrorMessage(salesResponse.failedResponse.ErrorMessage);
             }
             _integrator.Dispose();
-            salesResponse.ReceivedFrom = _integrator.ReceivedFrom;
+            salesResponse.receivedFrom = _integrator.ReceivedFrom;
             return salesResponse;
         }
    
@@ -124,15 +124,15 @@ namespace vendtechext.Helper
             if (_integrator.isSuccessful)
             {
                 salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
-                salesResponse.Status = "success";
+                salesResponse.status = "success";
             }
             else
             {
                 salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
-                salesResponse.Status = "failed";
+                salesResponse.status = "failed";
             }
             _integrator.Dispose();
-            salesResponse.ReceivedFrom = _integrator.ReceivedFrom;
+            salesResponse.receivedFrom = _integrator.ReceivedFrom;
             return salesResponse;
         }
     }
