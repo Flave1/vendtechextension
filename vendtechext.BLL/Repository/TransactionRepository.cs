@@ -141,12 +141,12 @@ namespace vendtechext.BLL.Repository
         public async Task UpdateSaleFailedTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
             new TransactionsBuilder(trans)
-                .WithVendStatusDescription(executionResult?.FailedResponse?.ErrorDetail)
+                .WithVendStatusDescription(executionResult?.failedResponse?.ErrorDetail)
                 .WithTransactionStatus(TransactionStatus.Failed)
-                .WithReceivedFrom(executionResult?.ReceivedFrom)
-                .WithResponse(executionResult?.Response)
+                .WithReceivedFrom(executionResult?.receivedFrom)
+                .WithResponse(executionResult?.response)
                 .WithBalanceAfter(trans.BalanceBefore)
-                .WithRequest(executionResult?.Request)
+                .WithRequest(executionResult?.request)
                 .Build();
 
             await _context.SaveChangesAsync();

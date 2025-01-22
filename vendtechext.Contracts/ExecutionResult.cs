@@ -150,7 +150,7 @@ namespace vendtechext.Contracts
         public ExecutionResult(bool isSuccessful)
         {
             if (!isSuccessful)
-                FailedResponse = new FailedResponse {  ErrorMessage = "Unable to process Request at this time", ErrorDetail= "Unable to process Request at this time: Please contact vendtech or submit a ticket" };
+                failedResponse = new FailedResponse {  ErrorMessage = "Unable to process Request at this time", ErrorDetail= "Unable to process Request at this time: Please contact vendtech or submit a ticket" };
         }
         public ExecutionResult()
         {
