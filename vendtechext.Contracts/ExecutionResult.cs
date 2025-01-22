@@ -33,7 +33,6 @@ namespace vendtechext.Contracts
             MeterNumber = response_data.PowerHubVoucher.MeterNumber;
             Voucher.VoucherSerialNumber = response_data?.SerialNumber;
             Voucher.RTSUniqueID = response_data?.PowerHubVoucher?.RtsUniqueId;
-            Voucher.Denomination = response_data?.Denomination;
         }
         public SuccessResponse(RTSStatusResponse x)
         {
@@ -51,7 +50,6 @@ namespace vendtechext.Contracts
             Voucher.StatusRequestCount = 0;
             Voucher.VoucherSerialNumber = response_data?.SerialNumber;
             Voucher.RTSUniqueID = response_data?.RTSUniqueID;
-            Voucher.Denomination = Convert.ToInt64(response_data?.Denomination);
             MeterNumber = response_data.MeterNumber;
         }
         public SuccessResponse UpdateResponse(Transaction x)
@@ -84,8 +82,6 @@ namespace vendtechext.Contracts
         public string VendStatusDescription { get; set; }
         public decimal DealerBalance { get; set; }
         public string RTSUniqueID { get; set; }
-        public string Provider { get; set; } = "EDSA";
-        public long? Denomination { get; set; }
 
     }
     public class FailedResponse
