@@ -33,16 +33,16 @@ namespace vendtechext.BLL.Services
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    Console.WriteLine("message sent successfully!");
+                    Console.WriteLine("Message sent successfully!");
                 }
                 else
                 {
-                    Console.WriteLine("Error sending the message.");
+                    Console.WriteLine("Error sending the Message.");
                 }
             }
             catch (FirebaseMessagingException ex)
             {
-                Console.WriteLine($"Error sending message: {ex.Message}");
+                Console.WriteLine($"Error sending Message: {ex.Message}");
                 Console.WriteLine($"Reason: {ex.ErrorCode}");
             }
             catch (Exception ex)

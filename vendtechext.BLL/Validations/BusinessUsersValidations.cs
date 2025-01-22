@@ -6,7 +6,7 @@ public class IntegratorValidator : AbstractValidator<BusinessUserCommandDTO>
     public IntegratorValidator()
     {
         RuleFor(user => user.FirstName)
-            .NotNull().WithMessage("receivedFrom cannot be null")
+            .NotNull().WithMessage("ReceivedFrom cannot be null")
             .NotEmpty().WithMessage("First name is required.")
             .Length(2, 50).WithMessage("First name must be between 2 and 50 characters.");
 

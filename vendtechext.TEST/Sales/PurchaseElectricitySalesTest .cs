@@ -54,11 +54,11 @@ namespace vendtechext.TEST.Sales
             var response = await _client.PostAsync("/sales/v1/buy", content);
 
             // Assert
-            //response.EnsureSuccessStatusCode();
+            //Response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
             APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
-            Assert.Equal(expectedStatusCode, result.statusCode);
-            // Additional assertions to validate the response
+            Assert.Equal(expectedStatusCode, result.StatusCode);
+            // Additional assertions to validate the Response
         }
 
 
@@ -80,16 +80,16 @@ namespace vendtechext.TEST.Sales
 
             content.Headers.Add("X-Api-Key", apiKey);
             // Act
-            var response = await _client.PostAsync("/sales/v1/status", content);
+            var response = await _client.PostAsync("/sales/v1/Status", content);
 
             // Assert
-            //response.EnsureSuccessStatusCode();
+            //Response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
             APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
 
             Assert.NotNull(result);
             Assert.Equal(expectedStatusCode, response.StatusCode);
-            // Additional assertions to validate the response
+            // Additional assertions to validate the Response
         }
 
         public async Task<string> GenerateNewTransactionId()
@@ -160,12 +160,12 @@ namespace vendtechext.TEST.Sales
                 // Build the SQL query
                 var query = @"INSERT INTO TransactionDetails 
                      (PlatFormId, UserId, MeterNumber1, POSId, Amount, 
-                      IsDeleted, status, CreatedAt, RTSUniqueID, TenderedAmount, 
+                      IsDeleted, Status, CreatedAt, RTSUniqueID, TenderedAmount, 
                       TransactionAmount, Finalised, StatusRequestCount, Sold, DebitRecovery, 
                       CostOfUnits, TransactionId, RequestDate, CurrentDealerBalance, TaxCharge, Units)
                       VALUES 
                       (@PlatFormId, @UserId, @MeterNumber1, @POSId, @Amount,
-                       @IsDeleted, @status, @CreatedAt, @RTSUniqueID, @TenderedAmount, 
+                       @IsDeleted, @Status, @CreatedAt, @RTSUniqueID, @TenderedAmount, 
                        @TransactionAmount, @Finalised, @StatusRequestCount, @Sold, @DebitRecovery, 
                        @CostOfUnits, @TransactionId, @RequestDate, @CurrentDealerBalance, @TaxCharge, @Units)";
 
@@ -182,7 +182,7 @@ namespace vendtechext.TEST.Sales
                         command.Parameters.AddWithValue("@POSId", transaction.POSId);
                         command.Parameters.AddWithValue("@Amount", transaction.Amount);
                         command.Parameters.AddWithValue("@IsDeleted", transaction.IsDeleted);
-                        command.Parameters.AddWithValue("@status", transaction.Status);
+                        command.Parameters.AddWithValue("@Status", transaction.Status);
                         command.Parameters.AddWithValue("@CreatedAt", transaction.CreatedAt);
                         command.Parameters.AddWithValue("@RTSUniqueID", transaction.RTSUniqueID);
                         command.Parameters.AddWithValue("@TenderedAmount", transaction.TenderedAmount);

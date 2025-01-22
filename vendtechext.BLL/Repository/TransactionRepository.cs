@@ -126,12 +126,12 @@ namespace vendtechext.BLL.Repository
         public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
             new TransactionsBuilder(trans)
-                .WithVendStatusDescription(executionResult.successResponse.Voucher.VendStatusDescription)
-                .WithSellerTransactionId(executionResult.successResponse.Voucher.RTSUniqueID)
+                .WithVendStatusDescription(executionResult.SuccessResponse.Voucher.VendStatusDescription)
+                .WithSellerTransactionId(executionResult.SuccessResponse.Voucher.RTSUniqueID)
                 .WithTransactionStatus(TransactionStatus.Success)
-                .WithReceivedFrom(executionResult.receivedFrom)
-                .WithResponse(executionResult.response)
-                .WithRequest(executionResult.request)
+                .WithReceivedFrom(executionResult.ReceivedFrom)
+                .WithResponse(executionResult.Response)
+                .WithRequest(executionResult.Request)
                 .WithFinalized(true)
                 .Build();
 
@@ -141,12 +141,12 @@ namespace vendtechext.BLL.Repository
         public async Task UpdateSaleFailedTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
             new TransactionsBuilder(trans)
-                .WithVendStatusDescription(executionResult?.failedResponse?.ErrorDetail)
+                .WithVendStatusDescription(executionResult?.FailedResponse?.ErrorDetail)
                 .WithTransactionStatus(TransactionStatus.Failed)
-                .WithReceivedFrom(executionResult?.receivedFrom)
-                .WithResponse(executionResult?.response)
+                .WithReceivedFrom(executionResult?.ReceivedFrom)
+                .WithResponse(executionResult?.Response)
                 .WithBalanceAfter(trans.BalanceBefore)
-                .WithRequest(executionResult?.request)
+                .WithRequest(executionResult?.Request)
                 .Build();
 
             await _context.SaveChangesAsync();

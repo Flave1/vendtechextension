@@ -66,11 +66,11 @@ namespace vendtechext.Helper
         {
             InitializeIntegratorData(integratorId, integratorName, request.VendtechTransactionId, request.Amount, request.MeterNumber);
 
-            _log.Log(LogType.Infor, $"executing request for {request.TransactionId} from {integratorName}", requestAsString);
+            _log.Log(LogType.Infor, $"executing Request for {request.TransactionId} from {integratorName}", requestAsString);
             await ExecuteRequest();
 
             await ProcessResponse();
-            _log.Log(LogType.Infor, $"executed request for {request.TransactionId} from {integratorName}", responseAsString);
+            _log.Log(LogType.Infor, $"executed Request for {request.TransactionId} from {integratorName}", responseAsString);
 
             ExecutionResult executionResult = salesResponse;
             executionResult.InitializeRequestAndResponse(requestAsString, responseAsString);
@@ -98,21 +98,21 @@ namespace vendtechext.Helper
             if (_integrator.isSuccessful)
             {
                 salesResponse = new ExecutionResult(_integrator.successResponse);
-                salesResponse.status = "success";
-                salesResponse.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                salesResponse.Status = "success";
+                salesResponse.Code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
             }
             else
             {
                 salesResponse = new ExecutionResult(_integrator.errorResponse);
-                salesResponse.status = "failed";
+                salesResponse.Status = "failed";
                 
                 if (_integrator.isFinalized)
-                    salesResponse.status = "pending";
+                    salesResponse.Status = "pending";
 
-                salesResponse.code = _integrator.ReadErrorMessage(salesResponse.failedResponse.ErrorMessage);
+                salesResponse.Code = _integrator.ReadErrorMessage(salesResponse.FailedResponse.ErrorMessage);
             }
             _integrator.Dispose();
-            salesResponse.receivedFrom = _integrator.ReceivedFrom;
+            salesResponse.ReceivedFrom = _integrator.ReceivedFrom;
             return salesResponse;
         }
    
@@ -124,15 +124,15 @@ namespace vendtechext.Helper
             if (_integrator.isSuccessful)
             {
                 salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
-                salesResponse.status = "success";
+                salesResponse.Status = "success";
             }
             else
             {
                 salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
-                salesResponse.status = "failed";
+                salesResponse.Status = "failed";
             }
             _integrator.Dispose();
-            salesResponse.receivedFrom = _integrator.ReceivedFrom;
+            salesResponse.ReceivedFrom = _integrator.ReceivedFrom;
             return salesResponse;
         }
     }

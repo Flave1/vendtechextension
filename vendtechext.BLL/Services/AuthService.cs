@@ -273,7 +273,7 @@ namespace vendtechext.BLL.Services
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
-                throw new BadRequestException("Invalid request!! please generate a new link");
+                throw new BadRequestException("Invalid Request!! please generate a new link");
 
             IdentityResult result = await _userManager.ResetPasswordAsync(user, token, newPassword);
             if (!result.Succeeded)

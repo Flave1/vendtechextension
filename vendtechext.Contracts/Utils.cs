@@ -9,7 +9,7 @@ namespace vendtechext.Contracts
         {
             string json = JsonConvert.SerializeObject(response, Formatting.Indented);
             File.WriteAllText($"{transactionId}.json", json);
-            Console.WriteLine($"response written to file {transactionId}.json");
+            Console.WriteLine($"Response written to file {transactionId}.json");
             return json;
         }
 

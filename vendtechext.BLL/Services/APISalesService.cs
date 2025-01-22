@@ -40,34 +40,34 @@ namespace vendtechext.BLL.Services
                 if (existingTransaction == null)
                 {
                     executionResult = new ExecutionResult(false);
-                    executionResult.status = "failed";
-                    executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
+                    executionResult.Status = "failed";
+                    executionResult.Code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
 
                     await _repository.RefundToWallet(wallet, transactionLog);
                 }
                 else if (existingTransaction.Finalized)
                 {
                     executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
-                    executionResult.status = "success";
-                    executionResult.successResponse.UpdateResponse(transactionLog);
-                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                    executionResult.Status = "success";
+                    executionResult.SuccessResponse.UpdateResponse(transactionLog);
+                    executionResult.Code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
                     await _repository.UpdateSaleSuccessTransactionLog(executionResult, transactionLog);
                 }
                 else if (!existingTransaction.Finalized)
                 {
                     executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
-                    executionResult.status = "pending";
-                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                    executionResult.Status = "pending";
+                    executionResult.Code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
                 }
-                return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage("").WithType(executionResult).GenerateResponse();
+                return Response.WithStatus(executionResult.Status).WithStatusCode(executionResult.Code).WithMessage("").WithType(executionResult).GenerateResponse();
             }
             catch (BadRequestException ex)
             {
                 ExecutionResult executionResult = new ExecutionResult();
-                executionResult.failedResponse = new FailedResponse();
-                executionResult.failedResponse.ErrorMessage = ex.Message;
-                executionResult.failedResponse.ErrorDetail = ex.Message;
+                executionResult.FailedResponse = new FailedResponse();
+                executionResult.FailedResponse.ErrorMessage = ex.Message;
+                executionResult.FailedResponse.ErrorDetail = ex.Message;
                 return Response.WithStatus("failed").WithStatusCode(400).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
             }
@@ -87,30 +87,30 @@ namespace vendtechext.BLL.Services
                     else
                     {
                         executionResult = new ExecutionResult(false);
-                        executionResult.status = "failed";
-                        executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
+                        executionResult.Status = "failed";
+                        executionResult.Code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
                     }
                 }
                 else if (transaction.Finalized)
                 {
                     executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
-                    executionResult.status = "success";
-                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                    executionResult.Status = "success";
+                    executionResult.Code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
                 }
                 else if (!transaction.Finalized)
                 {
                     executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
-                    executionResult.status = "pending";
-                    executionResult.code = API_MESSAGE_CONSTANCE.REQUEST_PENDING;
+                    executionResult.Status = "pending";
+                    executionResult.Code = API_MESSAGE_CONSTANCE.REQUEST_PENDING;
                 }
-                return Response.WithStatus(executionResult.status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
+                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
             }
             catch (BadRequestException ex)
             {
                 ExecutionResult executionResult = new ExecutionResult();
-                executionResult.failedResponse = new FailedResponse();
-                executionResult.failedResponse.ErrorMessage = ex.Message;
-                executionResult.failedResponse.ErrorDetail = ex.Message;
+                executionResult.FailedResponse = new FailedResponse();
+                executionResult.FailedResponse.ErrorMessage = ex.Message;
+                executionResult.FailedResponse.ErrorDetail = ex.Message;
                 return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
@@ -133,7 +133,7 @@ namespace vendtechext.BLL.Services
             {
                 ExecutionResult executionResult = await _executionContext.ExecuteTransaction(vtechTransactionId, integratorId, integratorName);
 
-                if (executionResult.status == "success")
+                if (executionResult.Status == "success")
                 {
                     _logService.Log(LogType.QeueJob, $"Removing job {jobId}", transaction);
                     _recurringJobManager.RemoveIfExists(jobId);

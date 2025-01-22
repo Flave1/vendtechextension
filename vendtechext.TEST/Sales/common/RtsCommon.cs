@@ -10,7 +10,7 @@
         //             Password = "password",
         //             UserName = "username"
         //         },
-        //         request = "ProcessPrePaidVendingV1",
+        //         Request = "ProcessPrePaidVendingV1",
         //         Parameters = new object[]
         //                                             {
         //                                new

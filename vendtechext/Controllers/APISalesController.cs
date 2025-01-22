@@ -28,14 +28,14 @@ namespace vendtechext.Controllers
             var integratorId = Guid.Parse(HttpContext.Items["IntegratorId"] as string ?? "");
             var integratorName = HttpContext.Items["IntegratorName"] as string;
 
-            _log.Log(LogType.Infor, $"received request for {request.TransactionId} from {integratorName}", request);
+            _log.Log(LogType.Infor, $"received Request for {request.TransactionId} from {integratorName}", request);
             APIResponse reponse = await service.PurchaseElectricityForSandbox(request, integratorId, integratorName);
-            _log.Log(LogType.Infor, $"response sent for {request.TransactionId} to {integratorName}", reponse);
+            _log.Log(LogType.Infor, $"Response sent for {request.TransactionId} to {integratorName}", reponse);
 
             return Ok(reponse);
         }
 
-        [HttpPost("status")]
+        [HttpPost("Status")]
         public async Task<IActionResult> SaleStatus([FromBody] SaleStatusRequest request)
         {
             var integratorId = Guid.Parse(HttpContext.Items["IntegratorId"] as string ?? "");

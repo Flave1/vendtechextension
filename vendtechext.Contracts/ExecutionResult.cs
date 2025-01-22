@@ -109,48 +109,48 @@ namespace vendtechext.Contracts
     }
     public class ExecutionResult
     {
-        public string status { get; set; }
-        public int code { get; set; }
-        public SuccessResponse successResponse { get; set; }
-        public FailedResponse failedResponse { get; set; }
-        public string request;
-        public string response;
-        public string receivedFrom;
+        public string Status { get; set; }
+        public int Code { get; set; }
+        public SuccessResponse SuccessResponse { get; set; }
+        public FailedResponse FailedResponse { get; set; }
+        public string Request;
+        public string Response;
+        public string ReceivedFrom;
         public ExecutionResult(RTSResponse x)
         {
-            successResponse = new SuccessResponse(x);
+            SuccessResponse = new SuccessResponse(x);
         }
         public ExecutionResult(Transaction transaction, string receivedFrom)
         {
             if (receivedFrom == "rts_init")
             {
                 RTSResponse x = JsonConvert.DeserializeObject<RTSResponse>(transaction.Response);
-                successResponse = new SuccessResponse(x);
-                successResponse.UpdateResponse(transaction);
+                SuccessResponse = new SuccessResponse(x);
+                SuccessResponse.UpdateResponse(transaction);
             }
             else if (receivedFrom == "rts_status")
             {
                 RTSStatusResponse x = JsonConvert.DeserializeObject<RTSStatusResponse>(transaction.Response);
-                successResponse = new SuccessResponse(x);
-                successResponse.UpdateResponse(transaction);
+                SuccessResponse = new SuccessResponse(x);
+                SuccessResponse.UpdateResponse(transaction);
             }
         }
         public ExecutionResult(RTSErorResponse x)
         {
-            failedResponse = new FailedResponse(x.Stack[0].Detail, x.SystemError);
+            FailedResponse = new FailedResponse(x.Stack[0].Detail, x.SystemError);
         }
 
         public ExecutionResult(RTSStatusResponse x, bool isSuccessful)
         {
             if(isSuccessful)
-                successResponse = new SuccessResponse(x);
+                SuccessResponse = new SuccessResponse(x);
             else
-                failedResponse = new FailedResponse(x);
+                FailedResponse = new FailedResponse(x);
         }
         public ExecutionResult(bool isSuccessful)
         {
             if (!isSuccessful)
-                failedResponse = new FailedResponse {  ErrorMessage = "Unable to process request at this time", ErrorDetail= "Unable to process request at this time: Please contact vendtech or submit a ticket" };
+                FailedResponse = new FailedResponse {  ErrorMessage = "Unable to process Request at this time", ErrorDetail= "Unable to process Request at this time: Please contact vendtech or submit a ticket" };
         }
         public ExecutionResult()
         {
@@ -159,8 +159,8 @@ namespace vendtechext.Contracts
 
         public ExecutionResult InitializeRequestAndResponse(string requestAsString, string responseAsString)
         {
-            request = requestAsString;
-            response = responseAsString;
+            Request = requestAsString;
+            Response = responseAsString;
             return this;
         }
     }

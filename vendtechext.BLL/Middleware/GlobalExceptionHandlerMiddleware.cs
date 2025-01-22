@@ -28,7 +28,7 @@ namespace vendtechext.BLL.Middleware
             }
             catch (BadRequestException ex)
             {
-                _logger.LogError(ex, "Bad request error.");
+                _logger.LogError(ex, "Bad Request error.");
                 await HandleExceptionAsync(httpContext, ex, ex.Message);
             }
             catch (JsonException ex)
@@ -39,7 +39,7 @@ namespace vendtechext.BLL.Middleware
             catch (ArgumentNullException ex)
             {
                 _logger.LogError(ex, "JSON deserialization error: input is null.");
-                await HandleExceptionAsync(httpContext, ex, "request body is null.");
+                await HandleExceptionAsync(httpContext, ex, "Request body is null.");
             }
             catch (NotSupportedException ex)
             {

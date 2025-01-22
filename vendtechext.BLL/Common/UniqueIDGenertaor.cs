@@ -89,16 +89,16 @@ namespace vendtechext.BLL.Common
 
         public static string GenerateAccountNumber(string branchCode)
         {
-            // Validate branch code
+            // Validate branch Code
             if (branchCode.Length != 3 || !branchCode.All(char.IsDigit))
             {
-                throw new ArgumentException("Branch code must be 3 digits.");
+                throw new ArgumentException("Branch Code must be 3 digits.");
             }
 
             // Generate a unique customer identifier (6 random digits)
             string customerId = GenerateCustomerId();
 
-            // Combine branch code and customer ID to create the initial account number
+            // Combine branch Code and customer ID to create the initial account number
             string initialAccountNumber = branchCode + customerId;
 
             // Calculate the check digit

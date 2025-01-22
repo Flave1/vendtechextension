@@ -14,10 +14,10 @@
 
     public class APIResponse
     {
-        public string status { get; set; }
-        public int statusCode { get; set; }
-        public string message { get; set; }
-        public string detailed { get; set; }
-        public object result { get; set; }
+        public string Status { get; set; }
+        public int StatusCode { get; set; }
+        public string Message { get; set; }
+        public string Detailed { get; set; }
+        public object Result { get; set; }
     }
 }

@@ -81,7 +81,7 @@ namespace vendtechext.TEST.VendtechMainTests.mobile_tests
 
             // Assert
             var apiResponse = JsonConvert.DeserializeObject<MobileAppResponse>(responseString);
-            //Assert.Equal(expectedResult, apiResponse?.message);
+            //Assert.Equal(expectedResult, apiResponse?.Message);
 
         }
 

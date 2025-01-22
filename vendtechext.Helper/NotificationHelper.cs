@@ -78,7 +78,7 @@ namespace vendtechext.BLL.Services
             return id;
         }
 
-        // 3. Updates notification read status
+        // 3. Updates notification read Status
         public void UpdateNotificationReadStatus(long id, string userId)
         {
             var notification = _context.Notifications.Find(id);

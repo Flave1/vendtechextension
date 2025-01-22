@@ -115,7 +115,7 @@ namespace vendtechext.Helper
         }
         public int ReadErrorMessage(string message)
         {
-            if (message == "The request timed out with the Ouc server.")
+            if (message == "The Request timed out with the Ouc server.")
             {
                 return API_MESSAGE_CONSTANCE.REQUEST_TIMEOUT;
             }

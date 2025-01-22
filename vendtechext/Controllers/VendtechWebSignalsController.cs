@@ -64,7 +64,7 @@ namespace vendtechext.Controllers
         public async Task<IActionResult> PushMessageToMobileAsync([FromBody] MessageRequest request)
         {
             await _pushService.Push(request);
-            return Ok("message sent successfully!");
+            return Ok("Message sent successfully!");
         }
     }
 }
