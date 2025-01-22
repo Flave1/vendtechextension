@@ -57,7 +57,7 @@ namespace vendtechext.TEST.Sales
             //response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
             APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
-            Assert.Equal(expectedStatusCode, result.StatusCode);
+            Assert.Equal(expectedStatusCode, result.statusCode);
             // Additional assertions to validate the response
         }
 
@@ -160,12 +160,12 @@ namespace vendtechext.TEST.Sales
                 // Build the SQL query
                 var query = @"INSERT INTO TransactionDetails 
                      (PlatFormId, UserId, MeterNumber1, POSId, Amount, 
-                      IsDeleted, Status, CreatedAt, RTSUniqueID, TenderedAmount, 
+                      IsDeleted, status, CreatedAt, RTSUniqueID, TenderedAmount, 
                       TransactionAmount, Finalised, StatusRequestCount, Sold, DebitRecovery, 
                       CostOfUnits, TransactionId, RequestDate, CurrentDealerBalance, TaxCharge, Units)
                       VALUES 
                       (@PlatFormId, @UserId, @MeterNumber1, @POSId, @Amount,
-                       @IsDeleted, @Status, @CreatedAt, @RTSUniqueID, @TenderedAmount, 
+                       @IsDeleted, @status, @CreatedAt, @RTSUniqueID, @TenderedAmount, 
                        @TransactionAmount, @Finalised, @StatusRequestCount, @Sold, @DebitRecovery, 
                        @CostOfUnits, @TransactionId, @RequestDate, @CurrentDealerBalance, @TaxCharge, @Units)";
 
@@ -182,7 +182,7 @@ namespace vendtechext.TEST.Sales
                         command.Parameters.AddWithValue("@POSId", transaction.POSId);
                         command.Parameters.AddWithValue("@Amount", transaction.Amount);
                         command.Parameters.AddWithValue("@IsDeleted", transaction.IsDeleted);
-                        command.Parameters.AddWithValue("@Status", transaction.Status);
+                        command.Parameters.AddWithValue("@status", transaction.Status);
                         command.Parameters.AddWithValue("@CreatedAt", transaction.CreatedAt);
                         command.Parameters.AddWithValue("@RTSUniqueID", transaction.RTSUniqueID);
                         command.Parameters.AddWithValue("@TenderedAmount", transaction.TenderedAmount);

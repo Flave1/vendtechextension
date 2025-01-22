@@ -62,16 +62,16 @@ namespace vendtechext.BLL.Services
 
                 string query = @"
             SELECT 
-                aa.Response,
+                aa.response,
                 aa.UserId,
                 aa.TransactionId, 
-                aa.Status,
+                aa.status,
                 aa.CreatedAt,
                 aa.Amount, 
                 aa.MeterNumber1,
                 aa.POSId
                 FROM [VENDTECH_MAIN].[dbo].[TransactionDetails] AS aa
-                WHERE aa.Status = 1
+                WHERE aa.status = 1
               AND aa.PlatFormId = 1
               AND aa.CreatedAt >= CONVERT(DATETIME2, '2025-01-03 19:44:16.1647156', 121) 
               AND aa.CreatedAt <= CONVERT(DATETIME2, '2025-01-04 10:50:14.967', 121)"; //2025-01-04 01:26:01.080
@@ -89,7 +89,7 @@ namespace vendtechext.BLL.Services
                                 UserId = reader.GetInt64(reader.GetOrdinal("UserId")),
                                 Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
                                 TransactionId = reader.GetString(reader.GetOrdinal("TransactionId")),
-                                Status = reader.GetInt32(reader.GetOrdinal("Status")),
+                                Status = reader.GetInt32(reader.GetOrdinal("status")),
                                 POSId = reader.GetInt64(reader.GetOrdinal("POSId")),
                                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
                             });
@@ -290,7 +290,7 @@ namespace vendtechext.BLL.Services
 
             query.Append("[UserId], [POSId], [CreatedAt], [TransactionId], [PaymentType], [BalanceBefore], ");
             query.Append("[Amount], [PercentageAmount], [NewBalance], [AgencyCommission], [CheckNumberOrSlipId], ");
-            query.Append("[Comments], [Status], [ChequeBankName], [NameOnCheque], [UpdatedAt], [BankAccountId], ");
+            query.Append("[Comments], [status], [ChequeBankName], [NameOnCheque], [UpdatedAt], [BankAccountId], ");
             query.Append("[isAudit], [ValueDate], [NextReminderDate], [IsDeleted], [ValueDateStamp], [InitiatingTransactionId]) ");
             query.Append("VALUES (");
 

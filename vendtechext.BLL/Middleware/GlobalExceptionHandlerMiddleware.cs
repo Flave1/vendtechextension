@@ -39,7 +39,7 @@ namespace vendtechext.BLL.Middleware
             catch (ArgumentNullException ex)
             {
                 _logger.LogError(ex, "JSON deserialization error: input is null.");
-                await HandleExceptionAsync(httpContext, ex, "Request body is null.");
+                await HandleExceptionAsync(httpContext, ex, "request body is null.");
             }
             catch (NotSupportedException ex)
             {
