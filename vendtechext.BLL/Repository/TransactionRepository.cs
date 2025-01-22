@@ -200,9 +200,11 @@ namespace vendtechext.BLL.Repository
 
         public async Task<Transaction> GetSaleTransactionByRandom(string meterNumber)
         {
+            string[] transactionIds = ["268085", "268027", "268027", "268029", "268025", "268023", "265514", "265513", "265512", "265511", "264841", "264840"];
+            string randomTransactionId = transactionIds[new Random().Next(transactionIds.Length)];
+
             var trans = await _context.Transactions
-                .Where(d => d.MeterNumber == meterNumber)
-                .OrderBy(x => Guid.NewGuid())
+                .Where(d => d.VendtechTransactionID == randomTransactionId)
                 .FirstOrDefaultAsync();
 
             return trans;

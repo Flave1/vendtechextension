@@ -44,6 +44,7 @@ namespace vendtechext.BLL.Services
                     executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
 
                     await _repository.RefundToWallet(wallet, transactionLog);
+                    return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage("").WithType(executionResult).GenerateResponse();
                 }
                 else if (existingTransaction.Finalized)
                 {
@@ -52,15 +53,18 @@ namespace vendtechext.BLL.Services
                     executionResult.successResponse.UpdateResponse(transactionLog);
                     executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
                     await _repository.UpdateSaleSuccessTransactionLog(executionResult, transactionLog);
+                    return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage("Vend successful").WithType(executionResult).GenerateResponse();
                 }
                 else if (!existingTransaction.Finalized)
                 {
                     executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
-                    executionResult.status = "pending";
-                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                    executionResult.status = "failed";
+                    executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
+                    await _repository.RefundToWallet(wallet, transactionLog);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
+                    return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
                 }
-                return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage("").WithType(executionResult).GenerateResponse();
+                return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage("Vend Failed").WithType(executionResult).GenerateResponse();
             }
             catch (BadRequestException ex)
             {
