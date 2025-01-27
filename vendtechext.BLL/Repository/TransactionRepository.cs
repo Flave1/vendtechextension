@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
-using vendtechext.BLL.Services;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
@@ -14,14 +12,12 @@ namespace vendtechext.BLL.Repository
     public class TransactionRepository
     {
         private readonly DataContext _context;
-        private readonly VendtechTransactionsService _vendtech;
         private readonly LogService _logService;
         private readonly TransactionIdGenerator _idgenerator;
 
-        public TransactionRepository(DataContext context, VendtechTransactionsService vendtech, LogService logService, TransactionIdGenerator idgenerator)
+        public TransactionRepository(DataContext context, LogService logService, TransactionIdGenerator idgenerator)
         {
             _context = context;
-            _vendtech = vendtech;
             _logService = logService;
             _idgenerator = idgenerator;
         }
@@ -126,6 +122,7 @@ namespace vendtechext.BLL.Repository
         public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
             new TransactionsBuilder(trans)
+                .WithSellerReturnedBalance(executionResult.successResponse.Voucher.SellerReturnedBalance.Value)
                 .WithVendStatusDescription(executionResult.successResponse.Voucher.VendStatusDescription)
                 .WithSellerTransactionId(executionResult.successResponse.Voucher.RTSUniqueID)
                 .WithTransactionStatus(TransactionStatus.Success)
@@ -217,13 +214,14 @@ namespace vendtechext.BLL.Repository
             string newTrxid = transactionId;
 
             var trans = new TransactionsBuilder()
-                .WithTransactionId(newTrxid)
                 .WithTransactionStatus(TransactionStatus.Pending)
                 .WithTransactionUniqueId(request.TransactionId)
                 .WithPaymentStatus(PaymentStatus.Pending)
                 .WithMeterNumber(request.MeterNumber)
                 .WithIntegratorId(integratorId)
+                .WithSellerReturnedBalance(0)
                 .WithCreatedAt(DateTime.Now)
+                .WithTransactionId(newTrxid)
                 .WithAmount(request.Amount)
                 .Build();
 

@@ -79,14 +79,14 @@ namespace vendtechext.BLL.Middleware
             }
             else
             {
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.StatusCode = 200;
             }
 
             APIResponse response = Response
                 .WithStatus("failed")
                 .WithStatusCode(context.Response.StatusCode)
                 .WithMessage(message)
-                .WithDetail(exception.Message)
+                .WithDetail(exception.Message ?? "")
                 .GenerateResponse();
 
             var jsonResponse = JsonConvert.SerializeObject(response);
