@@ -124,13 +124,6 @@ namespace vendtechext.Contracts
         }
         public ExecutionResult(Transaction transaction, string receivedFrom)
         {
-            if (!transaction.Finalized)
-            {
-                RTSErorResponse x = JsonConvert.DeserializeObject<RTSErorResponse>(transaction.Response);
-                failedResponse = new FailedResponse(x.Stack[0].Detail, x.SystemError);
-                return;
-            }
-
             if (receivedFrom == "rts_init")
             {
                 RTSResponse x = JsonConvert.DeserializeObject<RTSResponse>(transaction.Response);
