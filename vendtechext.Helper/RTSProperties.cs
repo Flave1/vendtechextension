@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
 using vendtechext.Contracts;
-using vendtechext.Contracts.VtchMainModels;
-using vendtechext.DAL.Common;
 using vendtechext.Helper.Configurations;
 
 namespace vendtechext.Helper

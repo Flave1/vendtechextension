@@ -34,6 +34,7 @@ namespace vendtechext.Contracts
             Voucher.VoucherSerialNumber = response_data?.SerialNumber;
             Voucher.Denomination = response_data?.Denomination;
             Voucher.RTSUniqueID = response_data?.PowerHubVoucher?.RtsUniqueId;
+            Voucher.SellerReturnedBalance = response_data?.DealerBalance;
         }
         public SuccessResponse(RTSStatusResponse x)
         {
@@ -86,6 +87,7 @@ namespace vendtechext.Contracts
         public string RTSUniqueID { get; set; }
         public string Provider { get; set; } = "EDSA";
         public long? Denomination { get; set; }
+        public decimal? SellerReturnedBalance { get; set; }
 
     }
     public class FailedResponse

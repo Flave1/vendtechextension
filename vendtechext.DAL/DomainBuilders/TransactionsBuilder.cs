@@ -68,6 +68,12 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public TransactionsBuilder WithSellerReturnedBalance(decimal sellerReturnedBalance)
+        {
+            _transaction.SellerReturnedBalance = sellerReturnedBalance;
+            return this;
+        }
+
         public TransactionsBuilder WithPaymentStatus(PaymentStatus paymentStatus)
         {
             _transaction.PaymentStatus = (int)paymentStatus;

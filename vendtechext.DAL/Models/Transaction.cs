@@ -10,6 +10,7 @@ namespace vendtechext.DAL.Models
         public string TransactionUniqueId { get; set; }
         public string VendtechTransactionID { get; set; }
         public string SellerTransactionID { get; set; }
+        public decimal SellerReturnedBalance { get; set; }
         public bool Finalized { get; set; }
         public decimal BalanceBefore { get; set; }
         public decimal Amount { get; set; }
