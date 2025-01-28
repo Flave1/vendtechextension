@@ -122,9 +122,9 @@ namespace vendtechext.BLL.Repository
         public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
             new TransactionsBuilder(trans)
-                .WithSellerReturnedBalance(executionResult.successResponse.Voucher.SellerReturnedBalance.Value)
-                .WithVendStatusDescription(executionResult.successResponse.Voucher.VendStatusDescription)
-                .WithSellerTransactionId(executionResult.successResponse.Voucher.RTSUniqueID)
+                .WithSellerReturnedBalance(executionResult.successResponse.Voucher.SellerReturnedBalance == null? 0 : executionResult.successResponse.Voucher.SellerReturnedBalance.Value)
+                .WithVendStatusDescription(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
+                .WithSellerTransactionId(executionResult.successResponse.Voucher?.RTSUniqueID ?? "")
                 .WithTransactionStatus(TransactionStatus.Success)
                 .WithReceivedFrom(executionResult.receivedFrom)
                 .WithResponse(executionResult.response)
@@ -172,6 +172,18 @@ namespace vendtechext.BLL.Repository
                 transaction.BalanceAfter = wallet.Balance;
                 transaction.PaymentStatus = (int)PaymentStatus.Deducted;
                 await _context.SaveChangesAsync();
+            }
+        }
+        public async Task DeductFromWalletIfRefunded(Wallet wallet, Transaction transaction)
+        {
+            if (transaction.PaymentStatus == (int)PaymentStatus.Refunded)
+            {
+                transaction.BalanceBefore = wallet.Balance;
+                wallet.Balance = (wallet.Balance - transaction.Amount);
+                transaction.BalanceAfter = wallet.Balance;
+                transaction.PaymentStatus = (int)PaymentStatus.Deducted;
+                await _context.SaveChangesAsync();
+                _logService.Log(LogType.Refund, $"fund_claimed {transaction.Amount} to {wallet.WALLET_ID} " + $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
             }
         }
         public async Task RefundToWallet(Wallet wallet, Transaction transaction)

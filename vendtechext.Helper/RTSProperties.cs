@@ -91,6 +91,11 @@ namespace vendtechext.Helper
             {
                 isSuccessful = true;
                 successResponse = JsonConvert.DeserializeObject<RTSResponse>(resultAsString);
+                if (string.IsNullOrEmpty(successResponse.Content.Data.Data[0].PinNumber))
+                {
+                    isSuccessful = false;
+                    isFinalized = statusResponse.Content.Finalised;
+                }
             }
             catch (JsonSerializationException)
             {
@@ -107,6 +112,8 @@ namespace vendtechext.Helper
             {
                 isSuccessful = false;
                 isFinalized = statusResponse.Content.Finalised;
+                if (statusResponse.Content.StatusDescription == "The specified Transaction does not exist.")
+                    isFinalized = true;
             }
             else
                 isSuccessful = true;

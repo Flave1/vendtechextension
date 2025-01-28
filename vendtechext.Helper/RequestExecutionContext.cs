@@ -128,8 +128,17 @@ namespace vendtechext.Helper
             }
             else
             {
-                salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
-                salesResponse.status = "failed";
+                if (!_integrator.isFinalized)
+                {
+
+                    salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
+                    salesResponse.status = "pending";
+                }
+                else
+                {
+                    salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
+                    salesResponse.status = "failed";
+                }
             }
             _integrator.Dispose();
             salesResponse.receivedFrom = _integrator.ReceivedFrom;

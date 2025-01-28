@@ -115,9 +115,9 @@ namespace vendtechext.Contracts
         public int code { get; set; }
         public SuccessResponse successResponse { get; set; }
         public FailedResponse failedResponse { get; set; }
-        public string request;
-        public string response;
-        public string receivedFrom;
+        public string request = "";
+        public string response = "";
+        public string receivedFrom = "";
         public ExecutionResult(RTSResponse x)
         {
             successResponse = new SuccessResponse(x);

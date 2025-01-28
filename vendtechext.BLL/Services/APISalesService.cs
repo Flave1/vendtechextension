@@ -226,7 +226,14 @@ namespace vendtechext.BLL.Services
                 {
                     _logService.Log(LogType.QeueJob, $"Removing job {jobId}", transaction);
                     _recurringJobManager.RemoveIfExists(jobId);
+                    Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
+                    await _repository.DeductFromWalletIfRefunded(wallet, transaction);
+                    transaction.ClaimedStatus = (int)ClaimedStatus.Unclaimed;
                     await _repository.UpdateSaleSuccessTransactionLog(executionResult, transaction);
+                }
+                else if (executionResult.status == "pending")
+                {
+                    _logService.Log(LogType.QeueJob, $"Re-Running job {jobId}", transaction);
                 }
                 else
                 {
@@ -234,6 +241,7 @@ namespace vendtechext.BLL.Services
                     Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
                     await _repository.RefundToWallet(wallet, transaction);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transaction);
+                    _recurringJobManager.RemoveIfExists(jobId);
                 }
             }
 
