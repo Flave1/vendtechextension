@@ -109,7 +109,7 @@ namespace vendtechext.Helper
                 if (_integrator.isFinalized)
                     salesResponse.status = "pending";
 
-                salesResponse.code = _integrator.ReadErrorMessage(salesResponse.failedResponse.ErrorMessage);
+                salesResponse.code = _integrator.ReadErrorAndReturnStatusCode(salesResponse.failedResponse.ErrorMessage);
             }
             _integrator.Dispose();
             salesResponse.receivedFrom = _integrator.ReceivedFrom;
@@ -128,8 +128,17 @@ namespace vendtechext.Helper
             }
             else
             {
-                salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
-                salesResponse.status = "failed";
+                if (!_integrator.isFinalized)
+                {
+
+                    salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
+                    salesResponse.status = "pending";
+                }
+                else
+                {
+                    salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
+                    salesResponse.status = "failed";
+                }
             }
             _integrator.Dispose();
             salesResponse.receivedFrom = _integrator.ReceivedFrom;

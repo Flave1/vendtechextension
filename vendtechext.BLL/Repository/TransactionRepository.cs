@@ -122,9 +122,9 @@ namespace vendtechext.BLL.Repository
         public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
             new TransactionsBuilder(trans)
-                .WithSellerReturnedBalance(executionResult.successResponse.Voucher.SellerReturnedBalance.Value)
-                .WithVendStatusDescription(executionResult.successResponse.Voucher.VendStatusDescription)
-                .WithSellerTransactionId(executionResult.successResponse.Voucher.RTSUniqueID)
+                .WithSellerReturnedBalance(executionResult.successResponse.Voucher.SellerReturnedBalance == null? 0 : executionResult.successResponse.Voucher.SellerReturnedBalance.Value)
+                .WithVendStatusDescription(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
+                .WithSellerTransactionId(executionResult.successResponse.Voucher?.RTSUniqueID ?? "")
                 .WithTransactionStatus(TransactionStatus.Success)
                 .WithReceivedFrom(executionResult.receivedFrom)
                 .WithResponse(executionResult.response)
@@ -135,6 +135,20 @@ namespace vendtechext.BLL.Repository
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateSaleTransactionLogOnStatusQuery(ExecutionResult executionResult, Transaction trans, TransactionStatus status)
+        {
+            new TransactionsBuilder(trans)
+                .WithQueryStatusMessage(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
+                .WithTransactionStatus(status)
+                .WithReceivedFrom(executionResult.receivedFrom)
+                .WithResponse(executionResult.response)
+                .WithRequest(executionResult.request)
+                .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
+     
         public async Task UpdateSaleFailedTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
             new TransactionsBuilder(trans)
@@ -161,6 +175,9 @@ namespace vendtechext.BLL.Repository
 
             if(request.Amount > wallet.Balance)
                 throw new BadRequestException("Insufficient Balance");
+
+            if (settings.DisableElectricitySales)
+                throw new SystemDisabledException("Electricity vending is currently disabled");
         }
 
         public async Task DeductFromWallet(Wallet wallet, Transaction transaction)
@@ -172,6 +189,18 @@ namespace vendtechext.BLL.Repository
                 transaction.BalanceAfter = wallet.Balance;
                 transaction.PaymentStatus = (int)PaymentStatus.Deducted;
                 await _context.SaveChangesAsync();
+            }
+        }
+        public async Task DeductFromWalletIfRefunded(Wallet wallet, Transaction transaction)
+        {
+            if (transaction.PaymentStatus == (int)PaymentStatus.Refunded)
+            {
+                transaction.BalanceBefore = wallet.Balance;
+                wallet.Balance = (wallet.Balance - transaction.Amount);
+                transaction.BalanceAfter = wallet.Balance;
+                transaction.PaymentStatus = (int)PaymentStatus.Deducted;
+                await _context.SaveChangesAsync();
+                _logService.Log(LogType.Refund, $"fund_claimed {transaction.Amount} to {wallet.WALLET_ID} " + $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
             }
         }
         public async Task RefundToWallet(Wallet wallet, Transaction transaction)

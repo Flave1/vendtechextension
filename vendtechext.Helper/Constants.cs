@@ -8,5 +8,8 @@
         public const int BAD_REQUEST = 4004;
         public const int OKAY_REQEUST = 2002;
         public const int REQUEST_PENDING = 2022;
+        public const int ACCESS_DENIED = 4034;
+        public const int AUTHENTICATION_ERROR = 4014;
+        public const int NOTFOUND_ERROR = 4044;
     }
 }

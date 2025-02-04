@@ -125,6 +125,12 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public TransactionsBuilder WithQueryStatusMessage(string message)
+        {
+            _transaction.QueryStatusMessage = message;
+            return this;
+        }
+
 
         public TransactionsBuilder WithRequest(string request)
         {
