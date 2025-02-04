@@ -135,6 +135,20 @@ namespace vendtechext.BLL.Repository
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateSaleTransactionLogOnStatusQuery(ExecutionResult executionResult, Transaction trans, TransactionStatus status)
+        {
+            new TransactionsBuilder(trans)
+                .WithQueryStatusMessage(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
+                .WithTransactionStatus(status)
+                .WithReceivedFrom(executionResult.receivedFrom)
+                .WithResponse(executionResult.response)
+                .WithRequest(executionResult.request)
+                .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
+     
         public async Task UpdateSaleFailedTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
             new TransactionsBuilder(trans)
@@ -161,6 +175,9 @@ namespace vendtechext.BLL.Repository
 
             if(request.Amount > wallet.Balance)
                 throw new BadRequestException("Insufficient Balance");
+
+            if (settings.DisableElectricitySales)
+                throw new SystemDisabledException("Electricity vending is currently disabled");
         }
 
         public async Task DeductFromWallet(Wallet wallet, Transaction transaction)

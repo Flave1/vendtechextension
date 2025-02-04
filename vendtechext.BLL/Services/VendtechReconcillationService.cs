@@ -26,7 +26,7 @@ namespace vendtechext.BLL.Services
 
         public async Task ProcessRefundsAsync(string transactionId)
         {
-            string[] transactionIds = []; //"283508"
+            string[] transactionIds = ["283508", "283458"]; //"283458"
             try
             {
                 // Fetch all unsuccessful transactions

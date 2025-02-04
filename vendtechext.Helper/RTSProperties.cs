@@ -118,12 +118,8 @@ namespace vendtechext.Helper
             else
                 isSuccessful = true;
         }
-        public int ReadErrorMessage(string message)
+        public int ReadErrorAndReturnStatusCode(string message)
         {
-            if (message == "The request timed out with the Ouc server.")
-            {
-                return API_MESSAGE_CONSTANCE.REQUEST_TIMEOUT;
-            }
             if (message == "Error: Vending is disabled")
             {
                 return API_MESSAGE_CONSTANCE.VENDING_DISABLE;
@@ -131,17 +127,7 @@ namespace vendtechext.Helper
 
             if (message == "-9137 : InCMS-BL-CB001607. Purchase not allowed, not enought vendor balance")
             {
-                return API_MESSAGE_CONSTANCE.AMOUNT_TOO_LOW;
-            }
-
-            if (message == "InCMS-BL-CO000846. The amount is too low for recharge")
-            {
-                return API_MESSAGE_CONSTANCE.AMOUNT_TOO_LOW;
-            }
-
-            if (message == "-47 : InCMS-BL-CB001273. Error, purchase units less than minimum.")
-            {
-                return API_MESSAGE_CONSTANCE.AMOUNT_TOO_LOW;
+                return API_MESSAGE_CONSTANCE.VENDING_DISABLE;
             }
             return API_MESSAGE_CONSTANCE.BAD_REQUEST;
         }

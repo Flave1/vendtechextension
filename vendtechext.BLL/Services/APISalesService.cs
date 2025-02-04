@@ -45,28 +45,34 @@ namespace vendtechext.BLL.Services
                 {
                     executionResult.successResponse.UpdateResponse(transactionLog);
                     await _repository.UpdateSaleSuccessTransactionLog(executionResult, transactionLog);
-                    return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage(executionResult.successResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
+                    return Response.WithStatus(executionResult.status).WithMessage("Vend was successful").WithType(executionResult).GenerateResponse();
                 }
                 else if (executionResult.status == "pending")
                 {
                     AddSaleToQueue(transactionLog.TransactionUniqueId, transactionLog.VendtechTransactionID, integratorid, integratorName);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
-                    return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage(executionResult.failedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+                    return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
                 }
                 else
                 {
+                    if(executionResult.code == API_MESSAGE_CONSTANCE.VENDING_DISABLE) 
+                    {
+                        await AppConfiguration.DisableSales();
+                    }
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
                     await _repository.RefundToWallet(wallet, transactionLog);
-                    return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage(executionResult.failedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+                    return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
                 }
             }
             catch (BadRequestException ex)
             {
-                ExecutionResult executionResult = new ExecutionResult();
-                executionResult.failedResponse = new FailedResponse();
-                executionResult.failedResponse.ErrorMessage = ex.Message;
-                executionResult.failedResponse.ErrorDetail = ex.Message;
-                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+            }
+            catch (SystemDisabledException ex)
+            {
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.VENDING_DISABLE);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
         public async Task<APIResponse> QuerySalesStatus(SaleStatusRequest request, Guid integratorid, string integratorName)
@@ -78,18 +84,9 @@ namespace vendtechext.BLL.Services
 
                 if (transaction == null)
                 {
-                    if (request.TransactionId == "131fece5-61be-4bc7-2618-08dceb87f9b5")
-                    {
-                        executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
-                    }
-                    else
-                    {
-                        executionResult = new ExecutionResult(false);
-                        executionResult.status = "failed";
-                        executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
-                    }
-
-                    return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage(executionResult.successResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
+                    executionResult = GenerateExecutionResult(new BadRequestException("Transaction with specified ID was not found"), API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                    executionResult.status = "failed";
+                    return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
                 }
                 else if (transaction.Finalized)
                 {
@@ -97,7 +94,7 @@ namespace vendtechext.BLL.Services
                     executionResult.status = "success";
                     executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
 
-                    return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage(executionResult.successResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
+                    return Response.WithStatus(executionResult.status).WithMessage("Transaction Successfully fetched").WithType(executionResult).GenerateResponse();
                 }
                 else if (!transaction.Finalized)
                 {
@@ -105,19 +102,29 @@ namespace vendtechext.BLL.Services
                     if (executionResult.status == "success")
                     {
                         executionResult.successResponse.UpdateResponse(transaction);
+                        executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
                         await _repository.UpdateSaleSuccessTransactionLog(executionResult, transaction);
-                        return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage(executionResult.successResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
+                        return Response.WithStatus(executionResult.status).WithMessage("Transaction Successfully fetched").WithType(executionResult).GenerateResponse();
+                    }
+                    else if(executionResult.status == "failed")
+                    {
+                        executionResult.successResponse.UpdateResponse(transaction);
+                        executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
+                        await _repository.UpdateSaleTransactionLogOnStatusQuery(executionResult, transaction, TransactionStatus.Failed);
+                        return Response.WithStatus(executionResult.status).WithMessage("Transaction unsuccessful").WithType(executionResult).GenerateResponse();
                     }
                 }
-                return Response.WithStatus(executionResult.status).WithStatusCode(executionResult.code).WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
+                return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
             }
             catch (BadRequestException ex)
             {
-                ExecutionResult executionResult = new ExecutionResult();
-                executionResult.failedResponse = new FailedResponse();
-                executionResult.failedResponse.ErrorMessage = ex.Message;
-                executionResult.failedResponse.ErrorDetail = ex.Message;
-                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+            }
+            catch (SystemDisabledException ex)
+            {
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.VENDING_DISABLE);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
         public async Task<APIResponse> PurchaseElectricityForSandbox(ElectricitySaleRequest request, Guid integratorid, string integratorName)
@@ -149,7 +156,7 @@ namespace vendtechext.BLL.Services
                     AddSaleToQueue(transactionLog.TransactionUniqueId, transactionLog.VendtechTransactionID, integratorid, integratorName);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
                 }
-                return Response.WithStatus(executionResult.status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
+                return Response.WithStatus(executionResult.status).WithMessage("").WithType(executionResult).GenerateResponse();
             }
             catch (BadRequestException ex)
             {
@@ -192,7 +199,7 @@ namespace vendtechext.BLL.Services
                     executionResult.status = "pending";
                     executionResult.code = API_MESSAGE_CONSTANCE.REQUEST_PENDING;
                 }
-                return Response.WithStatus(executionResult.status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
+                return Response.WithStatus(executionResult.status).WithMessage("").WithType(executionResult).GenerateResponse();
             }
             catch (BadRequestException ex)
             {
@@ -200,7 +207,7 @@ namespace vendtechext.BLL.Services
                 executionResult.failedResponse = new FailedResponse();
                 executionResult.failedResponse.ErrorMessage = ex.Message;
                 executionResult.failedResponse.ErrorDetail = ex.Message;
-                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
         private void AddSaleToQueue(string transactionId, string vtechTransactionId, Guid integratorId, string integratorName)

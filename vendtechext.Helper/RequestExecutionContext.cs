@@ -109,7 +109,7 @@ namespace vendtechext.Helper
                 if (_integrator.isFinalized)
                     salesResponse.status = "pending";
 
-                salesResponse.code = _integrator.ReadErrorMessage(salesResponse.failedResponse.ErrorMessage);
+                salesResponse.code = _integrator.ReadErrorAndReturnStatusCode(salesResponse.failedResponse.ErrorMessage);
             }
             _integrator.Dispose();
             salesResponse.receivedFrom = _integrator.ReceivedFrom;

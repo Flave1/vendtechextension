@@ -66,5 +66,11 @@ namespace vendtechext.Controllers
             await _pushService.Push(request);
             return Ok("message sent successfully!");
         }
+        [HttpPost("push_to_multiple_mobile", Name = "push_to_multiple_mobile")]
+        public async Task<IActionResult> PushMessageToMultipleMobileAsync([FromBody] MultipleMessageRequest request)
+        {
+            await _pushService.Push(request.MessageRequests);
+            return Ok("message sent successfully!");
+        }
     }
 }

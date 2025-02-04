@@ -21,6 +21,7 @@ namespace vendtechext.DAL.Models
         public bool IsDeleted { get; set; }
         public int PlatFormId { get; set; }
         public string VendStatusDescription { get; set; }
+        public string QueryStatusMessage { get; set; }
         public string Request { get; set; }
         public string Response { get; set; }
         public string ReceivedFrom { get; set; }

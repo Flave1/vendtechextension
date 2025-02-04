@@ -22,6 +22,18 @@ namespace vendtechext.Helper
             new AppConfiguration();
         }
 
+        public static async Task UpdateSettings(SettingsPayload payload)
+        {
+            using (DataContext dataContext = new DataContext())
+            {
+                AppSetting setting = await dataContext.AppSettings.FirstOrDefaultAsync();
+                setting.Value = JsonConvert.SerializeObject(payload);
+                await dataContext.SaveChangesAsync();
+                _settingsPayload = null;
+            }
+            new AppConfiguration();
+        }
+
         public AppConfiguration()
         {
             if (_settingsPayload == null)
@@ -40,6 +52,13 @@ namespace vendtechext.Helper
             if( _settingsPayload == null)
                 new AppConfiguration();
             return _settingsPayload;
+        }
+
+        public static async Task DisableSales()
+        {
+            var settings = GetSettings();
+            settings.DisableElectricitySales = true;
+            await UpdateSettings(settings);
         }
 
         public static decimal ProcessCommsion(decimal amount, int commissionId)

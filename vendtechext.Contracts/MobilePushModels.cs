@@ -8,4 +8,8 @@
         public string NotificationType { get; set; }
         public string Id { get; set; }
     }
+    public class MultipleMessageRequest
+    {
+        public List<MessageRequest> MessageRequests { get; set; }
+    }
 }
