@@ -129,6 +129,10 @@ namespace vendtechext.Helper
             {
                 return API_MESSAGE_CONSTANCE.VENDING_DISABLE;
             }
+            if(message == "Insufficient Funds")
+            {
+                return API_MESSAGE_CONSTANCE.VENDING_DISABLE;
+            }
             return API_MESSAGE_CONSTANCE.BAD_REQUEST;
         }
 

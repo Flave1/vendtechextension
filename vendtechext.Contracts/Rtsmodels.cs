@@ -50,7 +50,7 @@
 
         public string DateAndTime { get; set; }
 
-        public long DealerBalance { get; set; }
+        public decimal DealerBalance { get; set; }
 
         public long Denomination { get; set; }
 
