@@ -33,7 +33,6 @@ namespace vendtechext.BLL.Services
                 await _repository.SalesInternalValidation(wallet, request, integratorid);
 
                 ExecutionResult executionResult = null;
-                await _repository.SalesInternalValidation(wallet, request, integratorid);
                 Transaction existingTransaction = await _repository.GetSaleTransactionByRandom(request.MeterNumber);
                 Transaction transactionLog = await _repository.CreateSaleTransactionLog(request, integratorid);
 
@@ -64,13 +63,15 @@ namespace vendtechext.BLL.Services
             }
             catch (BadRequestException ex)
             {
-                ExecutionResult executionResult = new ExecutionResult();
-                executionResult.failedResponse = new FailedResponse();
-                executionResult.failedResponse.ErrorMessage = ex.Message;
-                executionResult.failedResponse.ErrorDetail = ex.Message;
-                return Response.WithStatus("failed").WithStatusCode(400).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
+            catch (SystemDisabledException ex)
+            {
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.VENDING_DISABLE);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
+        }
         public async Task<APIResponse> QuerySalesStatusForSandbox(SaleStatusRequest request, Guid integratorid, string integratorName)
         {
             try
