@@ -24,7 +24,7 @@ namespace vendtechext.TEST.Sales
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
             _mockSalesService = new Mock<IAPISalesService>();
-            _connectionString = "Server=92.205.181.48;Database=VENDTECH_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
+            _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
         }
 
         [Theory]
