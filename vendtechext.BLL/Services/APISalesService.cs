@@ -166,7 +166,7 @@ namespace vendtechext.BLL.Services
                 executionResult.failedResponse.ErrorDetail = ex.Message;
                 return Response.WithStatus("failed").WithStatusCode(400).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
-            }
+        }
         public async Task<APIResponse> QuerySalesStatusForSandbox(SaleStatusRequest request, Guid integratorid, string integratorName)
         {
             try
