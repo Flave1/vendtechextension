@@ -191,7 +191,23 @@ namespace vendtechext.Helper
                 string emailBody = helper.GetEmailTemplate("simple");
                 emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", msg);
-                //
+                helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        public void SendEmailToIntegratorOnAccountCreation(Integrator integrator, AppUser user)
+        {
+            try
+            {
+                string subject = $"VENDTECH API CREDENTIALS";
+                string emailBody = helper.GetEmailTemplate("new_integrator");
+                emailBody = emailBody.Replace("[apikey]", integrator.ApiKey);
+                emailBody = emailBody.Replace("[username]", user.Email);
+                emailBody = emailBody.Replace("[password]", CREDENTIALS.INTEGRATOR_PASSWORD);
                 helper.SendEmail(user.Email, subject, emailBody);
             }
             catch (Exception)

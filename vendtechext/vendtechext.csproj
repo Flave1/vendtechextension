@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\EmailTemplates\new_integrator.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="EPPlus" Version="7.4.1" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
     <PackageReference Include="iTextSharp.LGPLv2.Core" Version="3.4.22" />
@@ -39,6 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\EmailTemplates\new_integrator.html" />
     <None Include="wwwroot\EmailTemplates\simple.html" />
   </ItemGroup>
 

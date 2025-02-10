@@ -12,4 +12,9 @@
         public const int AUTHENTICATION_ERROR = 4014;
         public const int NOTFOUND_ERROR = 4044;
     }
+
+    public static class CREDENTIALS
+    {
+        public const string INTEGRATOR_PASSWORD = "Password@123";
+    }
 }
