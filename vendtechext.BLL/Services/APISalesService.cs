@@ -100,10 +100,7 @@ namespace vendtechext.BLL.Services
             }
             catch (BadRequestException ex)
             {
-                ExecutionResult executionResult = new ExecutionResult();
-                executionResult.failedResponse = new FailedResponse();
-                executionResult.failedResponse.ErrorMessage = ex.Message;
-                executionResult.failedResponse.ErrorDetail = ex.Message;
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.BAD_REQUEST);
                 return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
