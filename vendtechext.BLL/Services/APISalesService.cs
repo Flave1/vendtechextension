@@ -25,6 +25,8 @@ namespace vendtechext.BLL.Services
             _logService = logService;
         }
 
+        #region PRODUCTION
+
         public async Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, Guid integratorid, string integratorName)
         {
             try
@@ -55,7 +57,7 @@ namespace vendtechext.BLL.Services
                 }
                 else
                 {
-                    if(executionResult.code == API_MESSAGE_CONSTANCE.VENDING_DISABLE) 
+                    if (executionResult.code == API_MESSAGE_CONSTANCE.VENDING_DISABLE)
                     {
                         await AppConfiguration.DisableSales();
                     }
@@ -108,7 +110,7 @@ namespace vendtechext.BLL.Services
                         await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
                         return Response.WithStatus(executionResult.status).WithMessage("Transaction Successfully fetched").WithType(executionResult).GenerateResponse();
                     }
-                    else if(executionResult.status == "failed")
+                    else if (executionResult.status == "failed")
                     {
                         await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
                         executionResult.successResponse.UpdateResponse(transaction);
@@ -130,6 +132,11 @@ namespace vendtechext.BLL.Services
                 return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
+
+        #endregion
+
+        #region SANDBOX
+
         public async Task<APIResponse> PurchaseElectricityForSandbox(ElectricitySaleRequest request, Guid integratorid, string integratorName)
         {
             try
@@ -213,6 +220,8 @@ namespace vendtechext.BLL.Services
                 return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
+
+        #endregion
         private void AddSaleToQueue(string transactionId, string vtechTransactionId, Guid integratorId, string integratorName)
         {
             string jobId = $"{vtechTransactionId}_{integratorName}_{transactionId}";
