@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.Contracts;
@@ -180,44 +181,255 @@ namespace vendtechext.BLL.Repository
                 throw new SystemDisabledException("Electricity vending is currently disabled");
         }
 
-        public async Task DeductFromWallet(Wallet wallet, Transaction transaction)
+        //public async Task DeductFromWallet(Wallet wallet, Transaction transaction)
+        //{
+        //    if(transaction.PaymentStatus == (int)PaymentStatus.Pending)
+        //    {
+        //        transaction.BalanceBefore = wallet.Balance;
+        //        wallet.Balance = (wallet.Balance - transaction.Amount);
+        //        transaction.BalanceAfter = wallet.Balance;
+        //        transaction.PaymentStatus = (int)PaymentStatus.Deducted;
+        //        await _context.SaveChangesAsync();
+        //    }
+        //}
+
+        public async Task DeductFromWallet(Guid transactionId, Guid walletId)
         {
-            if(transaction.PaymentStatus == (int)PaymentStatus.Pending)
+            using (var connection = _context.Database.GetDbConnection())
             {
-                transaction.BalanceBefore = wallet.Balance;
-                wallet.Balance = (wallet.Balance - transaction.Amount);
-                transaction.BalanceAfter = wallet.Balance;
-                transaction.PaymentStatus = (int)PaymentStatus.Deducted;
-                await _context.SaveChangesAsync();
+                await connection.OpenAsync();
+
+                using (var command = connection.CreateCommand())
+                {
+                    // Step 1: Retrieve transaction and wallet details
+                    command.CommandText = @"
+                    SELECT Amount, PaymentStatus FROM Transactions WHERE Id = @transactionId;
+                    SELECT Balance FROM Wallets WHERE Id = @walletId;";
+
+                    var transactionIdParam = command.CreateParameter();
+                    transactionIdParam.ParameterName = "@transactionId";
+                    transactionIdParam.Value = transactionId;
+                    command.Parameters.Add(transactionIdParam);
+
+                    var walletIdParam = command.CreateParameter();
+                    walletIdParam.ParameterName = "@walletId";
+                    walletIdParam.Value = walletId;
+                    command.Parameters.Add(walletIdParam);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        if (!reader.Read()) return; // Transaction not found
+                        decimal amount = reader.GetDecimal(0);
+                        int paymentStatus = reader.GetInt32(1);
+
+                        if (!reader.NextResult() || !reader.Read()) return; // Wallet not found
+                        decimal walletBalance = reader.GetDecimal(0);
+
+                        if (paymentStatus != (int)PaymentStatus.Pending) return;
+
+                        // Step 2: Deduct balance and update transaction
+                        reader.Close(); // Close the reader before executing another command
+
+                        command.CommandText = @"
+                            UPDATE Wallets SET Balance = @newBalance WHERE Id = @walletId;
+                            UPDATE Transactions 
+                            SET BalanceBefore = @balanceBefore, 
+                                BalanceAfter = @newBalance, 
+                                PaymentStatus = @newStatus 
+                            WHERE Id = @transactionId;";
+
+                        var newBalance = walletBalance - amount;
+
+                        command.Parameters.Clear();
+                        command.Parameters.Add(new SqlParameter("@newBalance", newBalance));
+                        command.Parameters.Add(new SqlParameter("@balanceBefore", walletBalance));
+                        command.Parameters.Add(new SqlParameter("@newStatus", (int)PaymentStatus.Deducted));
+                        command.Parameters.Add(new SqlParameter("@transactionId", transactionId));
+                        command.Parameters.Add(new SqlParameter("@walletId", walletId));
+
+                        await command.ExecuteNonQueryAsync();
+                    }
+                }
             }
         }
-        public async Task DeductFromWalletIfRefunded(Wallet wallet, Transaction transaction)
+
+
+        //public async Task DeductFromWalletIfRefunded(Wallet wallet, Transaction transaction)
+        //{
+        //    if (transaction.PaymentStatus == (int)PaymentStatus.Refunded)
+        //    {
+        //        transaction.BalanceBefore = wallet.Balance;
+        //        wallet.Balance = (wallet.Balance - transaction.Amount);
+        //        transaction.BalanceAfter = wallet.Balance;
+        //        transaction.PaymentStatus = (int)PaymentStatus.Deducted;
+        //        await _context.SaveChangesAsync();
+        //        _logService.Log(LogType.Refund, $"fund_claimed {transaction.Amount} to {wallet.WALLET_ID} " + $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
+        //    }
+        //}
+
+        public async Task DeductFromWalletIfRefunded(Guid transactionId, Guid walletId)
         {
-            if (transaction.PaymentStatus == (int)PaymentStatus.Refunded)
+            using (var connection = _context.Database.GetDbConnection())
             {
-                transaction.BalanceBefore = wallet.Balance;
-                wallet.Balance = (wallet.Balance - transaction.Amount);
-                transaction.BalanceAfter = wallet.Balance;
-                transaction.PaymentStatus = (int)PaymentStatus.Deducted;
-                await _context.SaveChangesAsync();
-                _logService.Log(LogType.Refund, $"fund_claimed {transaction.Amount} to {wallet.WALLET_ID} " + $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
+                await connection.OpenAsync();
+
+                using (var command = connection.CreateCommand())
+                {
+                    // Step 1: Retrieve transaction and wallet details
+                    command.CommandText = @"
+                SELECT Amount, PaymentStatus, VendtechTransactionID, Response 
+                FROM Transactions WHERE Id = @transactionId;
+
+                SELECT Balance FROM Wallets WHERE Id = @walletId;";
+
+                    var transactionIdParam = command.CreateParameter();
+                    transactionIdParam.ParameterName = "@transactionId";
+                    transactionIdParam.Value = transactionId;
+                    command.Parameters.Add(transactionIdParam);
+
+                    var walletIdParam = command.CreateParameter();
+                    walletIdParam.ParameterName = "@walletId";
+                    walletIdParam.Value = walletId;
+                    command.Parameters.Add(walletIdParam);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        if (!reader.Read()) return; // Transaction not found
+                        decimal amount = reader.GetDecimal(0);
+                        int paymentStatus = reader.GetInt32(1);
+                        string vendtechTransactionID = reader.GetString(2);
+                        string response = reader.IsDBNull(3) ? "" : reader.GetString(3);
+
+                        if (!reader.NextResult() || !reader.Read()) return; // Wallet not found
+                        decimal walletBalance = reader.GetDecimal(0);
+
+                        if (paymentStatus != (int)PaymentStatus.Refunded) return;
+
+                        // Step 2: Deduct balance and update transaction
+                        reader.Close(); // Close the reader before executing another command
+
+                        command.CommandText = @"
+                        UPDATE Wallets SET Balance = @newBalance WHERE Id = @walletId;
+                        UPDATE Transactions 
+                        SET BalanceBefore = @balanceBefore, 
+                            BalanceAfter = @newBalance, 
+                            PaymentStatus = @newStatus 
+                        WHERE Id = @transactionId;";
+
+                        var newBalance = walletBalance - amount;
+
+                        command.Parameters.Clear();
+                        command.Parameters.Add(new SqlParameter("@newBalance", newBalance));
+                        command.Parameters.Add(new SqlParameter("@balanceBefore", walletBalance));
+                        command.Parameters.Add(new SqlParameter("@newStatus", (int)PaymentStatus.Deducted));
+                        command.Parameters.Add(new SqlParameter("@transactionId", transactionId));
+                        command.Parameters.Add(new SqlParameter("@walletId", walletId));
+
+                        await command.ExecuteNonQueryAsync();
+
+                        // Step 3: Log the transaction
+                        _logService.Log(LogType.Refund,
+                            $"fund_claimed {amount} to {walletId} for {vendtechTransactionID} ID",
+                            response);
+                    }
+                }
             }
         }
-        public async Task RefundToWallet(Wallet wallet, Transaction transaction)
+
+
+        //public async Task RefundToWallet(Wallet wallet, Transaction transaction)
+        //{
+        //    if(transaction.PaymentStatus == (int)PaymentStatus.Deducted)
+        //    {
+        //        wallet.Balance = (wallet.Balance + transaction.Amount);
+        //        transaction.PaymentStatus = (int)PaymentStatus.Refunded;
+        //        transaction.BalanceAfter = transaction.BalanceBefore;
+        //        await _context.SaveChangesAsync();
+        //        _logService.Log(LogType.Refund, $"refunded {transaction.Amount} to {wallet.WALLET_ID} " + $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
+        //    }
+        //    else
+        //    {
+        //        _logService.Log(LogType.Refund, $"attempted refund {transaction.Amount} to {wallet.WALLET_ID} " +  $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
+        //    }
+        //}
+
+        public async Task RefundToWallet(Guid transactionId, Guid walletId)
         {
-            if(transaction.PaymentStatus == (int)PaymentStatus.Deducted)
+            using (var connection = _context.Database.GetDbConnection())
             {
-                wallet.Balance = (wallet.Balance + transaction.Amount);
-                transaction.PaymentStatus = (int)PaymentStatus.Refunded;
-                transaction.BalanceAfter = transaction.BalanceBefore;
-                await _context.SaveChangesAsync();
-                _logService.Log(LogType.Refund, $"refunded {transaction.Amount} to {wallet.WALLET_ID} " + $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
-            }
-            else
-            {
-                _logService.Log(LogType.Refund, $"attempted refund {transaction.Amount} to {wallet.WALLET_ID} " +  $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
+                await connection.OpenAsync();
+
+                using (var command = connection.CreateCommand())
+                {
+                    // Step 1: Retrieve transaction and wallet details
+                    command.CommandText = @"
+                SELECT Amount, PaymentStatus, BalanceBefore, VendtechTransactionID, Response 
+                FROM Transactions WHERE Id = @transactionId;
+
+                SELECT Balance FROM Wallets WHERE Id = @walletId;";
+
+                    var transactionIdParam = command.CreateParameter();
+                    transactionIdParam.ParameterName = "@transactionId";
+                    transactionIdParam.Value = transactionId;
+                    command.Parameters.Add(transactionIdParam);
+
+                    var walletIdParam = command.CreateParameter();
+                    walletIdParam.ParameterName = "@walletId";
+                    walletIdParam.Value = walletId;
+                    command.Parameters.Add(walletIdParam);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        if (!reader.Read()) return; // Transaction not found
+                        decimal amount = reader.GetDecimal(0);
+                        int paymentStatus = reader.GetInt32(1);
+                        decimal balanceBefore = reader.GetDecimal(2);
+                        string vendtechTransactionID = reader.GetString(3);
+                        string response = reader.IsDBNull(4) ? "" : reader.GetString(4);
+
+                        if (!reader.NextResult() || !reader.Read()) return; // Wallet not found
+                        decimal walletBalance = reader.GetDecimal(0);
+
+                        if (paymentStatus == (int)PaymentStatus.Deducted)
+                        {
+                            // Step 2: Refund balance and update transaction
+                            reader.Close(); // Close the reader before executing another command
+
+                            command.CommandText = @"
+                        UPDATE Wallets SET Balance = @newBalance WHERE Id = @walletId;
+                        UPDATE Transactions 
+                        SET PaymentStatus = @newStatus, 
+                            BalanceAfter = @balanceAfter 
+                        WHERE Id = @transactionId;";
+
+                            var newBalance = walletBalance + amount;
+
+                            command.Parameters.Clear();
+                            command.Parameters.Add(new SqlParameter("@newBalance", newBalance));
+                            command.Parameters.Add(new SqlParameter("@balanceAfter", balanceBefore));
+                            command.Parameters.Add(new SqlParameter("@newStatus", (int)PaymentStatus.Refunded));
+                            command.Parameters.Add(new SqlParameter("@transactionId", transactionId));
+                            command.Parameters.Add(new SqlParameter("@walletId", walletId));
+
+                            await command.ExecuteNonQueryAsync();
+
+                            // Step 3: Log the successful refund
+                            _logService.Log(LogType.Refund,
+                                $"refunded {amount} to {walletId} for {vendtechTransactionID} ID",
+                                response);
+                        }
+                        else
+                        {
+                            // Step 4: Log the failed refund attempt
+                            _logService.Log(LogType.Refund,
+                                $"attempted refund {amount} to {walletId} for {vendtechTransactionID} ID",
+                                response);
+                        }
+                    }
+                }
             }
         }
+
         public async Task<Transaction> GetSaleTransaction(string transactionId, Guid integratorid)
         {
             var trans = await _context.Transactions.FirstOrDefaultAsync(d => d.TransactionUniqueId == transactionId && d.IntegratorId == integratorid) ?? null;
