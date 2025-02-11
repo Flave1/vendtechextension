@@ -28,7 +28,7 @@ namespace vendtechext.TEST.Sales
         }
 
         [Theory]
-        [InlineData(liveApikey, 40, "12343256745", 2002)]
+        [InlineData(liveApikey, 40, meternumber, 2002)]
         public async Task Test_for_successful_response(
             string apiKey,
             decimal amount,

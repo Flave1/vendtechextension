@@ -35,7 +35,7 @@ namespace vendtechext.BLL.Services
 
                 Transaction transactionLog = await _repository.CreateSaleTransactionLog(request, integratorid);
 
-                await _repository.DeductFromWallet(wallet, transactionLog);
+                await _repository.DeductFromWallet(transactionId: transactionLog.Id, walletId: wallet.Id);
 
                 ElectricitySaleRTO requestDto = TransferRequestToRTO(request, transactionLog.VendtechTransactionID);
 
@@ -60,7 +60,7 @@ namespace vendtechext.BLL.Services
                         await AppConfiguration.DisableSales();
                     }
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
-                    await _repository.RefundToWallet(wallet, transactionLog);
+                    await _repository.RefundToWallet(transactionId: transactionLog.Id, walletId: wallet.Id);
                     return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
                 }
             }
@@ -81,6 +81,7 @@ namespace vendtechext.BLL.Services
             {
                 ExecutionResult executionResult = null;
                 Transaction transaction = await _repository.GetSaleTransaction(request.TransactionId, integratorid);
+                Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
 
                 if (transaction == null)
                 {
@@ -104,10 +105,12 @@ namespace vendtechext.BLL.Services
                         executionResult.successResponse.UpdateResponse(transaction);
                         executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
                         await _repository.UpdateSaleSuccessTransactionLog(executionResult, transaction);
+                        await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
                         return Response.WithStatus(executionResult.status).WithMessage("Transaction Successfully fetched").WithType(executionResult).GenerateResponse();
                     }
                     else if(executionResult.status == "failed")
                     {
+                        await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
                         executionResult.successResponse.UpdateResponse(transaction);
                         executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
                         await _repository.UpdateSaleTransactionLogOnStatusQuery(executionResult, transaction, TransactionStatus.Failed);
@@ -234,7 +237,7 @@ namespace vendtechext.BLL.Services
                     _logService.Log(LogType.QeueJob, $"Removing job {jobId}", transaction);
                     _recurringJobManager.RemoveIfExists(jobId);
                     Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
-                    await _repository.DeductFromWalletIfRefunded(wallet, transaction);
+                    await _repository.DeductFromWalletIfRefunded(transactionId: transaction.Id, walletId: wallet.Id);
                     transaction.ClaimedStatus = (int)ClaimedStatus.Unclaimed;
                     await _repository.UpdateSaleSuccessTransactionLog(executionResult, transaction);
                 }
@@ -246,7 +249,7 @@ namespace vendtechext.BLL.Services
                 {
                     _logService.Log(LogType.QeueJob, $"Re-Running job {jobId}", transaction);
                     Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
-                    await _repository.RefundToWallet(wallet, transaction);
+                    await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transaction);
                     _recurringJobManager.RemoveIfExists(jobId);
                 }
