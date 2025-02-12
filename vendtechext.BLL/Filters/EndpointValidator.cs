@@ -39,7 +39,6 @@ namespace vendtechext.BLL.Middlewares
             {
                 ExecutionResult executionResult = new BaseService().GenerateExecutionResult(new UnauthorizedAccessException("Unauthorized Access"), API_MESSAGE_CONSTANCE.AUTHENTICATION_ERROR);
                 APIResponse response = new Response().WithStatus("failed")
-                   .WithStatusCode(401)
                    .WithMessage("Unauthorized Access")
                    .WithDetail("Credentials are required in other to vend")
                    .WithType(executionResult)
@@ -64,7 +63,6 @@ namespace vendtechext.BLL.Middlewares
             {
                 ExecutionResult executionResult = new BaseService().GenerateExecutionResult(new UnauthorizedAccessException("Access credentials not valid"), API_MESSAGE_CONSTANCE.NOTFOUND_ERROR);
                 APIResponse response = new Response().WithStatus("failed")
-                   .WithStatusCode(401)
                    .WithMessage("Access credentials not valid")
                    .WithDetail("Valid credentials are required in other to vend")
                    .WithType(executionResult)
@@ -85,7 +83,6 @@ namespace vendtechext.BLL.Middlewares
 
                 ExecutionResult executionResult = new BaseService().GenerateExecutionResult(new ForbiddenResultException("Access to API denied"), API_MESSAGE_CONSTANCE.ACCESS_DENIED);
                 APIResponse response = new Response().WithStatus("failed")
-                   .WithStatusCode(403)
                    .WithMessage("Access to API denied")
                    .WithDetail("This usually occurs when Vendor account is disabled")
                    .WithType(executionResult)

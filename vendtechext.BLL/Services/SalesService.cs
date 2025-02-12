@@ -30,7 +30,7 @@ namespace vendtechext.BLL.Services
 
             PagedResponse<TransactionDto> result = new PagedResponse<TransactionDto>(transactions, totalRecords, req.PageNumber, req.PageSize);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse();
         }
         public async Task<List<TransactionExportDto>> GetSalesReportForExportAsync(PaginatedSearchRequest req)
         {

@@ -66,26 +66,28 @@ namespace vendtechext.BLL.Middleware
         {
 
             var _log = context.RequestServices.GetRequiredService<LogService>();
-            
+            ExecutionResult executionResult = null;
 
             context.Response.ContentType = "application/json";
             if (exception is BadRequestException)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                executionResult = new BaseService().GenerateExecutionResult(new BadRequestException(message), API_MESSAGE_CONSTANCE.BAD_REQUEST);
             }
             else if(exception is UnauthorizedAccessException)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                executionResult = new BaseService().GenerateExecutionResult(new UnauthorizedAccessException(message), API_MESSAGE_CONSTANCE.AUTHENTICATION_ERROR);
             }
             else
             {
                 context.Response.StatusCode = 200;
+                executionResult = new BaseService().GenerateExecutionResult(new ServerTechnicalException(message), API_MESSAGE_CONSTANCE.OKAY_REQEUST);
             }
-
             APIResponse response = Response
                 .WithStatus("failed")
-                .WithStatusCode(context.Response.StatusCode)
                 .WithMessage(message)
+                .WithType(executionResult)
                 .WithDetail(exception.Message ?? "")
                 .GenerateResponse();
 

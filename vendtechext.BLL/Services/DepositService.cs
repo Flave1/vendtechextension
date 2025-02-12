@@ -59,7 +59,7 @@ namespace vendtechext.BLL.Services
             if (settings.Notification.SendAdminDepositEmail)
                 _backgroundJobClient.Enqueue(() => CreateDepositNotification(wallet.WALLET_ID, deposit.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, deposit.CreatedAt));
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully created deposit").WithType(request).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully created deposit").WithType(request).GenerateResponse();
         }
 
         public async Task CreateDepositNotification(string WALLET_ID, string BusinessName, int CommissionId, decimal Amount, Guid DepositId, DateTime CreatedAt)
@@ -79,7 +79,7 @@ namespace vendtechext.BLL.Services
                 {
                     notification.UpdateNotificationReadStatus(notificationId.Value, request.ApprovingUserId);
                 }
-                return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully Cancelled deposit").WithType(request).GenerateResponse();
+                return Response.WithStatus("success").WithMessage("Successfully Cancelled deposit").WithType(request).GenerateResponse();
             }
 
             Wallet wallet = await _walletRepository.GetWalletByIntegratorId(request.IntegratorId);
@@ -91,7 +91,7 @@ namespace vendtechext.BLL.Services
             if (settings.Notification.SendDepositApprovalEmailToUser)
                 _backgroundJobClient.Enqueue(() => ApproveDepositNotification(request.IntegratorId, deposit.Amount, deposit.Id, wallet.CommissionId, request.ApprovingUserId));
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully approved deposit").WithType(request).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully approved deposit").WithType(request).GenerateResponse();
         }
 
         public async Task ApproveDepositNotification(Guid integratorId, decimal Amount, Guid DeposiId, int CommissionId, string currentAdminUserId)
@@ -136,7 +136,7 @@ namespace vendtechext.BLL.Services
 
             PagedResponse<DepositDto> result = new PagedResponse<DepositDto>(transactions, totalRecords, req.PageNumber, req.PageSize);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 
         public async Task<APIResponse> GetPendingDeposits(PaginatedSearchRequest req)
@@ -152,7 +152,7 @@ namespace vendtechext.BLL.Services
             List<DepositDto> transactions = await query.Select(d => new DepositDto(d)).ToListAsync();
 
             PagedResponse<DepositDto> result = new PagedResponse<DepositDto>(transactions, totalRecords, req.PageNumber, req.PageSize);
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 
         private IQueryable<Deposit> FilterQuery(PaginatedSearchRequest req, IQueryable<Deposit> query)
@@ -197,7 +197,7 @@ namespace vendtechext.BLL.Services
         public async Task<APIResponse> GetPaymentTypes()
         {
             var result = await _repository.GetPaymentTypes();
-            return await Task.Run(() =>  Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse());
+            return await Task.Run(() =>  Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse());
         }
 
         public async Task<APIResponse> GetWalletBalance(Guid integratorId, bool includeLastDeposit)
@@ -217,7 +217,7 @@ namespace vendtechext.BLL.Services
                 LastDeposit = lastDeposit,
                 Logo = wallet.Integrator.Logo
             };
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse();
         }
 
         public async Task<APIResponse> GetAdminBalance()
@@ -233,7 +233,7 @@ namespace vendtechext.BLL.Services
                 LastDeposit = null,
                 Logo = user.ProfilePic
             };
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse();
         }
 
         public async Task<List<DepositExcelDto>> GetDepositReportForExportAsync(PaginatedSearchRequest req)
@@ -248,12 +248,12 @@ namespace vendtechext.BLL.Services
         public APIResponse GetTodaysTransaction(Guid integratorId) {
 
             var result = _walletRepository.GetTodaysTransaction(integratorId);
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse();
         }
         public APIResponse GetAdminTodaysTransaction()
         {
             var result = _walletRepository.GetAdminTodaysTransaction();
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse();
         }
     }
 }

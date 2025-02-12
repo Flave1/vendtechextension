@@ -31,7 +31,7 @@ namespace vendtechext.Controllers
         {
             var result = AppConfiguration.GetSettings();
             Response Response = new Response();
-            return Ok(Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(result).GenerateResponse());
+            return Ok(Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse());
         }
 
     }

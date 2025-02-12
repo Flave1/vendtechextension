@@ -95,7 +95,7 @@ namespace vendtechext.BLL.Services
 
             _backgroundJobClient.Enqueue(() => SendNotificationToIntegrator(account.Id));
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully created integrator").WithType(model).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully created integrator").WithType(model).GenerateResponse();
         }
 
         async Task<APIResponse> IIntegratorService.UpdateBusinessAccount(BusinessUserDTO model)
@@ -133,7 +133,7 @@ namespace vendtechext.BLL.Services
             wallet = new WalletBuilder(wallet).SetCommission(model.CommissionLevel).Build();
 
             await _dbcxt.SaveChangesAsync();
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully updated account").WithType(model).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully updated account").WithType(model).GenerateResponse();
         }
 
         async Task<APIResponse> IIntegratorService.DeleteBusinessAccount(Guid Id)
@@ -146,7 +146,7 @@ namespace vendtechext.BLL.Services
 
             _dbcxt.Integrators.Remove(account);
             await _dbcxt.SaveChangesAsync();
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully updated account").WithType(Id).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully updated account").WithType(Id).GenerateResponse();
         }
 
 
@@ -166,7 +166,7 @@ namespace vendtechext.BLL.Services
 
             PagedResponse<BusinessUserListDTO> result = new PagedResponse<BusinessUserListDTO>(transactions, totalRecords, req.PageNumber, req.PageSize);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 
         public async Task<APIResponse> GetIntegrator(Guid id)
@@ -175,7 +175,7 @@ namespace vendtechext.BLL.Services
             BusinessUserListDTO result = await _dbcxt.Integrators.Where(d => d.Deleted == false && d.Id == id)
                 .Include(d => d.AppUser).Include(d => d.Wallet).Select(d => new BusinessUserListDTO(d, settings.Commission)).FirstOrDefaultAsync();
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 
         private IQueryable<Integrator> FilterQuery(PaginatedSearchRequest req, IQueryable<Integrator> query)
@@ -229,7 +229,7 @@ namespace vendtechext.BLL.Services
             account.Disabled = !model.Enable;
 
             await _dbcxt.SaveChangesAsync();
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully updated account").WithType(model).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully updated account").WithType(model).GenerateResponse();
         }
 
         public async Task SendNotificationToIntegrator(Guid integratorId)
