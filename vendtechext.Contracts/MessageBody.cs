@@ -17,6 +17,6 @@
         public string status { get; set; } = string.Empty;
         public string message { get; set; } = string.Empty;
         public string detailed { get; set; } = string.Empty;
-        public ExecutionResult result { get; set; }
+        public dynamic result { get; set; }
     }
 }
