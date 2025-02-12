@@ -57,7 +57,7 @@ namespace vendtechext.TEST.Sales
             //Response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
             APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
-            Assert.Equal(expectedStatusCode, result.statusCode);
+            Assert.Equal(expectedStatusCode, result.result.code);
             // Additional assertions to validate the response
         }
 

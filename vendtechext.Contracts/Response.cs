@@ -17,11 +17,11 @@
             _response.status = status;
             return this;
         }
-        public Response WithStatusCode(int statusCode)
-        {
-            _response.statusCode = statusCode;
-            return this;
-        }
+        //public Response WithStatusCode(int statusCode)
+        //{
+        //    _response.statusCode = statusCode;
+        //    return this;
+        //}
         public Response WithDetail(string detail)
         {
             _response.detailed = detail;
@@ -32,9 +32,14 @@
             _response.message = message;
             return this;
         }
-        public Response WithType(object type)
+        public Response WithType(ExecutionResult result)
         {
-            _response.result = type;
+            _response.result = result;
+            return this;
+        }
+        public Response WithType(dynamic result)
+        {
+            _response.result = result;
             return this;
         }
         public APIResponse GenerateResponse()

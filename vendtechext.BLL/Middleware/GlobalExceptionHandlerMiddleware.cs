@@ -66,7 +66,6 @@ namespace vendtechext.BLL.Middleware
         {
 
             var _log = context.RequestServices.GetRequiredService<LogService>();
-            
 
             context.Response.ContentType = "application/json";
             if (exception is BadRequestException)
@@ -81,10 +80,8 @@ namespace vendtechext.BLL.Middleware
             {
                 context.Response.StatusCode = 200;
             }
-
             APIResponse response = Response
                 .WithStatus("failed")
-                .WithStatusCode(context.Response.StatusCode)
                 .WithMessage(message)
                 .WithDetail(exception.Message ?? "")
                 .GenerateResponse();

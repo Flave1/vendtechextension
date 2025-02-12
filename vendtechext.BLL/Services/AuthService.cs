@@ -136,7 +136,7 @@ namespace vendtechext.BLL.Services
                 AccessToken = tokenHandler.WriteToken(token),
                 RefreshToken = refreshToken
             };
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("You have succesffully logged in").WithType(authResponse).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("You have succesffully logged in").WithType(authResponse).GenerateResponse();
         }
 
         private async Task<string> GenerateAndStoreRefreshToken(AppUser user)
@@ -163,7 +163,7 @@ namespace vendtechext.BLL.Services
                 AccessToken = tokenHandler.WriteToken(token),
                 RefreshToken = refreshToken
             };
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("You have succesffully logged in").WithType(authResponse).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("You have succesffully logged in").WithType(authResponse).GenerateResponse();
         }
 
         private async Task GetAndValidateRefreshToken(AppUser user)
@@ -234,7 +234,7 @@ namespace vendtechext.BLL.Services
 
             var profile = new ProfileDto(user, businessName, about, apiKey, logo);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(profile).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(profile).GenerateResponse();
         }
 
         public async Task<APIResponse> ChangePassword(string userId, string oldPassword, string newPassword)
@@ -248,7 +248,7 @@ namespace vendtechext.BLL.Services
             if (!result.Succeeded)
                 throw new BadRequestException(result.Errors.FirstOrDefault().Description);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Updated Successfully").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Updated Successfully").WithType(result).GenerateResponse();
         }
 
         public async Task<APIResponse> GeneratePasswordResetToken(string email)
@@ -266,7 +266,7 @@ namespace vendtechext.BLL.Services
 
             _emailHelper.SendEmail(user.Email, "Change Password Link", body);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("A link has been sent to your provided email address").GenerateResponse();
+            return Response.WithStatus("success").WithMessage("A link has been sent to your provided email address").GenerateResponse();
         }
 
         public async Task<APIResponse> ChangeForgottenPassword(string userId, string token, string newPassword)
@@ -283,7 +283,7 @@ namespace vendtechext.BLL.Services
                 $"Your password has been changed successfully";
             _emailHelper.SendEmail(user.Email, "Password Changed Successfully", body);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Your password has been changed successfully").GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Your password has been changed successfully").GenerateResponse();
         }
 
         public async Task<APIResponse> UpdateAdminAccount(AdminAccount model)
@@ -299,7 +299,7 @@ namespace vendtechext.BLL.Services
                 image = model.image,
             }, model.AppUserId);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Updated Successfully").GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Updated Successfully").GenerateResponse();
         }
     }
 }

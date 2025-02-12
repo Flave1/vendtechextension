@@ -13,7 +13,10 @@ namespace vendtechext.Contracts
         public string VendtechTransactionId { get; set; }
         public string WalleBalance { get; set; }
         public Voucher Voucher { get; set; } = new Voucher();
-
+        public SuccessResponse()
+        {
+                
+        }
         public SuccessResponse(RTSResponse x)
         {
             var response_data = x.Content.Data.Data.FirstOrDefault();
@@ -94,10 +97,7 @@ namespace vendtechext.Contracts
     {
         public string ErrorMessage { get; set; }
         public string ErrorDetail { get; set; }
-        public FailedResponse()
-        {
-                
-        }
+        public FailedResponse(){}
         public FailedResponse(string Detail, string SystemError)
         {
             ErrorDetail = Detail;
@@ -113,8 +113,8 @@ namespace vendtechext.Contracts
     {
         public string status { get; set; }
         public int code { get; set; }
-        public SuccessResponse successResponse { get; set; }
-        public FailedResponse failedResponse { get; set; }
+        public SuccessResponse successResponse { get; set; } = new SuccessResponse();
+        public FailedResponse failedResponse { get; set; } = new FailedResponse();
         public string request = "";
         public string response = "";
         public string receivedFrom = "";
@@ -131,8 +131,15 @@ namespace vendtechext.Contracts
             }
             if (!transaction.Finalized)
             {
-                RTSErorResponse x = JsonConvert.DeserializeObject<RTSErorResponse>(transaction.Response);
-                failedResponse = new FailedResponse(x.Stack[0].Detail, x.SystemError);
+                if(transaction.Response != "")
+                {
+                    RTSErorResponse x = JsonConvert.DeserializeObject<RTSErorResponse>(transaction.Response);
+                    failedResponse = new FailedResponse(x.Stack[0].Detail, x.SystemError);
+                }
+                else
+                {
+                    failedResponse = new FailedResponse("Could not result in a vend", "Error occurred trying to vend for theis meter");
+                }
                 return;
             }
             if (receivedFrom == "rts_init")

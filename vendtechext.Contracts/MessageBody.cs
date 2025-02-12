@@ -15,9 +15,8 @@
     public class APIResponse
     {
         public string status { get; set; } = string.Empty;
-        public int statusCode { get; set; } = 200;
         public string message { get; set; } = string.Empty;
         public string detailed { get; set; } = string.Empty;
-        public object result { get; set; }
+        public dynamic result { get; set; }
     }
 }
