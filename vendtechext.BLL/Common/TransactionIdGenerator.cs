@@ -52,7 +52,7 @@ namespace vendtechext.BLL.Common
                 // Retrieve the connection string from appsettings.json
                 string connectionString = _configuration.GetConnectionString("DefaultConnection");
                 long transactionId = 0;
-                string query = @"SELECT TOP 1 VendtechTransactionID FROM Transactions ORDER BY VendtechTransactionID DESC";
+                string query = @"SELECT TOP 1 VendtechTransactionID FROM Transactions ORDER BY CreatedAt DESC";
 
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {

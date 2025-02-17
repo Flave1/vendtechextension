@@ -5,6 +5,7 @@ using MimeKit;
 using vendtechext.BLL.Services;
 using vendtechext.Contracts;
 using vendtechext.Contracts.VtchMainModels;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper
@@ -208,6 +209,36 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[apikey]", integrator.ApiKey);
                 emailBody = emailBody.Replace("[username]", user.Email);
                 emailBody = emailBody.Replace("[password]", CREDENTIALS.INTEGRATOR_PASSWORD);
+                helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+        public void SendEmailForPasswordResetLink(AppUser user, string callbackUrl)
+        {
+            try
+            {
+                string subject = "Change Password Link";
+                string emailBody = helper.GetEmailTemplate("password_reset");
+                emailBody = emailBody.Replace("[reset_link]", callbackUrl);
+                helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        public void SendEmailOnPasswordResetSuccess(AppUser user, string body)
+        {
+            try
+            {
+                string subject = "Password Changed successfully";
+                string emailBody = helper.GetEmailTemplate("simple");
+                emailBody = emailBody.Replace("[recipient]", user.FirstName);
+                emailBody = emailBody.Replace("[body]", body);
                 helper.SendEmail(user.Email, subject, emailBody);
             }
             catch (Exception)

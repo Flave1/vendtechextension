@@ -6,6 +6,7 @@ using vendtechext.BLL.Exceptions;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -104,11 +105,21 @@ namespace vendtechext.BLL.Repository
 
         public async Task<List<PaymentTypeDto>> GetPaymentTypes()
         {
-            return await _context.PaymentMethod.Where(d => d.Deleted == false).Select(f => new PaymentTypeDto { 
+            return await _context.PaymentMethod.Where(d => d.Deleted == false && d.Type == (int)PaymentMethodType.External).Select(f => new PaymentTypeDto { 
             Description = f.Description,
             Id  = f.Id,
             Name = f.Name,
             }).ToListAsync();
+        }
+
+        public async Task<PaymentTypeDto> GetCommissionType()
+        {
+            return await _context.PaymentMethod.Where(d => d.Deleted == false && d.Type == (int)PaymentMethodType.Internal).Select(f => new PaymentTypeDto
+            {
+                Description = f.Description,
+                Id = f.Id,
+                Name = f.Name,
+            }).FirstOrDefaultAsync();
         }
 
         public IQueryable<Deposit> GetDepositsQuery(DepositStatus status)
@@ -167,6 +178,37 @@ namespace vendtechext.BLL.Repository
             await _context.SaveChangesAsync();
         }
 
+        private async Task<bool> TransactionAlreadyExist(Guid integratorId, string transactionUniqueId)
+        {
+            string connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = @"
+                SELECT COUNT(1) 
+                FROM Transactions 
+                WHERE IntegratorId = @integratorId AND TransactionUniqueId = @transactionUniqueId;";
+
+                    var integratorIdParam = command.CreateParameter();
+                    integratorIdParam.ParameterName = "@integratorId";
+                    integratorIdParam.Value = integratorId;
+                    command.Parameters.Add(integratorIdParam);
+
+                    var transactionUniqueIdParam = command.CreateParameter();
+                    transactionUniqueIdParam.ParameterName = "@transactionUniqueId";
+                    transactionUniqueIdParam.Value = transactionUniqueId;
+                    command.Parameters.Add(transactionUniqueIdParam);
+
+                    var result = await command.ExecuteScalarAsync();
+                    return Convert.ToInt32(result) > 0;
+                }
+            }
+        }
+
+
         public async Task SalesInternalValidation(Wallet wallet, ElectricitySaleRequest request, Guid integratorid)
         {
             SettingsPayload settings = AppConfiguration.GetSettings();
@@ -174,7 +216,7 @@ namespace vendtechext.BLL.Repository
             if(request.Amount < minimumVend)
                 throw new BadRequestException($"Provided amount can not be below {minimumVend}");
 
-            if (await _context.Transactions.AnyAsync(d => d.IntegratorId == integratorid && d.TransactionUniqueId == request.TransactionId))
+            if (await TransactionAlreadyExist(integratorid, request.TransactionId))
                 throw new BadRequestException("Transaction ID already exist for this terminal.");
 
             if(request.Amount > wallet.Balance)

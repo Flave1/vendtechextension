@@ -108,7 +108,7 @@ namespace vendtechext.BLL.Services
         private async Task CreateCommision(Deposit deposit, Guid integratorid, Wallet wallet)
         {
             decimal commission = AppConfiguration.ProcessCommsion(deposit.Amount, wallet.CommissionId);
-
+            PaymentTypeDto commissionMethod = await _repository.GetCommissionType();
             CreateDepositDto commsionDto = new CreateDepositDto
             {
                 Reference = deposit.Reference,
@@ -116,7 +116,7 @@ namespace vendtechext.BLL.Services
                 Amount = commission,
                 BalanceAfter = deposit.BalanceAfter + commission,
                 IntegratorId = integratorid,
-                PaymentTypeId = deposit.PaymentTypeId,
+                PaymentTypeId = commissionMethod.Id,
             };
             await _repository.CreateDepositTransaction(commsionDto, DepositStatus.Approved);
             await _walletRepository.UpdateWalletRealBalance(wallet, commsionDto.BalanceAfter);
