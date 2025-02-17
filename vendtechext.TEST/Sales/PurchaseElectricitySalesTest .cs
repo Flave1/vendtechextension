@@ -24,11 +24,11 @@ namespace vendtechext.TEST.Sales
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
             _mockSalesService = new Mock<IAPISalesService>();
-            _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
+            _connectionString = "Server=92.205.181.48;Database=VENDTECH_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
         }
 
         [Theory]
-        [InlineData(liveApikey, 40, meternumber, 2002)]
+        [InlineData(devApikey, 40, meternumber, 2002)]
         public async Task Test_for_successful_response(
             string apiKey,
             decimal amount,
@@ -57,7 +57,7 @@ namespace vendtechext.TEST.Sales
             //response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
             APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
-            Assert.Equal(expectedStatusCode, result.result.code);
+            Assert.Equal(expectedStatusCode, Convert.ToInt16(result.result.code));
             // Additional assertions to validate the response
         }
 

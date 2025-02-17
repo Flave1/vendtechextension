@@ -58,13 +58,13 @@ namespace vendtechext.Contracts
             Voucher.Denomination = Convert.ToInt64(response_data?.Denomination);
             MeterNumber = response_data.MeterNumber;
         }
-        public SuccessResponse UpdateResponse(Transaction x)
+        public SuccessResponse UpdateResponse(Transaction x, Wallet wallet)
         {
             TransactionId = x.TransactionUniqueId;
             RequestDate = x.CreatedAt;
             Amount = x.Amount;
             VendtechTransactionId = x.VendtechTransactionID;
-            WalleBalance = Utils.FormatAmount(x.BalanceAfter);
+            WalleBalance = Utils.FormatAmount(wallet.Balance);
             return this;
         }
     }
@@ -146,13 +146,13 @@ namespace vendtechext.Contracts
             {
                 RTSResponse x = JsonConvert.DeserializeObject<RTSResponse>(transaction.Response);
                 successResponse = new SuccessResponse(x);
-                successResponse.UpdateResponse(transaction);
+                //successResponse.UpdateResponse(transaction);
             }
             else if (receivedFrom == "rts_status")
             {
                 RTSStatusResponse x = JsonConvert.DeserializeObject<RTSStatusResponse>(transaction.Response);
                 successResponse = new SuccessResponse(x);
-                successResponse.UpdateResponse(transaction);
+                //successResponse.UpdateResponse(transaction);
             }
         }
         public ExecutionResult(RTSErorResponse x)
