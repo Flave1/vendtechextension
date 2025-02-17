@@ -78,4 +78,10 @@ namespace vendtechext.DAL.Common
         Deducted = 1,
         Refunded = 2
     }
+
+    public enum PaymentMethodType
+    {
+        External = 0,
+        Internal = 1
+    }
 }

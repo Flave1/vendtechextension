@@ -105,11 +105,21 @@ namespace vendtechext.BLL.Repository
 
         public async Task<List<PaymentTypeDto>> GetPaymentTypes()
         {
-            return await _context.PaymentMethod.Where(d => d.Deleted == false).Select(f => new PaymentTypeDto { 
+            return await _context.PaymentMethod.Where(d => d.Deleted == false && d.Type == (int)PaymentMethodType.External).Select(f => new PaymentTypeDto { 
             Description = f.Description,
             Id  = f.Id,
             Name = f.Name,
             }).ToListAsync();
+        }
+
+        public async Task<PaymentTypeDto> GetCommissionType()
+        {
+            return await _context.PaymentMethod.Where(d => d.Deleted == false && d.Type == (int)PaymentMethodType.Internal).Select(f => new PaymentTypeDto
+            {
+                Description = f.Description,
+                Id = f.Id,
+                Name = f.Name,
+            }).FirstOrDefaultAsync();
         }
 
         public IQueryable<Deposit> GetDepositsQuery(DepositStatus status)
