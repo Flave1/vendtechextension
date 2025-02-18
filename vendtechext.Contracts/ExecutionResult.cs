@@ -106,7 +106,7 @@ namespace vendtechext.Contracts
         public FailedResponse(RTSStatusResponse x)
         {
             ErrorDetail = x.Content.StatusDescription;
-            ErrorMessage = x.Status;
+            ErrorMessage = x.Content.StatusDescription;
         }
     }
     public class ExecutionResult
