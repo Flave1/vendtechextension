@@ -1,4 +1,5 @@
 ﻿using Hangfire;
+using Microsoft.IdentityModel.Tokens;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
@@ -162,7 +163,7 @@ namespace vendtechext.BLL.Services
                     wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
                     executionResult.successResponse.UpdateResponse(transaction, wallet);
                     executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
-                    await _repository.UpdateSaleSuccessTransactionLog(executionResult, transaction);
+                    await _repository.UpdateSaleSuccessTransactionLogSANDBOX(transaction);
                     return Response.WithStatus(executionResult.status).WithMessage("Vend successful").WithType(executionResult).GenerateResponse();
                 }
                 else if (!existingTransaction.Finalized)
@@ -199,6 +200,11 @@ namespace vendtechext.BLL.Services
                 {
                     executionResult = GenerateExecutionResult(new BadRequestException("The specified transaction was not found"), API_MESSAGE_CONSTANCE.BAD_REQUEST);
                     return Response.WithStatus(executionResult.status).WithMessage("").WithType(executionResult).GenerateResponse();
+                }
+                else if(transaction.Finalized && string.IsNullOrEmpty(transaction.Response))
+                {
+                    executionResult = GenerateExecutionResult(new BadRequestException("No associated voucher"), API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                    return Response.WithStatus("failed").WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
                 }
                 else if (transaction.Finalized)
                 {

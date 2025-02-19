@@ -63,7 +63,7 @@ namespace vendtechext.TEST.Sales
 
 
         [Theory]
-        [InlineData(devApikey, "283574", HttpStatusCode.OK)]
+        [InlineData(devApikey, "283692", HttpStatusCode.OK)]
         public async Task Test_for_successful_query(
            string apiKey,
            string transactionId,
