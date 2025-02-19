@@ -194,6 +194,22 @@ namespace vendtechext.BLL.Repository
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateSaleSuccessTransactionLogSANDBOX(Transaction trans)
+        {
+            new TransactionsBuilder(trans)
+                .WithSellerReturnedBalance(trans.SellerReturnedBalance)
+                .WithVendStatusDescription(trans.VendStatusDescription ?? "")
+                .WithSellerTransactionId(trans.SellerTransactionID ?? "")
+                .WithTransactionStatus(TransactionStatus.Success)
+                .WithReceivedFrom(trans.ReceivedFrom)
+                .WithResponse(trans.Response)
+                .WithRequest(trans.Request)
+                .WithFinalized(true)
+                .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
         private async Task<bool> TransactionAlreadyExist(Guid integratorId, string transactionUniqueId)
         {
             string connectionString = _configuration.GetConnectionString("DefaultConnection");
