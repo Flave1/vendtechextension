@@ -1,10 +1,9 @@
 ﻿using Hangfire;
-using Microsoft.EntityFrameworkCore.Storage;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
-using vendtechext.DAL.Migrations;
+using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -16,13 +15,17 @@ namespace vendtechext.BLL.Services
         private readonly TransactionRepository _repository;
         private readonly IRecurringJobManager _recurringJobManager;
         private readonly WalletRepository _walletReo;
-        public APISalesService(RequestExecutionContext executionContext, TransactionRepository transactionRepository, IRecurringJobManager recurringJobManager, WalletRepository walletReo)
+        private readonly LogService _logService;
+        public APISalesService(RequestExecutionContext executionContext, TransactionRepository transactionRepository, IRecurringJobManager recurringJobManager, WalletRepository walletReo, LogService logService)
         {
             _executionContext = executionContext;
             _repository = transactionRepository;
             _recurringJobManager = recurringJobManager;
             _walletReo = walletReo;
+            _logService = logService;
         }
+
+        #region PRODUCTION
 
         public async Task<APIResponse> PurchaseElectricity(ElectricitySaleRequest request, Guid integratorid, string integratorName)
         {
@@ -32,38 +35,47 @@ namespace vendtechext.BLL.Services
 
                 await _repository.SalesInternalValidation(wallet, request, integratorid);
 
-                Transaction transactionLog = await _repository.CreateSaleTransactionLog(request, integratorid);
+                Transaction transaction = await _repository.CreateSaleTransactionLog(request, integratorid);
 
-                await _repository.DeductFromWallet(wallet, transactionLog);
-                request.TransactionId = transactionLog.VendtechTransactionID;
+                transaction = await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
 
-                ExecutionResult executionResult = await _executionContext.ExecuteTransaction(request, integratorid, integratorName);
-                if (executionResult.Status == "success")
+                ElectricitySaleRTO requestDto = TransferRequestToRTO(request, transaction.VendtechTransactionID);
+
+                ExecutionResult executionResult = await _executionContext.ExecuteTransaction(requestDto, integratorid, integratorName);
+
+                if (executionResult.status == "success")
                 {
-                    executionResult.SuccessResponse.UpdateResponse(transactionLog);
-                    await _repository.UpdateSaleSuccessTransactionLog(executionResult, transactionLog);
-                    return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.SuccessResponse.Voucher?.VendStatusDescription).WithType(executionResult).GenerateResponse();
+                    wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
+                    executionResult.successResponse.UpdateResponse(transaction, wallet);
+                    await _repository.UpdateSaleSuccessTransactionLog(executionResult, transaction);
+                    return Response.WithStatus(executionResult.status).WithMessage("Vend was successful").WithType(executionResult).GenerateResponse();
                 }
-                else if (executionResult.Status == "pending")
+                else if (executionResult.status == "pending")
                 {
-                    AddSaleToQueue(transactionLog.TransactionUniqueId, integratorid, integratorName);
-                    await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
-                    return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+                    AddSaleToQueue(transaction.TransactionUniqueId, transaction.VendtechTransactionID, integratorid, integratorName);
+                    await _repository.UpdateSaleFailedTransactionLog(executionResult, transaction);
+                    return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
                 }
                 else
                 {
-                    await _repository.RefundToWallet(wallet, transactionLog);
-                    await _repository.UpdateSaleFailedTransactionLog(executionResult, transactionLog);
-                    return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage(executionResult.FailedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
+                    if (executionResult.code == API_MESSAGE_CONSTANCE.VENDING_DISABLE)
+                    {
+                        await AppConfiguration.DisableSales();
+                    }
+                    await _repository.UpdateSaleFailedTransactionLog(executionResult, transaction);
+                    transaction = await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
+                    return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorDetail).WithType(executionResult).GenerateResponse();
                 }
             }
             catch (BadRequestException ex)
             {
-                ExecutionResult executionResult = new ExecutionResult();
-                executionResult.FailedResponse = new FailedResponse();
-                executionResult.FailedResponse.ErrorMessage = ex.Message;
-                executionResult.FailedResponse.ErrorDetail = ex.Message;
-                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+            }
+            catch (SystemDisabledException ex)
+            {
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.VENDING_DISABLE);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
         public async Task<APIResponse> QuerySalesStatus(SaleStatusRequest request, Guid integratorid, string integratorName)
@@ -72,108 +84,194 @@ namespace vendtechext.BLL.Services
             {
                 ExecutionResult executionResult = null;
                 Transaction transaction = await _repository.GetSaleTransaction(request.TransactionId, integratorid);
+                Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
 
                 if (transaction == null)
                 {
-                    if (request.TransactionId == "131fece5-61be-4bc7-2618-08dceb87f9b5")
-                    {
-                        executionResult = await _executionContext.ExecuteTransaction(request.TransactionId, integratorid, integratorName);
-                    }
-                    else
-                    {
-                        executionResult = new ExecutionResult(false);
-                        executionResult.Status = "failed";
-                    }
+                    executionResult = GenerateExecutionResult(new BadRequestException("Transaction with specified ID was not found"), API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                    executionResult.status = "failed";
+                    return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
                 }
                 else if (transaction.Finalized)
                 {
                     executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
-                    executionResult.Status = "success";
+                    executionResult.status = "success";
+                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+
+                    return Response.WithStatus(executionResult.status).WithMessage("Transaction Successfully fetched").WithType(executionResult).GenerateResponse();
                 }
                 else if (!transaction.Finalized)
                 {
                     executionResult = await _executionContext.ExecuteTransaction(transaction.VendtechTransactionID, integratorid, integratorName);
+                    if (executionResult.status == "success")
+                    {
+                        wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
+                        executionResult.successResponse.UpdateResponse(transaction, wallet);
+                        executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                        await _repository.UpdateSaleSuccessTransactionLog(executionResult, transaction);
+                        transaction =await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
+                        return Response.WithStatus(executionResult.status).WithMessage("Transaction Successfully fetched").WithType(executionResult).GenerateResponse();
+                    }
+                    else if (executionResult.status == "failed")
+                    {
+                        transaction = await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
+                        executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
+                        await _repository.UpdateSaleTransactionLogOnStatusQuery(executionResult, transaction, TransactionStatus.Failed);
+                        return Response.WithStatus(executionResult.status).WithMessage("Transaction unsuccessful").WithType(executionResult).GenerateResponse();
+                    }
                 }
-                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
+                return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
             }
             catch (BadRequestException ex)
             {
-                ExecutionResult executionResult = new ExecutionResult();
-                executionResult.FailedResponse = new FailedResponse();
-                executionResult.FailedResponse.ErrorMessage = ex.Message;
-                executionResult.FailedResponse.ErrorDetail = ex.Message;
-                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+            }
+            catch (SystemDisabledException ex)
+            {
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.VENDING_DISABLE);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
+
+        #endregion
+
+        #region SANDBOX
+
         public async Task<APIResponse> PurchaseElectricityForSandbox(ElectricitySaleRequest request, Guid integratorid, string integratorName)
         {
             try
             {
-                ExecutionResult executionResult = null;
                 Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
                 await _repository.SalesInternalValidation(wallet, request, integratorid);
+
+                ExecutionResult executionResult = null;
                 Transaction existingTransaction = await _repository.GetSaleTransactionByRandom(request.MeterNumber);
-                Transaction transactionLog = await _repository.CreateSaleTransactionLog(request, integratorid);
+                Transaction transaction = await _repository.CreateSaleTransactionLog(request, integratorid);
+                transaction =await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
 
                 if (existingTransaction == null)
                 {
                     executionResult = new ExecutionResult(false);
-                    executionResult.Status = "failed";
+                    executionResult.status = "failed";
                 }
                 else if (existingTransaction.Finalized)
                 {
                     executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
-                    executionResult.Status = "success";
+                    executionResult.status = "success";
+                    wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
+                    executionResult.successResponse.UpdateResponse(transaction, wallet);
+                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                    await _repository.UpdateSaleSuccessTransactionLogSANDBOX(transaction);
+                    return Response.WithStatus(executionResult.status).WithMessage("Vend successful").WithType(executionResult).GenerateResponse();
                 }
                 else if (!existingTransaction.Finalized)
                 {
-                    executionResult = await _executionContext.ExecuteTransaction(existingTransaction.VendtechTransactionID, integratorid, integratorName);
+                    executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
+                    executionResult.status = "failed";
+                    executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
+                    transaction = await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
+                    await _repository.UpdateSaleFailedTransactionLog(executionResult, transaction);
+                    return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
                 }
-                return Response.WithStatus(executionResult.Status).WithStatusCode(200).WithMessage("").WithType(executionResult).GenerateResponse();
+                return Response.WithStatus(executionResult.status).WithMessage("").WithType(executionResult).GenerateResponse();
             }
             catch (BadRequestException ex)
             {
-                ExecutionResult executionResult = new ExecutionResult();
-                executionResult.FailedResponse = new FailedResponse();
-                executionResult.FailedResponse.ErrorMessage = ex.Message;
-                executionResult.FailedResponse.ErrorDetail = ex.Message;
-                return Response.WithStatus("failed").WithStatusCode(200).WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+            }
+            catch (SystemDisabledException ex)
+            {
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.VENDING_DISABLE);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
+            }
+        }
+        public async Task<APIResponse> QuerySalesStatusForSandbox(SaleStatusRequest request, Guid integratorid, string integratorName)
+        {
+            try
+            {
+                Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
+                ExecutionResult executionResult = null;
+                Transaction transaction = await _repository.GetSaleTransaction(request.TransactionId, integratorid);
+
+                if (transaction == null)
+                {
+                    executionResult = GenerateExecutionResult(new BadRequestException("The specified transaction was not found"), API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                    return Response.WithStatus(executionResult.status).WithMessage("").WithType(executionResult).GenerateResponse();
+                }
+                else if (transaction.Finalized && string.IsNullOrEmpty(transaction.Response))
+                {
+                    executionResult = GenerateExecutionResult(new BadRequestException("No associated voucher"), API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                    return Response.WithStatus("failed").WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
+
+                }
+                else if (transaction.Finalized)
+                {
+                    transaction = await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
+                    executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
+                    executionResult.status = "success";
+                    wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
+                    executionResult.successResponse.UpdateResponse(transaction, wallet);
+                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                }
+                else if (!transaction.Finalized)
+                {
+                    executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
+                    executionResult.status = "pending";
+                    executionResult.code = API_MESSAGE_CONSTANCE.REQUEST_PENDING;
+                }
+                return Response.WithStatus(executionResult.status).WithMessage("").WithType(executionResult).GenerateResponse();
+            }
+            catch (BadRequestException ex)
+            {
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANCE.BAD_REQUEST);
+                return Response.WithStatus("failed").WithMessage(ex.Message).WithType(executionResult).GenerateResponse();
             }
         }
 
-        private void AddSaleToQueue(string transactionId, Guid integratorId, string integratorName)
+        #endregion
+        private void AddSaleToQueue(string transactionId, string vtechTransactionId, Guid integratorId, string integratorName)
         {
-            string jobId = $"{integratorName}_{transactionId}";
-            _recurringJobManager.AddOrUpdate(jobId, () => CheckPendingSalesStatusJob(transactionId, integratorId, integratorName), Cron.Minutely);
+            string jobId = $"{vtechTransactionId}_{integratorName}_{transactionId}";
+            _recurringJobManager.AddOrUpdate(jobId, () => CheckPendingSalesStatus(transactionId, vtechTransactionId, integratorId, integratorName), Cron.Minutely);
             _recurringJobManager.Trigger(jobId);
         }
-        public Task CheckPendingSalesStatusJob(string transactionId, Guid integratorId, string integratorName)
+        public async Task CheckPendingSalesStatus(string transactionId, string vtechTransactionId, Guid integratorId, string integratorName)
         {
-            return CheckPendingSalesStatus(transactionId, integratorId, integratorName);
-        }
-        public async Task CheckPendingSalesStatus(string transactionId, Guid integratorId, string integratorName)
-        {
+            string jobId = $"{vtechTransactionId}_{integratorName}_{transactionId}";
             Transaction transaction = await _repository.GetSaleTransaction(transactionId, integratorId);
-
-            if(transaction != null) 
+            if (transaction != null) 
             {
-                ExecutionResult executionResult = await _executionContext.ExecuteTransaction(transactionId, integratorId, integratorName);
+                ExecutionResult executionResult = await _executionContext.ExecuteTransaction(vtechTransactionId, integratorId, integratorName);
 
-                if (executionResult.Status == "success")
+                if (executionResult.status == "success")
                 {
-                    _recurringJobManager.RemoveIfExists($"{integratorName}_{transactionId}");
+                    _logService.Log(LogType.QeueJob, $"Removing job {jobId}", transaction);
+                    _recurringJobManager.RemoveIfExists(jobId);
+                    Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
+                    transaction =await _repository.DeductFromWalletIfRefunded(transactionId: transaction.Id, walletId: wallet.Id);
+                    transaction.ClaimedStatus = (int)ClaimedStatus.Unclaimed;
                     await _repository.UpdateSaleSuccessTransactionLog(executionResult, transaction);
+                }
+                else if (executionResult.status == "pending")
+                {
+                    _logService.Log(LogType.QeueJob, $"Re-Running job {jobId}", transaction);
                 }
                 else
                 {
+                    _logService.Log(LogType.QeueJob, $"Re-Running job {jobId}", transaction);
                     Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
-                    await _repository.RefundToWallet(wallet, transaction);
+                    transaction = await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
                     await _repository.UpdateSaleFailedTransactionLog(executionResult, transaction);
+                    _recurringJobManager.RemoveIfExists(jobId);
                 }
             }
 
             await Task.CompletedTask;
         }
 
+        private ElectricitySaleRTO TransferRequestToRTO(ElectricitySaleRequest x, string vendtechTransactionId) => 
+            new ElectricitySaleRTO { Amount = x.Amount, MeterNumber = x.MeterNumber, TransactionId = x.TransactionId, VendtechTransactionId = vendtechTransactionId };
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
 {
@@ -8,7 +9,7 @@ namespace vendtechext.Contracts
         {
             string json = JsonConvert.SerializeObject(response, Formatting.Indented);
             File.WriteAllText($"{transactionId}.json", json);
-            Console.WriteLine($"Response written to file {transactionId}.json");
+            Console.WriteLine($"response written to file {transactionId}.json");
             return json;
         }
 
@@ -21,17 +22,27 @@ namespace vendtechext.Contracts
 
         public static string FormatAmount(decimal? amt)
         {
-            if (amt.ToString().Contains('.'))
+            if(amt != null && amt.Value != 0)
             {
-                var splitedAmt = amt.ToString().Split('.');
-                var d = "." + splitedAmt[1];
-                var result = amt == null ? "0" : string.Format("{0:N0}", Convert.ToDecimal(splitedAmt[0])) + "" + d;
-                return result;
+                if (amt.ToString().Contains('.'))
+                {
+                    var splitedAmt = amt.ToString().Split('.');
+                    var d = "." + splitedAmt[1];
+                    var result = amt == null ? "0" : string.Format("{0:N0}", Convert.ToDecimal(splitedAmt[0])) + "" + d;
+                    return result;
+                }
+                else
+                {
+                    return amt == null ? "0" : string.Format("{0:N0}", amt) + "";
+                }
             }
             else
             {
-                return amt == null ? "0" : string.Format("{0:N0}", amt) + "";
+                return "0";
             }
+           
         }
+
+       
     }
 }

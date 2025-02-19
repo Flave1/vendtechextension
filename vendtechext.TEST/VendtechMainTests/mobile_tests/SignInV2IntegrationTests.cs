@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Text;
 using vendtechext.Contracts.VtchMainModels;
 using Xunit;
@@ -9,9 +10,9 @@ namespace vendtechext.TEST.VendtechMainTests.mobile_tests
     {
         private readonly HttpClient _client;
         private readonly string _baseUrl;
-        private const string validDevicetoken = "dGYbhPYG4qs:APA91bHLe-OrOtQnOQHCEaANChDcKjHb2_4Dr3vezuInhMZ2QnNNMWv1NSQG_YE-OXKxG1sfFEmhUnkB_T29hLl7iXxp0qRuRErEJzCSsIfiV-yQhPZqc1Pz-HG1iurzksDFyxvusYOI";
-        private const string currentAppVersion = "2.4.8";
-        private const string validPasscode = "55583";
+        private const string validDevicetoken = "eRrpCs0h19I:APA91bFX2OFairg2T8-krPorzi1VrX_vSIAihwIEEz5fdDr381kXxHWTUKcEr4Q9sOCo8x3Pnt2EZ0u-FZH63KhqLn-iZeMVE509GtT_q_5U85bnotZh15c";
+        private const string currentAppVersion = "2.5.4";
+        private const string validPasscode = "73086";
         private const string RESET_PASSCODE = "10001";
         private const string PASSCODE_REQUIRED = "The PassCode field is required.";
         private const string ACCOUNT_DISABLED = "YOUR ACCOUNT IS DISABLED! \n PLEASE CONTACT VENDTECH MANAGEMENT";
@@ -58,6 +59,76 @@ namespace vendtechext.TEST.VendtechMainTests.mobile_tests
             // Assert
             var apiResponse = JsonConvert.DeserializeObject<MobileAppResponse>(responseString);
             Assert.Equal(expectedResult, apiResponse?.Message);
+
+        }
+
+
+        [Theory]
+        [InlineData("vblell@gmail.com")]
+        public async Task Post_ForgotPasscode2(string email)
+        {
+
+            // Arrange
+            var model = new 
+            {
+                email,
+            };
+            var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync("/Api/Account/ForgotPasscode2", content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            var apiResponse = JsonConvert.DeserializeObject<MobileAppResponse>(responseString);
+            //Assert.Equal(expectedResult, apiResponse?.message);
+
+        }
+
+        [Theory]
+        [InlineData("3313")]
+        public async Task Post_VerifyAccountVerificationCode(string code)
+        {
+
+            // Arrange
+            var model = new
+            {
+                code,
+                userId = 40251
+            };
+            var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync("/Api/Account/VerifyAccountVerificationCode", content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+
+        }
+
+        [Theory]
+        [InlineData(validPasscode, validDevicetoken)]
+        public async Task Post_SignInNewpasscode(string code, string token)
+        {
+
+            // Arrange
+            var model = new
+            {
+                UserId = 40251,
+                PassCode = code,
+                DeviceToken = token,
+                AppType = "Mobile",
+                AppVersion = "2.5.4"
+            };
+            var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync("/Api/Account/SignInNewpasscode", content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
         }
 

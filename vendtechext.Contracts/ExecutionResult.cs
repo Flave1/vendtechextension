@@ -13,7 +13,10 @@ namespace vendtechext.Contracts
         public string VendtechTransactionId { get; set; }
         public string WalleBalance { get; set; }
         public Voucher Voucher { get; set; } = new Voucher();
-
+        public SuccessResponse()
+        {
+                
+        }
         public SuccessResponse(RTSResponse x)
         {
             var response_data = x.Content.Data.Data.FirstOrDefault();
@@ -32,6 +35,9 @@ namespace vendtechext.Contracts
             Voucher.StatusRequestCount = 0;
             MeterNumber = response_data.PowerHubVoucher.MeterNumber;
             Voucher.VoucherSerialNumber = response_data?.SerialNumber;
+            Voucher.Denomination = response_data?.Denomination;
+            Voucher.RTSUniqueID = response_data?.PowerHubVoucher?.RtsUniqueId;
+            Voucher.SellerReturnedBalance = response_data?.DealerBalance;
         }
         public SuccessResponse(RTSStatusResponse x)
         {
@@ -48,15 +54,17 @@ namespace vendtechext.Contracts
             Voucher.Units = response_data?.Units;
             Voucher.StatusRequestCount = 0;
             Voucher.VoucherSerialNumber = response_data?.SerialNumber;
+            Voucher.RTSUniqueID = response_data?.RTSUniqueID;
+            Voucher.Denomination = Convert.ToInt64(response_data?.Denomination);
             MeterNumber = response_data.MeterNumber;
         }
-        public SuccessResponse UpdateResponse(Transaction x)
+        public SuccessResponse UpdateResponse(Transaction x, Wallet wallet)
         {
             TransactionId = x.TransactionUniqueId;
             RequestDate = x.CreatedAt;
             Amount = x.Amount;
             VendtechTransactionId = x.VendtechTransactionID;
-            WalleBalance = Utils.FormatAmount(x.BalanceAfter);
+            WalleBalance = Utils.FormatAmount(wallet.Balance);
             return this;
         }
     }
@@ -78,16 +86,18 @@ namespace vendtechext.Contracts
         public int StatusRequestCount { get; set; }
         public string VoucherSerialNumber { get; set; }
         public string VendStatusDescription { get; set; }
+        public decimal DealerBalance { get; set; }
+        public string RTSUniqueID { get; set; }
+        public string Provider { get; set; } = "EDSA";
+        public long? Denomination { get; set; }
+        public decimal? SellerReturnedBalance { get; set; }
 
     }
     public class FailedResponse
     {
         public string ErrorMessage { get; set; }
         public string ErrorDetail { get; set; }
-        public FailedResponse()
-        {
-                
-        }
+        public FailedResponse(){}
         public FailedResponse(string Detail, string SystemError)
         {
             ErrorDetail = Detail;
@@ -96,52 +106,71 @@ namespace vendtechext.Contracts
         public FailedResponse(RTSStatusResponse x)
         {
             ErrorDetail = x.Content.StatusDescription;
-            ErrorMessage = x.Status;
+            ErrorMessage = x.Content.StatusDescription;
         }
     }
     public class ExecutionResult
     {
-        public string Status { get; set; }
-        public SuccessResponse SuccessResponse { get; set; }
-        public FailedResponse FailedResponse { get; set; }
-        public string Request;
-        public string Response;
-        public string ReceivedFrom;
+        public string status { get; set; }
+        public int code { get; set; }
+        public SuccessResponse successResponse { get; set; } = new SuccessResponse();
+        public FailedResponse failedResponse { get; set; } = new FailedResponse();
+        public string request = "";
+        public string response = "";
+        public string receivedFrom = "";
         public ExecutionResult(RTSResponse x)
         {
-            SuccessResponse = new SuccessResponse(x);
+            successResponse = new SuccessResponse(x);
         }
         public ExecutionResult(Transaction transaction, string receivedFrom)
         {
+            if (transaction.Response == null)
+            {
+                failedResponse = new FailedResponse("Transaction in-valid", "Invalid transaction");
+                return;
+            }
+            if (!transaction.Finalized)
+            {
+                if(transaction.Response != "")
+                {
+                    RTSErorResponse x = JsonConvert.DeserializeObject<RTSErorResponse>(transaction.Response);
+                    failedResponse = new FailedResponse(x.Stack[0].Detail, x.SystemError);
+                }
+                else
+                {
+                    failedResponse = new FailedResponse("Could not result in a vend", "Error occurred trying to vend for theis meter");
+                }
+                return;
+            }
             if (receivedFrom == "rts_init")
             {
                 RTSResponse x = JsonConvert.DeserializeObject<RTSResponse>(transaction.Response);
-                SuccessResponse = new SuccessResponse(x);
-                SuccessResponse.UpdateResponse(transaction);
+                successResponse = new SuccessResponse(x);
+                //successResponse.UpdateResponse(transaction);
             }
             else if (receivedFrom == "rts_status")
             {
                 RTSStatusResponse x = JsonConvert.DeserializeObject<RTSStatusResponse>(transaction.Response);
-                SuccessResponse = new SuccessResponse(x);
-                SuccessResponse.UpdateResponse(transaction);
+                successResponse = new SuccessResponse(x);
+                //successResponse.UpdateResponse(transaction);
             }
         }
         public ExecutionResult(RTSErorResponse x)
         {
-            FailedResponse = new FailedResponse(x.Stack[0].Detail, x.SystemError);
+            failedResponse = new FailedResponse(x.Stack[0].Detail, x.SystemError);
         }
 
         public ExecutionResult(RTSStatusResponse x, bool isSuccessful)
         {
             if(isSuccessful)
-                SuccessResponse = new SuccessResponse(x);
+                successResponse = new SuccessResponse(x);
             else
-                FailedResponse = new FailedResponse(x);
+                failedResponse = new FailedResponse(x);
         }
         public ExecutionResult(bool isSuccessful)
         {
             if (!isSuccessful)
-                FailedResponse = new FailedResponse {  ErrorMessage = "Transaction not found", ErrorDetail= "Transaction not found: Please contact vendtech or submit a ticket" };
+                failedResponse = new FailedResponse {  ErrorMessage = "Transaction not found", ErrorDetail= "Transaction not found: Please contact vendtech or submit a ticket" };
         }
         public ExecutionResult()
         {
@@ -150,8 +179,8 @@ namespace vendtechext.Contracts
 
         public ExecutionResult InitializeRequestAndResponse(string requestAsString, string responseAsString)
         {
-            Request = requestAsString;
-            Response = responseAsString;
+            request = requestAsString;
+            response = responseAsString;
             return this;
         }
     }

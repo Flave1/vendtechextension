@@ -2,7 +2,7 @@
 {
     public class Response : IDisposable
     {
-        //private static readonly Lazy<Response> _instance = new Lazy<Response>(() => new Response());
+        //private static readonly Lazy<response> _instance = new Lazy<response>(() => new response());
         private readonly APIResponse _response;
         public Response()
         {
@@ -10,31 +10,36 @@
         }
 
 
-        //public static Response Instance => _instance.Value;
+        //public static response Instance => _instance.Value;
 
         public Response WithStatus(string status)
         {
-            _response.Status = status;
+            _response.status = status;
             return this;
         }
-        public Response WithStatusCode(int statusCode)
-        {
-            _response.StatusCode = statusCode;
-            return this;
-        }
+        //public Response WithStatusCode(int statusCode)
+        //{
+        //    _response.statusCode = statusCode;
+        //    return this;
+        //}
         public Response WithDetail(string detail)
         {
-            _response.Detailed = detail;
+            _response.detailed = detail;
             return this;
         }
         public Response WithMessage(string message)
         {
-            _response.Message = message;
+            _response.message = message;
             return this;
         }
-        public Response WithType(object type)
+        public Response WithType(ExecutionResult result)
         {
-            _response.Result = type;
+            _response.result = result;
+            return this;
+        }
+        public Response WithType(dynamic result)
+        {
+            _response.result = result;
             return this;
         }
         public APIResponse GenerateResponse()

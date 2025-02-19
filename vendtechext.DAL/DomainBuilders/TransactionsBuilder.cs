@@ -33,6 +33,12 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public TransactionsBuilder WithSellerTransactionId(string sellerTransactionId)
+        {
+            _transaction.SellerTransactionID = sellerTransactionId;
+            return this;
+        }
+
         public TransactionsBuilder WithTransactionId(string transactionId)
         {
             _transaction.VendtechTransactionID = transactionId;
@@ -59,6 +65,18 @@ namespace vendtechext.DAL.DomainBuilders
         public TransactionsBuilder WithAmount(decimal amount)
         {
             _transaction.Amount = amount;
+            return this;
+        }
+
+        public TransactionsBuilder WithSellerReturnedBalance(decimal sellerReturnedBalance)
+        {
+            _transaction.SellerReturnedBalance = sellerReturnedBalance;
+            return this;
+        }
+
+        public TransactionsBuilder WithPaymentStatus(PaymentStatus paymentStatus)
+        {
+            _transaction.PaymentStatus = (int)paymentStatus;
             return this;
         }
 
@@ -104,6 +122,12 @@ namespace vendtechext.DAL.DomainBuilders
         public TransactionsBuilder WithVendStatusDescription(string vendStatusDescription)
         {
             _transaction.VendStatusDescription = vendStatusDescription;
+            return this;
+        }
+
+        public TransactionsBuilder WithQueryStatusMessage(string message)
+        {
+            _transaction.QueryStatusMessage = message;
             return this;
         }
 

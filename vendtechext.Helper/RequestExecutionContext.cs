@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
+using vendtechext.DAL.Models;
 using vendtechext.Helper.Configurations;
 
 namespace vendtechext.Helper
@@ -61,9 +62,9 @@ namespace vendtechext.Helper
         {
             _httpResponse = await _webRequest.SendPostAsync(_url, _requestObject);
         }
-        public async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRequest request, Guid integratorId, string integratorName)
+        public async Task<ExecutionResult> ExecuteTransaction(ElectricitySaleRTO request, Guid integratorId, string integratorName)
         {
-            InitializeIntegratorData(integratorId, integratorName, request.TransactionId, request.Amount, request.MeterNumber);
+            InitializeIntegratorData(integratorId, integratorName, request.VendtechTransactionId, request.Amount, request.MeterNumber);
 
             _log.Log(LogType.Infor, $"executing request for {request.TransactionId} from {integratorName}", requestAsString);
             await ExecuteRequest();
@@ -93,41 +94,54 @@ namespace vendtechext.Helper
         {
             string resultAsString = await _httpResponse.Content.ReadAsStringAsync();
             responseAsString = resultAsString;
-            _integrator.ProcessResponse(resultAsString);
+            _integrator.DestructureInitialResponse(resultAsString);
             if (_integrator.isSuccessful)
             {
                 salesResponse = new ExecutionResult(_integrator.successResponse);
-                salesResponse.Status = "success";
+                salesResponse.status = "success";
+                salesResponse.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
             }
             else
             {
                 salesResponse = new ExecutionResult(_integrator.errorResponse);
-                salesResponse.Status = "failed";
+                salesResponse.status = "failed";
                 
                 if (_integrator.isFinalized)
-                    salesResponse.Status = "pending";
+                    salesResponse.status = "pending";
+
+                salesResponse.code = _integrator.ReadErrorAndReturnStatusCode(salesResponse.failedResponse.ErrorMessage);
             }
             _integrator.Dispose();
-            salesResponse.ReceivedFrom = _integrator.ReceivedFrom;
+            salesResponse.receivedFrom = _integrator.ReceivedFrom;
             return salesResponse;
         }
+   
         public async Task<ExecutionResult> ProcessStatusResponse()
         {
             string resultAsString = await _httpResponse.Content.ReadAsStringAsync();
             responseAsString = resultAsString;
-            _integrator.ProcessStatusResponse(resultAsString);
+            _integrator.DestructureStatusResponse(resultAsString);
             if (_integrator.isSuccessful)
             {
                 salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
-                salesResponse.Status = "success";
+                salesResponse.status = "success";
             }
             else
             {
-                salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
-                salesResponse.Status = "failed";
+                if (!_integrator.isFinalized)
+                {
+
+                    salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
+                    salesResponse.status = "pending";
+                }
+                else
+                {
+                    salesResponse = new ExecutionResult(_integrator.statusResponse, _integrator.isSuccessful);
+                    salesResponse.status = "failed";
+                }
             }
             _integrator.Dispose();
-            salesResponse.ReceivedFrom = _integrator.ReceivedFrom;
+            salesResponse.receivedFrom = _integrator.ReceivedFrom;
             return salesResponse;
         }
     }

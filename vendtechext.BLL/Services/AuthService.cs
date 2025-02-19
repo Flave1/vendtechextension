@@ -1,11 +1,7 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -15,7 +11,6 @@ using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace vendtechext.BLL.Services
 {
@@ -26,9 +21,16 @@ namespace vendtechext.BLL.Services
         private readonly IConfiguration _configuration;
         private readonly DataContext _dataContext;
         private readonly EmailHelper _emailHelper;
+        private readonly NotificationHelper notification;
         private readonly FileHelper _fileHelper;
 
-        public AuthService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration configuration, DataContext dataContext, EmailHelper emailHelper, FileHelper fileHelper)
+        public AuthService(UserManager<AppUser> userManager, 
+            SignInManager<AppUser> signInManager, 
+            IConfiguration configuration, 
+            DataContext dataContext, 
+            EmailHelper emailHelper, 
+            FileHelper fileHelper, 
+            NotificationHelper notification)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -36,6 +38,7 @@ namespace vendtechext.BLL.Services
             _dataContext = dataContext;
             _emailHelper = emailHelper;
             _fileHelper = fileHelper;
+            this.notification = notification;
         }
 
         public async Task<IdentityResult> RegisterAsync(RegisterDto registerDto)
@@ -136,7 +139,7 @@ namespace vendtechext.BLL.Services
                 AccessToken = tokenHandler.WriteToken(token),
                 RefreshToken = refreshToken
             };
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("You have succesffully logged in").WithType(authResponse).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("You have succesffully logged in").WithType(authResponse).GenerateResponse();
         }
 
         private async Task<string> GenerateAndStoreRefreshToken(AppUser user)
@@ -163,7 +166,7 @@ namespace vendtechext.BLL.Services
                 AccessToken = tokenHandler.WriteToken(token),
                 RefreshToken = refreshToken
             };
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("You have succesffully logged in").WithType(authResponse).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("You have succesffully logged in").WithType(authResponse).GenerateResponse();
         }
 
         private async Task GetAndValidateRefreshToken(AppUser user)
@@ -234,7 +237,7 @@ namespace vendtechext.BLL.Services
 
             var profile = new ProfileDto(user, businessName, about, apiKey, logo);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched").WithType(profile).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(profile).GenerateResponse();
         }
 
         public async Task<APIResponse> ChangePassword(string userId, string oldPassword, string newPassword)
@@ -248,7 +251,7 @@ namespace vendtechext.BLL.Services
             if (!result.Succeeded)
                 throw new BadRequestException(result.Errors.FirstOrDefault().Description);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Updated Successfully").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Updated Successfully").WithType(result).GenerateResponse();
         }
 
         public async Task<APIResponse> GeneratePasswordResetToken(string email)
@@ -260,13 +263,9 @@ namespace vendtechext.BLL.Services
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl =$"{_configuration["Client:BaseUrl"]}/change-password?scale={user.Id}&token={token}";
 
-            string body = $"Hello {user.FirstName} </br>" +
-                $"Click on the link below to change your password </br>" +
-                $"{callbackUrl}";
+            new Emailer(_emailHelper, notification).SendEmailForPasswordResetLink(user, callbackUrl);
 
-            _emailHelper.SendEmail(user.Email, "Change Password Link", body);
-
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("A link has been sent to your provided email address").GenerateResponse();
+            return Response.WithStatus("success").WithMessage("A link has been sent to your provided email address").GenerateResponse();
         }
 
         public async Task<APIResponse> ChangeForgottenPassword(string userId, string token, string newPassword)
@@ -279,11 +278,10 @@ namespace vendtechext.BLL.Services
             if (!result.Succeeded)
                 throw new BadRequestException(result.Errors.FirstOrDefault().Description);
 
-            string body = $"Hello {user.FirstName} </br>" +
-                $"Your password has been changed successfully";
-            _emailHelper.SendEmail(user.Email, "Password Changed Successfully", body);
+            string body = $"Your password has been changed successfully";
+            new Emailer(_emailHelper, notification).SendEmailOnPasswordResetSuccess(user, body);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Your password has been changed successfully").GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Your password has been changed successfully").GenerateResponse();
         }
 
         public async Task<APIResponse> UpdateAdminAccount(AdminAccount model)
@@ -299,7 +297,7 @@ namespace vendtechext.BLL.Services
                 image = model.image,
             }, model.AppUserId);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Updated Successfully").GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Updated Successfully").GenerateResponse();
         }
     }
 }

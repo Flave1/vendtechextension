@@ -315,6 +315,8 @@ namespace vendtechext.DAL.Migrations
 
                     b.HasIndex("IntegratorId");
 
+                    b.HasIndex("PaymentTypeId");
+
                     b.ToTable("Deposits");
                 });
 
@@ -438,6 +440,40 @@ namespace vendtechext.DAL.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("vendtechext.DAL.Models.PaymentMethod", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PaymentMethod");
+                });
+
             modelBuilder.Entity("vendtechext.DAL.Models.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -477,8 +513,14 @@ namespace vendtechext.DAL.Migrations
                     b.Property<string>("MeterNumber")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("int");
+
                     b.Property<int>("PlatFormId")
                         .HasColumnType("int");
+
+                    b.Property<string>("QueryStatusMessage")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ReceivedFrom")
                         .HasColumnType("nvarchar(max)");
@@ -487,6 +529,12 @@ namespace vendtechext.DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Response")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("SellerReturnedBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SellerTransactionID")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TransactionStatus")
@@ -617,7 +665,15 @@ namespace vendtechext.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("vendtechext.DAL.Models.PaymentMethod", "PaymentMethod")
+                        .WithMany()
+                        .HasForeignKey("PaymentTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Integrator");
+
+                    b.Navigation("PaymentMethod");
                 });
 
             modelBuilder.Entity("vendtechext.DAL.Models.Integrator", b =>

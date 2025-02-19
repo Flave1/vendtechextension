@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
+using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
+using vendtechext.Helper;
 
 namespace vendtechext.BLL.Middlewares
 {
@@ -35,7 +37,21 @@ namespace vendtechext.BLL.Middlewares
 
             if (!context.HttpContext.Request.Headers.TryGetValue("X-Api-Key", out var extractedApiKey))
             {
-                context.Result = new UnauthorizedResult();
+                ExecutionResult executionResult = new BaseService().GenerateExecutionResult(new UnauthorizedAccessException("Unauthorized Access"), API_MESSAGE_CONSTANCE.AUTHENTICATION_ERROR);
+                APIResponse response = new Response().WithStatus("failed")
+                   .WithMessage("Unauthorized Access")
+                   .WithDetail("Credentials are required in other to vend")
+                   .WithType(executionResult)
+                   .GenerateResponse();
+
+                var jsonResponse = JsonConvert.SerializeObject(response);
+
+                context.Result = new ContentResult
+                {
+                    StatusCode = StatusCodes.Status401Unauthorized,
+                    Content = jsonResponse,
+                    ContentType = "application/json"
+                };
                 return;
             }
 
@@ -45,15 +61,31 @@ namespace vendtechext.BLL.Middlewares
 
             if (integrator == ("404", "not_found"))
             {
-                context.Result = new UnauthorizedResult();
+                ExecutionResult executionResult = new BaseService().GenerateExecutionResult(new UnauthorizedAccessException("Access credentials not valid"), API_MESSAGE_CONSTANCE.NOTFOUND_ERROR);
+                APIResponse response = new Response().WithStatus("failed")
+                   .WithMessage("Access credentials not valid")
+                   .WithDetail("Valid credentials are required in other to vend")
+                   .WithType(executionResult)
+                   .GenerateResponse();
+
+                var jsonResponse = JsonConvert.SerializeObject(response);
+
+                context.Result = new ContentResult
+                {
+                    StatusCode = StatusCodes.Status401Unauthorized,
+                    Content = jsonResponse,
+                    ContentType = "application/json"
+                };
                 return;
             }
             if(integrator == ("403", "forbidden"))
             {
+
+                ExecutionResult executionResult = new BaseService().GenerateExecutionResult(new ForbiddenResultException("Access to API denied"), API_MESSAGE_CONSTANCE.ACCESS_DENIED);
                 APIResponse response = new Response().WithStatus("failed")
-                   .WithStatusCode(403)
-                   .WithMessage("API Vending is Disabled")
-                   .WithDetail("API Vending is Disabled")
+                   .WithMessage("Access to API denied")
+                   .WithDetail("This usually occurs when Vendor account is disabled")
+                   .WithType(executionResult)
                    .GenerateResponse();
 
                 var jsonResponse = JsonConvert.SerializeObject(response);

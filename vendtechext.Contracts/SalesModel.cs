@@ -1,4 +1,5 @@
 ﻿using vendtechext.DAL.Common;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
@@ -8,6 +9,14 @@ namespace vendtechext.Contracts
         public decimal Amount { get; set; }
         public string MeterNumber { get; set; }
         public string TransactionId { get; set; }
+    }
+
+    public class ElectricitySaleRTO
+    {
+        public decimal Amount { get; set; }
+        public string MeterNumber { get; set; }
+        public string TransactionId { get; set; }
+        public string VendtechTransactionId { get; set; }
     }
 
     public class SaleStatusRequest
@@ -67,6 +76,7 @@ namespace vendtechext.Contracts
         public decimal BalanceBefore { get; set; }
         public decimal Amount { get; set; }
         public decimal BalanceAfter { get; set; }
+        public string SellerTransactionId { get; set; }
         public TransactionExportDto(Transaction x)
         {
             Date = Utils.formatDate(x.CreatedAt);
@@ -79,6 +89,7 @@ namespace vendtechext.Contracts
             BalanceBefore = x.BalanceBefore;
             Amount = x.Amount;
             BalanceAfter = x.BalanceAfter;
+            SellerTransactionId = x.SellerTransactionID;
         }
     }
 }

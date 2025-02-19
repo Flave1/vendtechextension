@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using iTextSharp.text.pdf;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using vendtechext.BLL.Interfaces;
@@ -16,7 +17,7 @@ namespace vendtechext.Controllers
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IDepositService _depositService;
 
-        public ExportController(ILogger<APISalesController> logger, ISalesService salesService, IHttpContextAccessor contextAccessor, IDepositService depositService) : base(logger)
+        public ExportController(ILogger<ExportController> logger, ISalesService salesService, IHttpContextAccessor contextAccessor, IDepositService depositService) : base(logger)
         {
             _salesService = salesService;
             _contextAccessor = contextAccessor;
@@ -45,29 +46,31 @@ namespace vendtechext.Controllers
 
                     // Add headers
                     worksheet.Cells[1, 1].Value = "DATE";
-                    worksheet.Cells[1, 2].Value = "INTEGRATOR";
-                    worksheet.Cells[1, 3].Value = "WALLETE ID";
-                    worksheet.Cells[1, 4].Value = "TRANX ID";
-                    worksheet.Cells[1, 5].Value = "VTECH ID";
-                    worksheet.Cells[1, 6].Value = "STATUS";
-                    worksheet.Cells[1, 7].Value = "METER";
-                    worksheet.Cells[1, 8].Value = "BALANCE BEFORE";
-                    worksheet.Cells[1, 9].Value = "AMOUNT";
-                    worksheet.Cells[1, 10].Value = "BAL AFTER";
+                    //worksheet.Cells[1, 2].Value = "INTEGRATOR";
+                    //worksheet.Cells[1, 3].Value = "WALLETE ID";
+                    worksheet.Cells[1, 2].Value = "TRANX ID";
+                    worksheet.Cells[1, 3].Value = "VTECH ID";
+                    worksheet.Cells[1, 4].Value = "STATUS";
+                    worksheet.Cells[1, 5].Value = "METER";
+                    worksheet.Cells[1, 6].Value = "BALANCE BEFORE";
+                    worksheet.Cells[1, 7].Value = "AMOUNT";
+                    worksheet.Cells[1, 8].Value = "BAL AFTER";
+                    worksheet.Cells[1, 9].Value = "SELLER TRANX ID";
 
                     // Add data
                     for (int i = 0; i < transactions.Count; i++)
                     {
                         worksheet.Cells[i + 2, 1].Value = transactions[i].Date;
-                        worksheet.Cells[i + 2, 2].Value = transactions[i].Integrator;
-                        worksheet.Cells[i + 2, 3].Value = transactions[i].WalletId;
-                        worksheet.Cells[i + 2, 4].Value = transactions[i].TransactionId;
-                        worksheet.Cells[i + 2, 5].Value = transactions[i].VendtechTransactionID;
-                        worksheet.Cells[i + 2, 6].Value = transactions[i].Status;
-                        worksheet.Cells[i + 2, 7].Value = transactions[i].MeterNumber;
-                        worksheet.Cells[i + 2, 8].Value = transactions[i].BalanceBefore;
-                        worksheet.Cells[i + 2, 9].Value = transactions[i].Amount;
-                        worksheet.Cells[i + 2, 10].Value = transactions[i].BalanceAfter;
+                        //worksheet.Cells[i + 2, 2].Value = transactions[i].Integrator;
+                        //worksheet.Cells[i + 2, 3].Value = transactions[i].WalletId;
+                        worksheet.Cells[i + 2, 2].Value = transactions[i].TransactionId;
+                        worksheet.Cells[i + 2, 3].Value = transactions[i].VendtechTransactionID;
+                        worksheet.Cells[i + 2, 4].Value = transactions[i].Status;
+                        worksheet.Cells[i + 2, 5].Value = transactions[i].MeterNumber;
+                        worksheet.Cells[i + 2, 6].Value = transactions[i].BalanceBefore;
+                        worksheet.Cells[i + 2, 7].Value = transactions[i].Amount;
+                        worksheet.Cells[i + 2, 8].Value = transactions[i].BalanceAfter;
+                        worksheet.Cells[i + 2, 9].Value = transactions[i].SellerTransactionId;
                     }
 
                     var stream = new MemoryStream();
@@ -80,16 +83,17 @@ namespace vendtechext.Controllers
             else if (format == "pdf")
             {
                 // Generate PDF
-                var stream = new MemoryStream();  // Do not use "using" here
+                var stream = new MemoryStream();
                 var document = new iTextSharp.text.Document();
                 var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(document, stream);
                 document.Open();
 
                 // Add headers
                 var table = new iTextSharp.text.pdf.PdfPTable(12);
+
                 table.AddCell("DATE");
-                table.AddCell("INTEGRATOR");
-                table.AddCell("WALLETE ID");
+                //table.AddCell("INTEGRATOR");
+                //table.AddCell("WALLETE ID");
                 table.AddCell("TRANX ID");
                 table.AddCell("VTECH ID");
                 table.AddCell("STATUS");
@@ -97,13 +101,14 @@ namespace vendtechext.Controllers
                 table.AddCell("BALANCE BEFORE");
                 table.AddCell("AMOUNT");
                 table.AddCell("BAL AFTER");
+                table.AddCell("SELLER TRANX ID");
 
                 // Add data rows
                 foreach (var transaction in transactions)
                 {
                     table.AddCell(transaction.Date);
-                    table.AddCell(transaction.Integrator);
-                    table.AddCell(transaction.WalletId);
+                    //table.AddCell(transaction.Integrator);
+                    //table.AddCell(transaction.WalletId);
                     table.AddCell(transaction.TransactionId);
                     table.AddCell(transaction.VendtechTransactionID);
                     table.AddCell(transaction.Status);
@@ -111,6 +116,7 @@ namespace vendtechext.Controllers
                     table.AddCell(transaction.BalanceBefore.ToString());
                     table.AddCell(transaction.Amount.ToString());
                     table.AddCell(transaction.BalanceAfter.ToString());
+                    table.AddCell(transaction.SellerTransactionId);
                 }
 
                 document.Add(table);
@@ -145,25 +151,25 @@ namespace vendtechext.Controllers
 
                     // Add headers
                     worksheet.Cells[1, 1].Value = "Date";
-                    worksheet.Cells[1, 2].Value = "Wallet ID";
-                    worksheet.Cells[1, 3].Value = "Reference";
-                    worksheet.Cells[1, 4].Value = "Payment Type";
-                    worksheet.Cells[1, 5].Value = "Transaction ID";
-                    worksheet.Cells[1, 6].Value = "Balance Before";
-                    worksheet.Cells[1, 7].Value = "Amount";
-                    worksheet.Cells[1, 8].Value = "Balance After";
+                    //worksheet.Cells[1, 2].Value = "Wallet ID";
+                    worksheet.Cells[1, 2].Value = "Reference";
+                    worksheet.Cells[1, 3].Value = "Payment Type";
+                    worksheet.Cells[1, 4].Value = "Transaction ID";
+                    worksheet.Cells[1, 5].Value = "Balance Before";
+                    worksheet.Cells[1, 6].Value = "Amount";
+                    worksheet.Cells[1, 7].Value = "Balance After";
 
                     // Add data
                     for (int i = 0; i < transactions.Count; i++)
                     {
                         worksheet.Cells[i + 2, 1].Value = transactions[i].Date;
-                        worksheet.Cells[i + 2, 2].Value = transactions[i].WalletId;
-                        worksheet.Cells[i + 2, 3].Value = transactions[i].Reference;
-                        worksheet.Cells[i + 2, 4].Value = transactions[i].PaymentTypeName;
-                        worksheet.Cells[i + 2, 5].Value = transactions[i].TransactionId;
-                        worksheet.Cells[i + 2, 6].Value = transactions[i].BalanceBefore;
-                        worksheet.Cells[i + 2, 7].Value = transactions[i].Amount;
-                        worksheet.Cells[i + 2, 8].Value = transactions[i].BalanceAfter;
+                        //worksheet.Cells[i + 2, 2].Value = transactions[i].WalletId;
+                        worksheet.Cells[i + 2, 2].Value = transactions[i].Reference;
+                        worksheet.Cells[i + 2, 3].Value = transactions[i].PaymentTypeName;
+                        worksheet.Cells[i + 2, 4].Value = transactions[i].TransactionId;
+                        worksheet.Cells[i + 2, 5].Value = transactions[i].BalanceBefore;
+                        worksheet.Cells[i + 2, 6].Value = transactions[i].Amount;
+                        worksheet.Cells[i + 2, 7].Value = transactions[i].BalanceAfter;
                     }
 
                     var stream = new MemoryStream();
@@ -184,7 +190,7 @@ namespace vendtechext.Controllers
                 // Add headers
                 var table = new iTextSharp.text.pdf.PdfPTable(8);
                 table.AddCell("Date");
-                table.AddCell("Wallet ID");
+                //table.AddCell("Wallet ID");
                 table.AddCell("Reference");
                 table.AddCell("Payment Type");
                 table.AddCell("Transaction ID");
@@ -196,7 +202,7 @@ namespace vendtechext.Controllers
                 foreach (var transaction in transactions)
                 {
                     table.AddCell(transaction.Date.ToString());
-                    table.AddCell(transaction.WalletId);
+                    //table.AddCell(transaction.WalletId);
                     table.AddCell(transaction.Reference);
                     table.AddCell(transaction.PaymentTypeName);
                     table.AddCell(transaction.TransactionId);

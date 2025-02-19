@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using MimeKit;
 using vendtechext.BLL.Services;
 using vendtechext.Contracts;
+using vendtechext.Contracts.VtchMainModels;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper
@@ -120,24 +122,26 @@ namespace vendtechext.Helper
             this.helper = helper;
             this.notificationHelper = notificationHelper;
         }
-        public void SendEmailToAdminOnPendingDeposits(Deposit deposit, Wallet wallet, AppUser user)
+        public void SendEmailToAdminOnPendingDeposits(string WALLET_ID, string BusinessName, int CommissionId, decimal Amount, Guid DepositId, DateTime CreatedAt, AppUser user)
         {
             try
             {
+                decimal commission = AppConfiguration.ProcessCommsion(Amount, CommissionId);
                 string msg = $@"
                 <p>This is to inform you that there is a deposit awaiting for your approval</p>
                 <strong>Details:</strong>
-                <p>Wallet ID: {wallet.WALLET_ID}</p>
-                <p>Integrator: {wallet.Integrator.BusinessName}</p>
-                <p>Amount: SLE {deposit.Amount}</p>
-                <p>Request Date: {Utils.formatDate(deposit.CreatedAt)}</p>
+                <p>Wallet ID: {WALLET_ID}</p>
+                <p>Integrator: {BusinessName}</p>
+                <p>Amount: SLE {Utils.FormatAmount(Amount + commission)}</p>
+                <p>request Date: {Utils.formatDate(CreatedAt)}</p>
                 ";
                 string subject = "PENDING DEPOSIT APPROVAL";
                 string emailBody = helper.GetEmailTemplate("simple");
                 emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", msg);
 
-                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositRequested, deposit.Id.ToString());
+                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositRequested, DepositId.ToString());
+                //
                 helper.SendEmail(user.Email, subject, emailBody);
             }
             catch (Exception)
@@ -146,19 +150,95 @@ namespace vendtechext.Helper
             }
         }
 
-        public void SendEmailToIntegratorOnDepositApproval(Deposit deposit, Wallet wallet, AppUser user)
+        public void SendEmailToIntegratorOnDepositApproval(decimal Amount, Guid DeposiId, int CommissionId, AppUser user)
         {
             try
             {
+                decimal commission = AppConfiguration.ProcessCommsion(Amount, CommissionId);
                 string msg = $@"
-                <p>This is to inform you that your deposit of SLE: {deposit.Amount} has been approved</p>
+                <p>This is to inform you that your deposit of SLE: {Utils.FormatAmount(Amount)} has been approved</p>
+                <strong>Details:</strong>
+                <p>Amount: {Utils.FormatAmount(Amount)}</p>
+                <p>Commission: SLE {Utils.FormatAmount(commission)}</p>
+                <p>Total: {Utils.FormatAmount(Amount + commission)}</p>
                 ";
                 string subject = "PENDING DEPOSIT APPROVED";
                 string emailBody = helper.GetEmailTemplate("simple");
                 emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", msg);
+                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositApproved, DeposiId.ToString());
+                //
+                helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
 
-                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositApproved, deposit.Id.ToString());
+        public void SendReconcilationEmail(UserDetail user, TransactionDetail record)
+        {
+            try
+            {
+                string msg = $@"
+                <p>This is to inform you that your account has been refunded with SLE: {Utils.FormatAmount(record.Amount)}.</p>
+                <p>This is for the unsuccessful sale that happened on the {Utils.formatDate(record.CreatedAt)}.</p>
+                <strong>Details:</strong>
+                <p>Amount: {Utils.FormatAmount(record.Amount)}</p>
+                <p>Transaction ID: {record.TransactionId}</p>
+                <p>Date: {Utils.formatDate(record.CreatedAt)}</p>
+                ";
+                string subject = $"BALANCE REFUND {record.Amount}";
+                string emailBody = helper.GetEmailTemplate("simple");
+                emailBody = emailBody.Replace("[recipient]", user.FirstName);
+                emailBody = emailBody.Replace("[body]", msg);
+                helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        public void SendEmailToIntegratorOnAccountCreation(Integrator integrator, AppUser user)
+        {
+            try
+            {
+                string subject = $"VENDTECH API CREDENTIALS";
+                string emailBody = helper.GetEmailTemplate("new_integrator");
+                emailBody = emailBody.Replace("[apikey]", integrator.ApiKey);
+                emailBody = emailBody.Replace("[username]", user.Email);
+                emailBody = emailBody.Replace("[password]", CREDENTIALS.INTEGRATOR_PASSWORD);
+                helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+        public void SendEmailForPasswordResetLink(AppUser user, string callbackUrl)
+        {
+            try
+            {
+                string subject = "Change Password Link";
+                string emailBody = helper.GetEmailTemplate("password_reset");
+                emailBody = emailBody.Replace("[reset_link]", callbackUrl);
+                helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        public void SendEmailOnPasswordResetSuccess(AppUser user, string body)
+        {
+            try
+            {
+                string subject = "Password Changed successfully";
+                string emailBody = helper.GetEmailTemplate("simple");
+                emailBody = emailBody.Replace("[recipient]", user.FirstName);
+                emailBody = emailBody.Replace("[body]", body);
                 helper.SendEmail(user.Email, subject, emailBody);
             }
             catch (Exception)

@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FirebaseAdmin.Messaging;
+using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
@@ -6,6 +8,7 @@ using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -17,12 +20,18 @@ namespace vendtechext.BLL.Services
         private readonly IAuthService _authService;
         private readonly WalletRepository _walletRepository;
         private readonly FileHelper _fileHelper;
-        public IntegratorService(DataContext dbcxt, IAuthService authService, WalletRepository walletRepository, FileHelper fileHelper)
+        private readonly IBackgroundJobClient _backgroundJobClient;
+        private readonly NotificationHelper notification;
+        private readonly EmailHelper _emailHelper;
+        public IntegratorService(DataContext dbcxt, IAuthService authService, WalletRepository walletRepository, FileHelper fileHelper, IBackgroundJobClient backgroundJobClient, NotificationHelper notification, EmailHelper emailHelper)
         {
             this._dbcxt = dbcxt;
             _authService = authService;
             _walletRepository = walletRepository;
             _fileHelper = fileHelper;
+            _backgroundJobClient = backgroundJobClient;
+            this.notification = notification;
+            _emailHelper = emailHelper;
         }
 
         async Task<BusinessUserDTO> IIntegratorService.GetIntegrator(string apiKey)
@@ -59,16 +68,17 @@ namespace vendtechext.BLL.Services
                 Firstname = model.FirstName,
                 Email = model.Email,
                 Lastname = model.LastName,
-                Password = "Password@123",
+                Password = CREDENTIALS.INTEGRATOR_PASSWORD,
                 Username = model.Email,
                 UserType = UserType.External,
                 Phone = model.Phone,
             });
 
             string imgPath = await _fileHelper.CreateFile(model.image);
+            Integrator account = null;
             if (userAccount != null)
             {
-                Integrator account = new IntegratorsBuilder()
+                account = new IntegratorsBuilder()
                 .WithApiKey(AesEncryption.Encrypt(model.BusinessName + model.Email + model.Phone))
                 .WithBusinessName(model.BusinessName)
                 .WithAppUserId(userAccount.Id)
@@ -83,7 +93,9 @@ namespace vendtechext.BLL.Services
                 await _walletRepository.CreateWallet(account.Id, model.CommissionLevel);
             }
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully created integrator").WithType(model).GenerateResponse();
+            _backgroundJobClient.Enqueue(() => SendNotificationToIntegrator(account.Id));
+
+            return Response.WithStatus("success").WithMessage("Successfully created integrator").WithType(model).GenerateResponse();
         }
 
         async Task<APIResponse> IIntegratorService.UpdateBusinessAccount(BusinessUserDTO model)
@@ -121,7 +133,7 @@ namespace vendtechext.BLL.Services
             wallet = new WalletBuilder(wallet).SetCommission(model.CommissionLevel).Build();
 
             await _dbcxt.SaveChangesAsync();
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully updated account").WithType(model).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully updated account").WithType(model).GenerateResponse();
         }
 
         async Task<APIResponse> IIntegratorService.DeleteBusinessAccount(Guid Id)
@@ -134,7 +146,7 @@ namespace vendtechext.BLL.Services
 
             _dbcxt.Integrators.Remove(account);
             await _dbcxt.SaveChangesAsync();
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully updated account").WithType(Id).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully updated account").WithType(Id).GenerateResponse();
         }
 
 
@@ -154,7 +166,7 @@ namespace vendtechext.BLL.Services
 
             PagedResponse<BusinessUserListDTO> result = new PagedResponse<BusinessUserListDTO>(transactions, totalRecords, req.PageNumber, req.PageSize);
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 
         public async Task<APIResponse> GetIntegrator(Guid id)
@@ -163,7 +175,7 @@ namespace vendtechext.BLL.Services
             BusinessUserListDTO result = await _dbcxt.Integrators.Where(d => d.Deleted == false && d.Id == id)
                 .Include(d => d.AppUser).Include(d => d.Wallet).Select(d => new BusinessUserListDTO(d, settings.Commission)).FirstOrDefaultAsync();
 
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully fetched deposits").WithType(result).GenerateResponse();
         }
 
         private IQueryable<Integrator> FilterQuery(PaginatedSearchRequest req, IQueryable<Integrator> query)
@@ -205,7 +217,6 @@ namespace vendtechext.BLL.Services
             return query;
         }
 
-
         async Task<APIResponse> IIntegratorService.EnableDisable(EnableIntegrator model)
         {
             var account = _dbcxt.Integrators.Where(d => d.Id == model.IntegratorId).Include(d => d.AppUser).FirstOrDefault();
@@ -218,8 +229,17 @@ namespace vendtechext.BLL.Services
             account.Disabled = !model.Enable;
 
             await _dbcxt.SaveChangesAsync();
-            return Response.WithStatus("success").WithStatusCode(200).WithMessage("Successfully updated account").WithType(model).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully updated account").WithType(model).GenerateResponse();
         }
 
+        public async Task SendNotificationToIntegrator(Guid integratorId)
+        {
+            Integrator integrator = await _dbcxt.Integrators.Where(s => s.Id == integratorId).FirstOrDefaultAsync();
+            if (integrator != null)
+            {
+                AppUser user = await _authService.FindUserByIntegratorId(integratorId);
+                new Emailer(_emailHelper, notification).SendEmailToIntegratorOnAccountCreation(integrator, user);
+            }
+        }
     }
 }

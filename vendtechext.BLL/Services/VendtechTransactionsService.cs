@@ -43,12 +43,12 @@ namespace vendtechext.BLL.Services
                 // Build the SQL query
                 var query = @"INSERT INTO TransactionDetails 
                      (PlatFormId, UserId, MeterNumber1, POSId, Amount, 
-                      IsDeleted, Status, CreatedAt, RTSUniqueID, TenderedAmount, 
+                      IsDeleted, status, CreatedAt, RTSUniqueID, TenderedAmount, 
                       TransactionAmount, Finalised, StatusRequestCount, Sold, DebitRecovery, 
                       CostOfUnits, TransactionId, RequestDate, CurrentDealerBalance, TaxCharge, Units)
                       VALUES 
                       (@PlatFormId, @UserId, @MeterNumber1, @POSId, @Amount,
-                       @IsDeleted, @Status, @CreatedAt, @RTSUniqueID, @TenderedAmount, 
+                       @IsDeleted, @status, @CreatedAt, @RTSUniqueID, @TenderedAmount, 
                        @TransactionAmount, @Finalised, @StatusRequestCount, @Sold, @DebitRecovery, 
                        @CostOfUnits, @TransactionId, @RequestDate, @CurrentDealerBalance, @TaxCharge, @Units)";
 
@@ -65,7 +65,7 @@ namespace vendtechext.BLL.Services
                         command.Parameters.AddWithValue("@POSId", transaction.POSId);
                         command.Parameters.AddWithValue("@Amount", transaction.Amount);
                         command.Parameters.AddWithValue("@IsDeleted", transaction.IsDeleted);
-                        command.Parameters.AddWithValue("@Status", transaction.Status);
+                        command.Parameters.AddWithValue("@status", transaction.Status);
                         command.Parameters.AddWithValue("@CreatedAt", transaction.CreatedAt);
                         command.Parameters.AddWithValue("@RTSUniqueID", transaction.RTSUniqueID);
                         command.Parameters.AddWithValue("@TenderedAmount", transaction.TenderedAmount);

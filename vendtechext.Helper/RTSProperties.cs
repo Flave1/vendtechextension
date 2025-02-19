@@ -84,13 +84,18 @@ namespace vendtechext.Helper
             };
         }
         
-        public void ProcessResponse(string resultAsString)
+        public void DestructureInitialResponse(string resultAsString)
         {
             ReceivedFrom = "rts_init";
             try
             {
                 isSuccessful = true;
                 successResponse = JsonConvert.DeserializeObject<RTSResponse>(resultAsString);
+                if (string.IsNullOrEmpty(successResponse.Content.Data.Data[0].PinNumber))
+                {
+                    isSuccessful = false;
+                    isFinalized = statusResponse.Content.Finalised;
+                }
             }
             catch (JsonSerializationException)
             {
@@ -99,7 +104,7 @@ namespace vendtechext.Helper
             }
         }
 
-        public void ProcessStatusResponse(string resultAsString)
+        public void DestructureStatusResponse(string resultAsString)
         {
             ReceivedFrom = "rts_status";
             statusResponse = JsonConvert.DeserializeObject<RTSStatusResponse>(resultAsString);
@@ -107,9 +112,28 @@ namespace vendtechext.Helper
             {
                 isSuccessful = false;
                 isFinalized = statusResponse.Content.Finalised;
+                if (statusResponse.Content.StatusDescription == "The specified Transaction does not exist.")
+                    isFinalized = true;
             }
             else
                 isSuccessful = true;
+        }
+        public int ReadErrorAndReturnStatusCode(string message)
+        {
+            if (message == "Error: Vending is disabled")
+            {
+                return API_MESSAGE_CONSTANCE.VENDING_DISABLE;
+            }
+
+            if (message == "-9137 : InCMS-BL-CB001607. Purchase not allowed, not enought vendor balance")
+            {
+                return API_MESSAGE_CONSTANCE.VENDING_DISABLE;
+            }
+            if(message == "Insufficient Funds")
+            {
+                return API_MESSAGE_CONSTANCE.VENDING_DISABLE;
+            }
+            return API_MESSAGE_CONSTANCE.BAD_REQUEST;
         }
 
         public void Dispose()
