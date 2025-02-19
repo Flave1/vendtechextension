@@ -150,22 +150,6 @@ namespace vendtechext.BLL.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateSaleSuccessTransactionLogSANDBOX(Transaction trans)
-        {
-            new TransactionsBuilder(trans)
-                .WithSellerReturnedBalance(trans.SellerReturnedBalance)
-                .WithVendStatusDescription(trans.VendStatusDescription ?? "")
-                .WithSellerTransactionId(trans.SellerTransactionID ?? "")
-                .WithTransactionStatus(TransactionStatus.Success)
-                .WithReceivedFrom(trans.ReceivedFrom)
-                .WithResponse(trans.Response)
-                .WithRequest(trans.Request)
-                .WithFinalized(true)
-                .Build();
-
-            await _context.SaveChangesAsync();
-        }
-
         public async Task UpdateSaleTransactionLogOnStatusQuery(ExecutionResult executionResult, Transaction trans, TransactionStatus status)
         {
             new TransactionsBuilder(trans)
