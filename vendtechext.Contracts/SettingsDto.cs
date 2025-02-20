@@ -30,6 +30,7 @@
     public class Thresholds
     {
         public int MinimumVend { get; set; }
+        public int MinimumDeposit { get; set; }
     }
 
 }

@@ -27,7 +27,7 @@ namespace vendtechext.Controllers
         [HttpPost("update")]
         public async Task<IActionResult> UpdateBusinessUser([FromForm] BusinessUserDTO businessUser)
         {
-            var result = await service.UpdateBusinessAccount(businessUser);
+            var result = await service.UpdateBusinessAccount(businessUser, isAdmin: true);
             return Ok(result);
         }
 

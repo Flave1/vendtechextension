@@ -24,7 +24,7 @@ namespace vendtechext.TEST.Sales
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
             _mockSalesService = new Mock<IAPISalesService>();
-            _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
+            _connectionString = "Server=92.205.181.48;Database=VENDTECH_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
         }
 
         [Theory]
@@ -54,7 +54,7 @@ namespace vendtechext.TEST.Sales
             var response = await _client.PostAsync("/sales/v1/buy", content);
 
             // Assert
-            //response.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
             APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
             Assert.Equal(expectedStatusCode, Convert.ToInt16(result.result.code));

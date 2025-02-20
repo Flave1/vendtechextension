@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using vendtechext.Contracts;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper

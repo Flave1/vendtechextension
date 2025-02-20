@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using vendtechext.DAL.Models;
+﻿using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
 {
@@ -16,6 +15,7 @@ namespace vendtechext.Contracts
         public string WalletId { get; set; }
         public string IntegratorName { get; set; }
         public string Date { get; set; }
+        public int Status { get; set; }
   
         public DepositDto(Deposit d)
         {
@@ -30,6 +30,7 @@ namespace vendtechext.Contracts
             IntegratorName = d.Integrator.BusinessName;
             PaymentTypeName = d.PaymentMethod.Name;
             Date = d.CreatedAt.ToString("dd-MM-yyyy hh:mm");
+            Status = d.Status;
         }
     }
 
@@ -106,6 +107,7 @@ namespace vendtechext.Contracts
         public decimal Amount { get; set; }
         public string TransactionId { get; set; }
         public int Status { get; set; }
+        public string PaymentTypeName { get; set; }
     }
 
     public class TodaysTransaction

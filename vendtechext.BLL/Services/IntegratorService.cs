@@ -1,6 +1,7 @@
 ﻿using FirebaseAdmin.Messaging;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
@@ -47,7 +48,7 @@ namespace vendtechext.BLL.Services
         async Task<(string, string)> IIntegratorService.GetIntegratorIdAndName(string apiKey)
         {
             var integrator = await _dbcxt.Integrators.FirstOrDefaultAsync(d => d.ApiKey == apiKey);
-            if(integrator == null)
+            if (integrator == null)
                 return ("404", "not_found");
             if (integrator.Disabled)
                 return ("403", "forbidden");
@@ -56,9 +57,11 @@ namespace vendtechext.BLL.Services
 
         async Task<APIResponse> IIntegratorService.CreateBusinessAccount(BusinessUserCommandDTO model)
         {
+            ValidateIntegrator(model);
+
             AppUser userAccount = await _authService.FindUserByEmail(model.Email);
 
-            if(userAccount != null)
+            if (userAccount != null)
                 throw new BadRequestException("Business Account with Email already  exist");
 
             if (_dbcxt.Integrators.Any(d => d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
@@ -98,16 +101,46 @@ namespace vendtechext.BLL.Services
             return Response.WithStatus("success").WithMessage("Successfully created integrator").WithType(model).GenerateResponse();
         }
 
-        async Task<APIResponse> IIntegratorService.UpdateBusinessAccount(BusinessUserDTO model)
+        private static void ValidateIntegrator(BusinessUserCommandDTO  user)
+        {
+            if (user.FirstName == null)
+                throw new BadRequestException("First name cannot be null.");
+            if (string.IsNullOrWhiteSpace(user.FirstName))
+                throw new BadRequestException("First name is required.");
+            if (user.FirstName.Length < 2 || user.FirstName.Length > 50)
+                throw new BadRequestException("First name must be between 2 and 50 characters.");
+
+            if (string.IsNullOrWhiteSpace(user.LastName))
+                throw new BadRequestException("Last name is required.");
+            if (user.LastName.Length < 2 || user.LastName.Length > 50)
+                throw new BadRequestException("Last name must be between 2 and 50 characters.");
+
+            if (string.IsNullOrWhiteSpace(user.Phone))
+                throw new BadRequestException("Phone number is required.");
+            if (!Regex.IsMatch(user.Phone, @"^\d{8}$"))
+                throw new BadRequestException("Phone number must be exactly 8 digits.");
+
+            if (string.IsNullOrWhiteSpace(user.BusinessName))
+                throw new BadRequestException("Business name is required.");
+            if (user.BusinessName.Length > 400)
+                throw new BadRequestException("Business name must not exceed 400 characters.");
+
+            if (string.IsNullOrWhiteSpace(user.Email))
+                throw new BadRequestException("Email is required.");
+            if (user.Email.Length > 200)
+                throw new BadRequestException("Email must not exceed 200 characters.");
+        }
+
+        async Task<APIResponse> IIntegratorService.UpdateBusinessAccount(BusinessUserDTO model, bool isAdmin)
         {
             var account = _dbcxt.Integrators.FirstOrDefault(d => d.Id == model.Id);
             if (account == null)
             {
-                throw new BadRequestException("Business Account not found");
+                throw new BadRequestException("Business Account not found.");
             }
             if (_dbcxt.Integrators.Any(d => d.Id != model.Id && d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
             {
-                throw new BadRequestException("Business Account with name already  exist");
+                throw new BadRequestException("Business Account with name already  exist.");
             }
              
             AppUser userAccount = await _authService.UpdateAndReturnUserAsync(new RegisterDto
@@ -130,7 +163,8 @@ namespace vendtechext.BLL.Services
                 .Build();
 
             Wallet wallet = await _dbcxt.Wallets.FirstOrDefaultAsync(d => d.IntegratorId == model.Id);
-            wallet = new WalletBuilder(wallet).SetCommission(model.CommissionLevel).Build();
+            if(isAdmin)
+                wallet = new WalletBuilder(wallet).SetCommission(model.CommissionLevel).Build();
 
             await _dbcxt.SaveChangesAsync();
             return Response.WithStatus("success").WithMessage("Successfully updated account").WithType(model).GenerateResponse();

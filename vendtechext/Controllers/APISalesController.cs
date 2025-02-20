@@ -27,10 +27,15 @@ namespace vendtechext.Controllers
         {
             var integratorId = Guid.Parse(HttpContext.Items["IntegratorId"] as string ?? "");
             var integratorName = HttpContext.Items["IntegratorName"] as string;
+            APIResponse reponse = new APIResponse();
 
             _log.Log(LogType.Infor, $"received request for {request.TransactionId} from {integratorName}", request);
-            APIResponse reponse = await service.PurchaseElectricity(request, integratorId, integratorName);
-            //APIResponse reponse = await service.PurchaseElectricityForSandbox(request, integratorId, integratorName);
+
+            if (DomainEnvironment.IsProduction)
+                reponse = await service.PurchaseElectricity(request, integratorId, integratorName);
+            else
+                reponse = await service.PurchaseElectricityForSandbox(request, integratorId, integratorName);
+
             _log.Log(LogType.Infor, $"response sent for {request.TransactionId} to {integratorName}", reponse);
 
             return Ok(reponse);
@@ -41,8 +46,12 @@ namespace vendtechext.Controllers
         {
             var integratorId = Guid.Parse(HttpContext.Items["IntegratorId"] as string ?? "");
             var integratorName = HttpContext.Items["IntegratorName"] as string;
+            APIResponse reponse = new APIResponse();
 
-            APIResponse reponse = await service.QuerySalesStatus(request, integratorId, integratorName);
+            if (DomainEnvironment.IsProduction)
+                reponse = await service.QuerySalesStatus(request, integratorId, integratorName);
+            else
+                reponse = await service.QuerySalesStatusForSandbox(request, integratorId, integratorName);
 
             return Ok(reponse);
         }

@@ -4,9 +4,6 @@ using vendtechext.BLL.Middleware;
 using vendtechext.BLL.Services;
 using vendtechext.DAL.Models;
 using signalrserver.HubConnection;
-using FluentValidation;
-using FluentValidation.AspNetCore;
-using vendtechext.BLL.Validations;
 using Hangfire;
 using vendtechext.Helper;
 using vendtechext.Helper.Configurations;
@@ -17,10 +14,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
-using vendtechext.DAL.Seed;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using vendtechext.BLL.Common;
+using vendtechext.BLL.Services.RecurringJobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,11 +49,6 @@ builder.Services.AddHangfireServer();
 // Configure strongly typed settings objects
 builder.Services.Configure<ProviderInformation>(builder.Configuration.GetSection("ProviderInformation"));
 
-// Add controllers and API behavior
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<IntegratorValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<ElectricitySalesValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<DepositRequestValidator>();
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
@@ -199,6 +191,11 @@ app.UseAuthorization();
 
 // Map Controllers
 app.MapControllers();
+
+//Recurring Jobs
+var integratorBalanceJob = new IntegratorBalanceJob();
+RecurringJob.AddOrUpdate("midnight-job", () => integratorBalanceJob.Run(), "0 0 * * *");
+
 
 FirebaseApp.Create(new AppOptions()
 {

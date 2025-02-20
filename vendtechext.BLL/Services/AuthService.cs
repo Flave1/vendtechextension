@@ -261,7 +261,7 @@ namespace vendtechext.BLL.Services
                 throw new BadRequestException("Email does not exist");
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var callbackUrl =$"{_configuration["Client:BaseUrl"]}/change-password?scale={user.Id}&token={token}";
+            var callbackUrl =$"{DomainEnvironment.DashboardUrl}/change-password?scale={user.Id}&token={token}";
 
             new Emailer(_emailHelper, notification).SendEmailForPasswordResetLink(user, callbackUrl);
 
