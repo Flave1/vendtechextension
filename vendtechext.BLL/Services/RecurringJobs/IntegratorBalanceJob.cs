@@ -23,7 +23,7 @@ namespace vendtechext.BLL.Services.RecurringJobs
                         var notification = new NotificationHelper(db);
                         for (int i = 0; i < wallets.Count; i++)
                         {
-                            new Emailer(new EmailHelper(DomainEnvironment.Configuration), notification).SendEmailToIntegratorOnBalanceLow(wallets[i].Balance, wallets[i].Integrator);
+                            new Emailer(new EmailHelper(DomainEnvironment.Configuration), notification).SendEmailToIntegratorOnBalanceLow(wallets[i], wallets[i].Integrator);
                         }
                     }
 

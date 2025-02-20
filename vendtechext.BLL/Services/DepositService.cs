@@ -1,8 +1,7 @@
 ﻿using Hangfire;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+using System.Text.RegularExpressions;
+using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
@@ -39,6 +38,23 @@ namespace vendtechext.BLL.Services
 
         public async Task<APIResponse> CreateDeposit(DepositRequest request, Guid integratorid)
         {
+            SettingsPayload settings = AppConfiguration.GetSettings();
+            if (request.Amount <= 0)
+            {
+                throw new BadRequestException($"Amount is required.");
+            }
+            if (string.IsNullOrEmpty(request.Reference))
+            {
+                request.Reference = "0";
+            }
+            if (settings.Threshholds.MinimumDeposit > request.Amount)
+            {
+                throw new BadRequestException($"Deposit amount must not be less than {settings.Threshholds.MinimumDeposit}.");
+            }
+
+
+
+
             var wallet = await _walletRepository.GetWalletByIntegratorId(integratorid, true);
             CreateDepositDto dto = new CreateDepositDto
             {
@@ -55,13 +71,14 @@ namespace vendtechext.BLL.Services
                 await _walletRepository.UpdateWalletBookBalance(wallet, deposit.BalanceAfter);
 
 
-            SettingsPayload settings = AppConfiguration.GetSettings();
+            
             if (settings.Notification.SendAdminDepositEmail)
                 _backgroundJobClient.Enqueue(() => CreateDepositNotification(wallet.WALLET_ID, deposit.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, deposit.CreatedAt));
 
             return Response.WithStatus("success").WithMessage("Successfully created deposit").WithType(request).GenerateResponse();
         }
 
+        
         public async Task CreateDepositNotification(string WALLET_ID, string BusinessName, int CommissionId, decimal Amount, Guid DepositId, DateTime CreatedAt)
         {
             AppUser user = await _authService.FindAdminUser();

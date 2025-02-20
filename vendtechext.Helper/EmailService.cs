@@ -249,7 +249,7 @@ namespace vendtechext.Helper
             }
         }
 
-        public void SendEmailToIntegratorOnBalanceLow(decimal Balance, Integrator integrator)
+        public void SendEmailToIntegratorOnBalanceLow(Wallet wallet, Integrator integrator)
         {
             try
             {
@@ -257,13 +257,15 @@ namespace vendtechext.Helper
                 string emailBody = helper.GetEmailTemplate("balance_low");
 
                 emailBody = emailBody.Replace("[Username]", integrator.AppUser.FirstName);
+                emailBody = emailBody.Replace("[Wallet_ID]", wallet.WALLET_ID);
+                emailBody = emailBody.Replace("[Email]", integrator.AppUser.Email);
                 emailBody = emailBody.Replace("[Datetime]", Utils.formatDate(DateTime.UtcNow));
-                emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(Balance));
-                emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}");
+                emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(wallet.Balance));
+                emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}/deposit_form");
                 notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
              
                 helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
-                //helper.SendEmail("vblell@gmail.com", subject, emailBody);
+                helper.SendEmail("vblell@gmail.com", subject, emailBody);
             }
             catch (Exception)
             {

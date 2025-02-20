@@ -232,8 +232,21 @@ namespace vendtechext.BLL.Repository
         {
             SettingsPayload settings = AppConfiguration.GetSettings();
             int minimumVend = settings.Threshholds.MinimumVend;
-            if(request.Amount < minimumVend)
-                throw new BadRequestException($"Provided amount can not be below {minimumVend}");
+
+            if (request.Amount <= 0)
+                throw new BadRequestException($"Amount is required.");
+
+            if (string.IsNullOrEmpty(request.MeterNumber))
+                throw new BadRequestException($"Meter Number is required.");
+
+            if (request.MeterNumber.Length != 11)
+                throw new BadRequestException($"Meter Number must be 11 Numbers.");
+
+            if (string.IsNullOrEmpty(request.TransactionId))
+                throw new BadRequestException($"Transaction Id is required.");
+
+            if (request.Amount < minimumVend)
+                throw new BadRequestException($"Provided amount can not be below {minimumVend}.");
 
             if (await TransactionAlreadyExist(integratorid, request.TransactionId))
                 throw new BadRequestException("Transaction ID already exist for this terminal.");
@@ -242,7 +255,7 @@ namespace vendtechext.BLL.Repository
                 throw new BadRequestException("Insufficient Balance");
 
             if (settings.DisableElectricitySales)
-                throw new SystemDisabledException("Electricity vending is currently disabled");
+                throw new SystemDisabledException("Electricity vending is currently disabled.");
         }
 
         //public async Task DeductFromWallet(Wallet wallet, Transaction transaction)
