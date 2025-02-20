@@ -21,6 +21,8 @@ using vendtechext.DAL.Seed;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using vendtechext.BLL.Common;
+using Hangfire.Common;
+using vendtechext.BLL.Services.RecurringJobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -199,6 +201,11 @@ app.UseAuthorization();
 
 // Map Controllers
 app.MapControllers();
+
+//Recurring Jobs
+var integratorBalanceJob = new IntegratorBalanceJob();
+RecurringJob.AddOrUpdate("midnight-job", () => integratorBalanceJob.Run(), "0 0 * * *");
+
 
 FirebaseApp.Create(new AppOptions()
 {

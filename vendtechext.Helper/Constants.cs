@@ -17,4 +17,10 @@
     {
         public const string INTEGRATOR_PASSWORD = "Password@123";
     }
+
+    public static class APP_ROLES
+    {
+        public const string SuperAdmin = "Super Admin";
+        public const string Integrator = "Integrator";
+    }
 }

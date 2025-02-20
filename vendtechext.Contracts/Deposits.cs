@@ -106,6 +106,7 @@ namespace vendtechext.Contracts
         public decimal Amount { get; set; }
         public string TransactionId { get; set; }
         public int Status { get; set; }
+        public string PaymentTypeName { get; set; }
     }
 
     public class TodaysTransaction

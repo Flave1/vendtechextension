@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using vendtechext.BLL.Interfaces;
+using vendtechext.BLL.Services.RecurringJobs;
 using vendtechext.Contracts;
 using vendtechext.Contracts.VtchMainModels;
 using vendtechext.Controllers.Base;
@@ -27,6 +28,13 @@ namespace vendtechext.Controllers
             return Ok();
         }
 
-      
+
+        [HttpPost("test")]
+        public async Task<IActionResult> Test([FromBody] ReconcileRequest request)
+        {
+            var rec = new IntegratorBalanceJob();
+            rec.Run();
+            return Ok();
+        }
     }
 }

@@ -204,7 +204,6 @@ namespace vendtechext.BLL.Services
                 {
                     executionResult = GenerateExecutionResult(new BadRequestException("No associated voucher"), API_MESSAGE_CONSTANCE.BAD_REQUEST);
                     return Response.WithStatus("failed").WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
-
                 }
                 else if (transaction.Finalized)
                 {

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.Controllers.Base;
+using vendtechext.Helper;
 
 namespace vendtechext.Controllers
 {
@@ -38,28 +39,29 @@ namespace vendtechext.Controllers
                 var result = await _depositService.GetWalletBalance(integrator_id, includeLastDeposit);
                 return Ok(result);
             }
-            else
+            else if (User.IsInRole(APP_ROLES.SuperAdmin))
             {
                 var result = await _depositService.GetAdminBalance();
                 return Ok(result);
             }
+            else { return Unauthorized(); }
         }
 
         [HttpGet("get-today-activity")] 
         public IActionResult GetTodayActivity()
         {
-            if (User.IsInRole("Integrator"))
+            if (User.IsInRole(APP_ROLES.Integrator))
             {
                 Guid integrator_id = Guid.Parse(_contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "integrator_id")?.Value ?? "");
                 var result = _depositService.GetTodaysTransaction(integrator_id);
                 return Ok(result);
             }
-            else
+            else if(User.IsInRole(APP_ROLES.SuperAdmin))
             {
                 var result = _depositService.GetAdminTodaysTransaction();
                 return Ok(result);
             }
-
+            else { return Unauthorized(); }
         }
     }
 }

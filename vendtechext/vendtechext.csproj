@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\balance_low.html" />
     <Content Remove="wwwroot\EmailTemplates\new_integrator.html" />
     <Content Remove="wwwroot\EmailTemplates\password_reset.html" />
   </ItemGroup>
@@ -47,6 +48,7 @@
     <None Include="wwwroot\EmailTemplates\password_reset.html" />
     <None Include="wwwroot\EmailTemplates\new_integrator.html" />
     <None Include="wwwroot\EmailTemplates\simple.html" />
+    <None Include="wwwroot\EmailTemplates\balance_low.html" />
   </ItemGroup>
 
 </Project>

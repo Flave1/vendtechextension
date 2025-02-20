@@ -207,6 +207,8 @@ namespace vendtechext.Helper
                 string subject = $"VENDTECH API CREDENTIALS";
                 string emailBody = helper.GetEmailTemplate("new_integrator");
                 emailBody = emailBody.Replace("[apikey]", integrator.ApiKey);
+                emailBody = emailBody.Replace("[api_url]", DomainEnvironment.APIUrl);
+                emailBody = emailBody.Replace("[dashboard_url]", DomainEnvironment.DashboardUrl);
                 emailBody = emailBody.Replace("[username]", user.Email);
                 emailBody = emailBody.Replace("[password]", CREDENTIALS.INTEGRATOR_PASSWORD);
                 helper.SendEmail(user.Email, subject, emailBody);
@@ -240,6 +242,28 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", body);
                 helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        public void SendEmailToIntegratorOnBalanceLow(decimal Balance, Integrator integrator)
+        {
+            try
+            {
+                string subject = "BALANCE RUNNING LOW";
+                string emailBody = helper.GetEmailTemplate("balance_low");
+
+                emailBody = emailBody.Replace("[Username]", integrator.AppUser.FirstName);
+                emailBody = emailBody.Replace("[Datetime]", Utils.formatDate(DateTime.UtcNow));
+                emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(Balance));
+                emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}");
+                notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
+             
+                helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
+                //helper.SendEmail("vblell@gmail.com", subject, emailBody);
             }
             catch (Exception)
             {
