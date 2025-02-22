@@ -145,6 +145,7 @@ builder.Services.AddScoped<RequestExecutionContext>();
 builder.Services.AddScoped<TransactionRepository>();
 builder.Services.AddScoped<NotificationHelper>();
 builder.Services.AddScoped<HttpRequestService>();
+builder.Services.AddScoped<TransactionUpdate>();
 builder.Services.AddScoped<WalletRepository>();
 builder.Services.AddScoped<AppConfiguration>();
 builder.Services.AddScoped<EmailHelper>();

@@ -146,13 +146,11 @@ namespace vendtechext.Contracts
             {
                 RTSResponse x = JsonConvert.DeserializeObject<RTSResponse>(transaction.Response);
                 successResponse = new SuccessResponse(x);
-                //successResponse.UpdateResponse(transaction);
             }
             else if (receivedFrom == "rts_status")
             {
-                RTSStatusResponse x = JsonConvert.DeserializeObject<RTSStatusResponse>(transaction.Response);
+                RTSStatusResponse x = JsonConvert.DeserializeObject<RTSStatusResponse>(transaction.StatusResponse);
                 successResponse = new SuccessResponse(x);
-                //successResponse.UpdateResponse(transaction);
             }
         }
         public ExecutionResult(RTSErorResponse x)

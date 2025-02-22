@@ -3,8 +3,10 @@ using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
 using vendtechext.Helper;
-using vendtechext.BLL.Common;
 using vendtechext.DAL.Models;
+using vendtechext.BLL.Exceptions;
+using Newtonsoft.Json;
+using vendtechext.DAL.Common;
 
 namespace vendtechext.BLL.Services
 {
@@ -31,6 +33,78 @@ namespace vendtechext.BLL.Services
             PagedResponse<TransactionDto> result = new PagedResponse<TransactionDto>(transactions, totalRecords, req.PageNumber, req.PageSize);
 
             return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse();
+        }
+
+        public async Task<APIResponse> GetSingleTransactionAsync(SingleTransation req)
+        {
+            ExecutionResult executionResult = null;
+            List<RequestResponse> requestResponses = new List<RequestResponse>();
+            var transaction = await _repository.GetSaleTransaction(req.TransactionId, req.Integratorid);
+            if (transaction == null)
+                throw new BadRequestException("Transaction not found found");
+
+
+
+            var initial_request = new ElectricitySaleRequest
+            {
+                Amount = transaction.Amount,
+                MeterNumber = transaction.MeterNumber,
+                TransactionId = transaction.TransactionUniqueId
+            };
+            executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
+            var requestResponse1 = new RequestResponse(initial_request, executionResult);
+            requestResponses.Add(requestResponse1);
+
+            //if (transaction.ReceivedFrom == "rts_status")
+            //{
+            //    var status_request = new SaleStatusRequest
+            //    {
+            //        TransactionId = transaction.TransactionUniqueId
+            //    };
+            //    executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
+            //    var requestResponse2 = new RequestResponse(status_request, executionResult);
+            //    requestResponses.Add(requestResponse2);
+            //}
+            if (req.IsAdmin)
+            {
+                if (!string.IsNullOrEmpty(transaction.Request) && !string.IsNullOrEmpty(transaction.Response))
+                {
+                    if(transaction.TransactionStatus == (int)TransactionStatus.Success && transaction.ReceivedFrom == "rts_init")
+                    {
+                        RTSRequestmodel rTSRequest = JsonConvert.DeserializeObject<RTSRequestmodel>(transaction.Request);
+                        RTSResponse rTSResponse = JsonConvert.DeserializeObject<RTSResponse>(transaction.Response);
+                        var requestResponse3 = new RequestResponse(rTSRequest, rTSResponse);
+                        requestResponses.Add(requestResponse3);
+                    }else if(transaction.TransactionStatus == (int)TransactionStatus.Failed &&  transaction.ReceivedFrom == "rts_init")
+                    {
+                        RTSRequestmodel rTSRequest = JsonConvert.DeserializeObject<RTSRequestmodel>(transaction.Request);
+                        RTSErorResponse rTSResponse = JsonConvert.DeserializeObject<RTSErorResponse>(transaction.Response);
+                        var requestResponse3 = new RequestResponse(rTSRequest, rTSResponse);
+                        requestResponses.Add(requestResponse3);
+                    }
+                       
+                }
+                
+            }
+
+            switch (transaction.TransactionStatus)
+            {
+                case 1:
+                    executionResult.status = "success";
+                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                    break;
+                case 2:
+                    executionResult.status = "pending";
+                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                    break;
+                case 3:
+                    executionResult.status = "failed";
+                    executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
+                    break;
+                default:
+                    break;
+            }
+            return Response.WithType(requestResponses).GenerateResponse();
         }
         public async Task<List<TransactionExportDto>> GetSalesReportForExportAsync(PaginatedSearchRequest req)
         {

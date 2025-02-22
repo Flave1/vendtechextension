@@ -143,6 +143,17 @@ namespace vendtechext.DAL.DomainBuilders
             _transaction.Response = response;
             return this;
         }
+        public TransactionsBuilder WithStatusRequest(string request)
+        {
+            _transaction.StatusRequest = request;
+            return this;
+        }
+
+        public TransactionsBuilder WithStatusResponse(string response)
+        {
+            _transaction.StatusResponse = response;
+            return this;
+        }
 
         public TransactionsBuilder WithFinalized(bool finalized = false)
         {

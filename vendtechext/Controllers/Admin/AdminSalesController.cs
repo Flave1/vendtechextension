@@ -23,5 +23,7 @@ namespace vendtechext.Controllers
             var result = await _service.GetSalesReportAsync(request);
             return Ok(result);
         }
+
+        
     }
 }

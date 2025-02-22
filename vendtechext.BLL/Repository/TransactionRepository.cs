@@ -14,10 +14,11 @@ namespace vendtechext.BLL.Repository
 {
     public class TransactionRepository
     {
-        private readonly DataContext _context;
+        protected readonly DataContext _context;
         private readonly LogService _logService;
         private readonly TransactionIdGenerator _idgenerator;
         private readonly IConfiguration _configuration;
+        public TransactionRepository() { }
 
         public TransactionRepository(DataContext context, LogService logService, TransactionIdGenerator idgenerator, IConfiguration configuration)
         {
@@ -136,66 +137,6 @@ namespace vendtechext.BLL.Repository
         #endregion
 
         #region SALES TRANSACTIONS REGION
-
-        public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
-        {
-            new TransactionsBuilder(trans)
-                .WithSellerReturnedBalance(executionResult.successResponse.Voucher.SellerReturnedBalance == null? 0 : executionResult.successResponse.Voucher.SellerReturnedBalance.Value)
-                .WithVendStatusDescription(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
-                .WithSellerTransactionId(executionResult.successResponse.Voucher?.RTSUniqueID ?? "")
-                .WithTransactionStatus(TransactionStatus.Success)
-                .WithReceivedFrom(executionResult.receivedFrom)
-                .WithResponse(executionResult.response)
-                .WithRequest(executionResult.request)
-                .WithFinalized(true)
-                .Build();
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateSaleTransactionLogOnStatusQuery(ExecutionResult executionResult, Transaction trans, TransactionStatus status)
-        {
-            new TransactionsBuilder(trans)
-                .WithQueryStatusMessage(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
-                .WithTransactionStatus(status)
-                .WithReceivedFrom(executionResult.receivedFrom)
-                .WithResponse(executionResult.response)
-                .WithRequest(executionResult.request)
-                .Build();
-
-            await _context.SaveChangesAsync();
-        }
-
-     
-        public async Task UpdateSaleFailedTransactionLog(ExecutionResult executionResult, Transaction trans)
-        {
-            new TransactionsBuilder(trans)
-                .WithVendStatusDescription(executionResult.failedResponse.ErrorDetail)
-                .WithTransactionStatus(TransactionStatus.Failed)
-                .WithReceivedFrom(executionResult.receivedFrom)
-                .WithResponse(executionResult.response)
-                .WithBalanceAfter(trans.BalanceBefore)
-                .WithRequest(executionResult.request)
-                .Build();
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateSaleSuccessTransactionLogSANDBOX(Transaction trans)
-        {
-            new TransactionsBuilder(trans)
-                .WithSellerReturnedBalance(trans.SellerReturnedBalance)
-                .WithVendStatusDescription(trans.VendStatusDescription ?? "")
-                .WithSellerTransactionId(trans.SellerTransactionID ?? "")
-                .WithTransactionStatus(TransactionStatus.Success)
-                .WithReceivedFrom(trans.ReceivedFrom)
-                .WithResponse(trans.Response)
-                .WithRequest(trans.Request)
-                .WithFinalized(true)
-                .Build();
-
-            await _context.SaveChangesAsync();
-        }
 
         private async Task<bool> TransactionAlreadyExist(Guid integratorId, string transactionUniqueId)
         {
@@ -574,5 +515,92 @@ namespace vendtechext.BLL.Repository
 
         #endregion
 
+       
     }
+
+    #region TRANSACTION UPDATE
+    public class TransactionUpdate
+    {
+        private readonly DataContext _context;
+        public TransactionUpdate(DataContext context)
+        {
+            _context = context;
+        }
+        public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
+        {
+            trans = new TransactionsBuilder(trans)
+                .WithSellerReturnedBalance(executionResult.successResponse?.Voucher?.SellerReturnedBalance ?? 0)
+                .WithVendStatusDescription(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
+                .WithSellerTransactionId(executionResult.successResponse.Voucher?.RTSUniqueID ?? "")
+                .WithTransactionStatus(TransactionStatus.Success)
+                .WithReceivedFrom(executionResult.receivedFrom)
+                .WithResponse(executionResult.response)
+                .WithRequest(executionResult.request)
+                .WithFinalized(true)
+                .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateSuceessSaleTransactionLogOnStatusQuery(ExecutionResult executionResult, Transaction trans)
+        {
+            trans = new TransactionsBuilder(trans)
+                .WithSellerTransactionId(executionResult.successResponse.Voucher?.RTSUniqueID ?? "")
+                .WithQueryStatusMessage(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
+                .WithTransactionStatus(TransactionStatus.Success)
+                .WithReceivedFrom(executionResult.receivedFrom)
+                .WithStatusResponse(executionResult.response)
+                .WithStatusRequest(executionResult.request)
+                .WithFinalized(true)
+                .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateFailedSaleTransactionLogOnStatusQuery(ExecutionResult executionResult, Transaction trans)
+        {
+            trans = new TransactionsBuilder(trans)
+                   .WithQueryStatusMessage(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
+                   .WithTransactionStatus(TransactionStatus.Failed)
+                   .WithReceivedFrom(executionResult.receivedFrom)
+                   .WithStatusResponse(executionResult.response)
+                   .WithStatusRequest(executionResult.request)
+                   .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        public async Task UpdateSaleFailedTransactionLog(ExecutionResult executionResult, Transaction trans)
+        {
+            trans = new TransactionsBuilder(trans)
+               .WithVendStatusDescription(executionResult.failedResponse.ErrorDetail)
+               .WithTransactionStatus(TransactionStatus.Failed)
+               .WithReceivedFrom(executionResult.receivedFrom)
+               .WithResponse(executionResult.response)
+               .WithBalanceAfter(trans.BalanceBefore)
+               .WithRequest(executionResult.request)
+               .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateSaleSuccessTransactionLogSANDBOX(Transaction trans)
+        {
+            trans = new TransactionsBuilder(trans)
+                .WithSellerReturnedBalance(trans.SellerReturnedBalance)
+                .WithVendStatusDescription(trans.VendStatusDescription ?? "")
+                .WithSellerTransactionId(trans.SellerTransactionID ?? "")
+                .WithTransactionStatus(TransactionStatus.Success)
+                .WithReceivedFrom(trans.ReceivedFrom)
+                .WithResponse(trans.Response)
+                .WithRequest(trans.Request)
+                .WithFinalized(true)
+                .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
+    }
+    #endregion
 }

@@ -24,6 +24,8 @@ namespace vendtechext.DAL.Models
         public string QueryStatusMessage { get; set; }
         public string Request { get; set; }
         public string Response { get; set; }
+        public string StatusRequest { get; set; }
+        public string StatusResponse { get; set; }
         public string ReceivedFrom { get; set; }
         public int PaymentStatus { get; set; }
         public Guid IntegratorId { get; set; }

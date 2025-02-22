@@ -1,8 +1,10 @@
-﻿namespace vendtechext.Contracts
+﻿using System.Reflection;
+
+namespace vendtechext.Contracts
 {
     public class RTSRequestmodel
     {
-        //public RTSAuthModel Auth { get; set; }
+        public RTSAuthModel Auth { get; set; }
 
         public string Request { get; set; }
 
@@ -14,6 +16,7 @@
         public string UserName { get; set; }
         public string Password { get; set; }
     }
+
 
     public class RTSResponse
     {

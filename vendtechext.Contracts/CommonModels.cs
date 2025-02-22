@@ -31,4 +31,37 @@
             TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
         }
     }
+
+    public class SingleTransation
+    {
+        public string TransactionId { get; set; }
+        public Guid Integratorid { get; set; }
+        public bool IsAdmin { get; set; }
+    }
+
+    public class RequestResponse
+    {
+        public object Request { get; set; }
+        public object Response { get; set; }
+        public RequestResponse(ElectricitySaleRequest request, ExecutionResult response)
+        {
+            Request = request;
+            Response = response;
+        }
+        public RequestResponse(SaleStatusRequest request, ExecutionResult response)
+        {
+            Request = request;
+            Response = response;
+        }
+        public RequestResponse(RTSRequestmodel request, RTSResponse response)
+        {
+            Request = request;
+            Response = response;
+        }
+        public RequestResponse(RTSRequestmodel request, RTSErorResponse response)
+        {
+            Request = request;
+            Response = response;
+        }
+    }
 }

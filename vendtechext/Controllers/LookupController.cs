@@ -11,11 +11,11 @@ namespace vendtechext.Controllers
     public class LookupController : BaseController
     {
         private readonly IDepositService _depositService;
-        private readonly AppConfiguration config;
-        public LookupController(ILogger<BaseController> logger, IDepositService depositService, AppConfiguration config) : base(logger)
+        private readonly ISalesService _salesService;
+        public LookupController(ILogger<BaseController> logger, IDepositService depositService, ISalesService salesService) : base(logger)
         {
             _depositService = depositService;
-            this.config = config;
+            _salesService = salesService;
         }
 
         [HttpGet("get-payment-type")]
@@ -32,6 +32,13 @@ namespace vendtechext.Controllers
             var result = AppConfiguration.GetSettings();
             Response Response = new Response();
             return Ok(Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse());
+        }
+
+        [HttpPost("get-transaction-requestresponse")]
+        public async Task<IActionResult> GetTransaction([FromBody] SingleTransation request)
+        {
+            var result = await _salesService.GetSingleTransactionAsync(request);
+            return Ok(result);
         }
 
     }

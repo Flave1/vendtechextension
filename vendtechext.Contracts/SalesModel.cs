@@ -4,11 +4,14 @@ using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
 {
-    public class ElectricitySaleRequest
+    public class SaleRequestBase {
+
+        public string TransactionId { get; set; }
+    }
+    public class ElectricitySaleRequest: SaleRequestBase
     {
         public decimal Amount { get; set; }
         public string MeterNumber { get; set; }
-        public string TransactionId { get; set; }
     }
 
     public class ElectricitySaleRTO
@@ -19,9 +22,8 @@ namespace vendtechext.Contracts
         public string VendtechTransactionId { get; set; }
     }
 
-    public class SaleStatusRequest
+    public class SaleStatusRequest: SaleRequestBase
     {
-        public string TransactionId { get; set; }
     }
 
     public class TransactionDto
@@ -43,6 +45,7 @@ namespace vendtechext.Contracts
         public string ReceivedFrom { get; set; }
         public string Date { get; set; }
         public bool IsClaimed { get; set; }
+        public Guid IntegratorId { get; set; }
         public string IntegratorName { get; set; }
         public string WalletId { get; set; }
         public TransactionDto(Transaction x)
@@ -59,8 +62,9 @@ namespace vendtechext.Contracts
             TransactionStatus = x.TransactionStatus;
             Date = x.CreatedAt.ToString("dd-MM-yyyy hh:mm");
             IsClaimed = x.ClaimedStatus == (int)ClaimedStatus.Claimed;
-            IntegratorName = x.Integrator.BusinessName;
-            WalletId = x.Integrator.Wallet.WALLET_ID;
+            IntegratorName = x?.Integrator?.BusinessName?? "";
+            IntegratorId = x.IntegratorId;
+            WalletId = x?.Integrator?.Wallet?.WALLET_ID ?? "";
         }
     }
 
