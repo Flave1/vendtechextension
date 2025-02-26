@@ -1,6 +1,5 @@
 ﻿using Hangfire;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
@@ -51,10 +50,6 @@ namespace vendtechext.BLL.Services
             {
                 throw new BadRequestException($"Deposit amount must not be less than {settings.Threshholds.MinimumDeposit}.");
             }
-
-
-
-
             var wallet = await _walletRepository.GetWalletByIntegratorId(integratorid, true);
             CreateDepositDto dto = new CreateDepositDto
             {
@@ -65,13 +60,12 @@ namespace vendtechext.BLL.Services
                 IntegratorId = integratorid,
                 PaymentTypeId = request.PaymentTypeId
             };
-           
             Deposit deposit = await _repository.CreateDepositTransaction(dto, DepositStatus.Waiting);
             if(deposit != null) 
                 await _walletRepository.UpdateWalletBookBalance(wallet, deposit.BalanceAfter);
 
 
-            
+            deposit = await _repository.GetDepositTransaction(deposit.Id);
             if (settings.Notification.SendAdminDepositEmail)
                 _backgroundJobClient.Enqueue(() => CreateDepositNotification(wallet.WALLET_ID, deposit.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, deposit.CreatedAt));
 
@@ -99,9 +93,9 @@ namespace vendtechext.BLL.Services
                 return Response.WithStatus("success").WithMessage("Successfully Cancelled deposit").WithType(request).GenerateResponse();
             }
 
-            Wallet wallet = await _walletRepository.GetWalletByIntegratorId(request.IntegratorId);
             await _repository.ApproveDepositTransaction(deposit);
-            await _walletRepository.UpdateWalletBookBalance(wallet, deposit.BalanceAfter);
+            Wallet wallet = await _walletRepository.GetWalletByIntegratorId(request.IntegratorId);
+            await _walletRepository.UpdateWalletRealBalance(wallet.Id, deposit.Amount);
             await CreateCommision(deposit, request.IntegratorId, wallet);
 
             SettingsPayload settings = AppConfiguration.GetSettings();
@@ -136,7 +130,7 @@ namespace vendtechext.BLL.Services
                 PaymentTypeId = commissionMethod.Id,
             };
             await _repository.CreateDepositTransaction(commsionDto, DepositStatus.Approved);
-            await _walletRepository.UpdateWalletRealBalance(wallet, commsionDto.BalanceAfter);
+            await _walletRepository.UpdateWalletRealBalance(wallet.Id, commission);
         }
 
         public async Task<APIResponse> GetIntegratorDeposits(PaginatedSearchRequest req)
@@ -272,5 +266,7 @@ namespace vendtechext.BLL.Services
             var result = _walletRepository.GetAdminTodaysTransaction();
             return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse();
         }
+
+      
     }
 }

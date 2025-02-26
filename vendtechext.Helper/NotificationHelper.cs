@@ -7,7 +7,7 @@ namespace vendtechext.BLL.Services
 {
     public class NotificationHelper
     {
-        private readonly DataContext _context; // Your DbContext for accessing the database
+        private readonly DataContext _context;
 
         public NotificationHelper(DataContext context)
         {

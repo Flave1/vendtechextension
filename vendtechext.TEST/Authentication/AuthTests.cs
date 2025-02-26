@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using System.Net;
-using System.Net.Http;
+﻿using System.Net;
 using System.Text;
 using Xunit;
 

@@ -3,6 +3,11 @@ using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
 {
+    public class InternalUseVoucherProps
+    {
+        public string SellerTransactionID;
+        public decimal? SellerReturnedBalance;
+    }
     public class SuccessResponse
     {
         public string TransactionId { get; set; }
@@ -36,7 +41,7 @@ namespace vendtechext.Contracts
             MeterNumber = response_data.PowerHubVoucher.MeterNumber;
             Voucher.VoucherSerialNumber = response_data?.SerialNumber;
             Voucher.Denomination = response_data?.Denomination;
-            Voucher.RTSUniqueID = response_data?.PowerHubVoucher?.RtsUniqueId;
+            Voucher.SellerTransactionID = response_data?.PowerHubVoucher?.RtsUniqueId;
             Voucher.SellerReturnedBalance = response_data?.DealerBalance;
         }
         public SuccessResponse(RTSStatusResponse x)
@@ -54,7 +59,7 @@ namespace vendtechext.Contracts
             Voucher.Units = response_data?.Units;
             Voucher.StatusRequestCount = 0;
             Voucher.VoucherSerialNumber = response_data?.SerialNumber;
-            Voucher.RTSUniqueID = response_data?.RTSUniqueID;
+            Voucher.SellerTransactionID = response_data?.RTSUniqueID;
             Voucher.Denomination = Convert.ToInt64(response_data?.Denomination);
             MeterNumber = response_data.MeterNumber;
         }
@@ -65,10 +70,23 @@ namespace vendtechext.Contracts
             Amount = x.Amount;
             VendtechTransactionId = x.VendtechTransactionID;
             WalleBalance = Utils.FormatAmount(wallet.Balance);
+            MeterNumber = x.MeterNumber;
+            TransactionStatus = x.TransactionStatus;
+            return this;
+        }
+        public SuccessResponse UpdateResponseForUI(Transaction x)
+        {
+            TransactionId = x.TransactionUniqueId;
+            RequestDate = x.CreatedAt;
+            Amount = x.Amount;
+            VendtechTransactionId = x.VendtechTransactionID;
+            WalleBalance = Utils.FormatAmount(x.BalanceAfter);
+            MeterNumber = x.MeterNumber;
+            TransactionStatus = x.TransactionStatus;
             return this;
         }
     }
-    public class Voucher
+    public class Voucher: InternalUseVoucherProps
     {
         public string MeterToken1 { get; set; }
         public string MeterToken2 { get; set; }
@@ -87,11 +105,8 @@ namespace vendtechext.Contracts
         public string VoucherSerialNumber { get; set; }
         public string VendStatusDescription { get; set; }
         public decimal DealerBalance { get; set; }
-        public string RTSUniqueID { get; set; }
         public string Provider { get; set; } = "EDSA";
         public long? Denomination { get; set; }
-        public decimal? SellerReturnedBalance { get; set; }
-
     }
     public class FailedResponse
     {

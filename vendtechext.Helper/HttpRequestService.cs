@@ -1,8 +1,6 @@
-﻿using Azure.Core;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Text;
 using vendtechext.DAL.Common;
-using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper
 {

@@ -33,7 +33,7 @@ namespace vendtechext.Controllers
         [HttpGet("get-wallet-balance")]
         public async Task<IActionResult> GetBalance(bool includeLastDeposit)
         {
-            if (User.IsInRole("Integrator"))
+            if (User.IsInRole(APP_ROLES.Integrator))
             {
                 Guid integrator_id = Guid.Parse(_contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "integrator_id")?.Value ?? "");
                 var result = await _depositService.GetWalletBalance(integrator_id, includeLastDeposit);

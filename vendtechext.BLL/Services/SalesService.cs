@@ -44,7 +44,6 @@ namespace vendtechext.BLL.Services
                 throw new BadRequestException("Transaction not found found");
 
 
-
             var initial_request = new ElectricitySaleRequest
             {
                 Amount = transaction.Amount,
@@ -52,19 +51,10 @@ namespace vendtechext.BLL.Services
                 TransactionId = transaction.TransactionUniqueId
             };
             executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
+            executionResult.successResponse.UpdateResponseForUI(transaction);
             var requestResponse1 = new RequestResponse(initial_request, executionResult);
             requestResponses.Add(requestResponse1);
 
-            //if (transaction.ReceivedFrom == "rts_status")
-            //{
-            //    var status_request = new SaleStatusRequest
-            //    {
-            //        TransactionId = transaction.TransactionUniqueId
-            //    };
-            //    executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
-            //    var requestResponse2 = new RequestResponse(status_request, executionResult);
-            //    requestResponses.Add(requestResponse2);
-            //}
             if (req.IsAdmin)
             {
                 if (!string.IsNullOrEmpty(transaction.Request) && !string.IsNullOrEmpty(transaction.Response))
@@ -153,6 +143,26 @@ namespace vendtechext.BLL.Services
                     query = query.Where(d => d.Integrator.BusinessName.Contains(req.SortValue));
             }
             return query;
+        }
+
+
+        public async Task<List<TransactionDto>> GetTransactionReportAsync(PaginatedSearchRequest req)
+        {
+            var query = _repository.GetSalesTransactionQuery(req.Status, req.IsClaimedStatus);
+            query = FilterQuery(req, query);
+            int totalRecords = await query.CountAsync();
+
+            query = query.Skip((req.PageNumber - 1) * req.PageSize).Take(req.PageSize);
+
+            List<TransactionDto> transactions = await query.Select(d => new TransactionDto(d)).ToListAsync();
+
+            return transactions.Select(t => new TransactionDto
+            {
+                Date = t.Date, // Ensure you have a Date property in your Transaction model
+                Amount = t.Amount,
+                BalanceBefore = t.BalanceBefore,
+                BalanceAfter = t.BalanceAfter
+            }).ToList();
         }
     }
 }

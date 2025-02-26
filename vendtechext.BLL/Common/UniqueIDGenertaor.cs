@@ -1,5 +1,4 @@
-﻿using System;
-using vendtechext.DAL.Models;
+﻿using vendtechext.DAL.Models;
 
 namespace vendtechext.BLL.Common
 {

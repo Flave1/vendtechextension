@@ -1,5 +1,4 @@
 ﻿using vendtechext.DAL.Common;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
@@ -65,6 +64,10 @@ namespace vendtechext.Contracts
             IntegratorName = x?.Integrator?.BusinessName?? "";
             IntegratorId = x.IntegratorId;
             WalletId = x?.Integrator?.Wallet?.WALLET_ID ?? "";
+        }
+        public TransactionDto()
+        {
+                
         }
     }
 

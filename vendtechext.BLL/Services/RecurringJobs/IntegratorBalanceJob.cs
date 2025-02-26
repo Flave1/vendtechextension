@@ -9,7 +9,7 @@ namespace vendtechext.BLL.Services.RecurringJobs
     {
         public async Task Run()
         {
-            if (DomainEnvironment.IsSandbox)
+            if (DomainEnvironment.IsProduction)
             {
                 using (DataContext db = new DataContext())
                 {
@@ -17,7 +17,6 @@ namespace vendtechext.BLL.Services.RecurringJobs
                     Thresholds thresholds = settings.Threshholds;
                     if (settings.Notification.LowBalance)
                     {
-
                         var wallets = await db.Wallets.Where(d => d.Deleted == false && d.Balance <= thresholds.MinimumDeposit)
                             .Include(d => d.Integrator).ThenInclude(d => d.AppUser).ToListAsync();
                         var notification = new NotificationHelper(db);

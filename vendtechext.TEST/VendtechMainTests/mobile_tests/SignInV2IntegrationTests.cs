@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Text;
 using vendtechext.Contracts.VtchMainModels;
 using Xunit;

@@ -5,7 +5,6 @@ using MimeKit;
 using vendtechext.BLL.Services;
 using vendtechext.Contracts;
 using vendtechext.Contracts.VtchMainModels;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper
@@ -13,7 +12,7 @@ namespace vendtechext.Helper
     public class EmailHelper
     {
         public readonly IConfiguration _configuration;
-        public static bool SendNotification = true;
+        public static bool SendNotification = false;
         private readonly string _dir;
         public EmailHelper(IConfiguration configuration)
         {

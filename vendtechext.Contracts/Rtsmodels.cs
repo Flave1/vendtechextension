@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace vendtechext.Contracts
+﻿namespace vendtechext.Contracts
 {
     public class RTSRequestmodel
     {

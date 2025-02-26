@@ -1,5 +1,4 @@
-﻿using FirebaseAdmin.Messaging;
-using Hangfire;
+﻿using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using vendtechext.BLL.Common;
@@ -9,7 +8,6 @@ using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 

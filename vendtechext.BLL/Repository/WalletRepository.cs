@@ -1,7 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.Contracts;
@@ -133,14 +132,15 @@ namespace vendtechext.BLL.Repository
         }
 
 
-        public async Task UpdateWalletRealBalance(Wallet wallet, decimal newBalance)
+        public async Task UpdateWalletRealBalance(Guid walletId, decimal newBalance)
         {
-            new WalletBuilder(wallet).SetBalance(newBalance).Build();
-            await _context.SaveChangesAsync();
+            await _context.Database.ExecuteSqlRawAsync(
+                "UPDATE Wallets SET Balance = Balance + @p0 WHERE Id = @p1",
+                parameters: new[] { newBalance.ToString(), walletId.ToString() });
         }
         public async Task UpdateWalletBookBalance(Wallet wallet, decimal newBalance)
         {
-            new WalletBuilder(wallet)
+            wallet = new WalletBuilder(wallet)
                 .SetBookBalance(newBalance)
                 .Build();
 
@@ -150,7 +150,7 @@ namespace vendtechext.BLL.Repository
 
         public async Task MarkWalletAsDeleted(Wallet wallet)
         {
-            new WalletBuilder(wallet)
+            wallet = new WalletBuilder(wallet)
                 .SetDeleted(true)
                 .SetUpdatedAt(DateTime.Now)
                 .Build();

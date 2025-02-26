@@ -6,7 +6,6 @@ using vendtechext.BLL.Exceptions;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -77,7 +76,7 @@ namespace vendtechext.BLL.Repository
 
         public async Task<Deposit> GetDepositTransaction(Guid Id)
         {
-            var trans = await _context.Deposits.FirstOrDefaultAsync(d => d.Id == Id && d.Deleted == false) ?? null;
+            var trans = await _context.Deposits.Include(d => d.Integrator).FirstOrDefaultAsync(d => d.Id == Id && d.Deleted == false) ?? null;
             if (trans == null)
                 throw new BadRequestException("Unable to find deposit");
             return trans;
@@ -531,7 +530,7 @@ namespace vendtechext.BLL.Repository
             trans = new TransactionsBuilder(trans)
                 .WithSellerReturnedBalance(executionResult.successResponse?.Voucher?.SellerReturnedBalance ?? 0)
                 .WithVendStatusDescription(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
-                .WithSellerTransactionId(executionResult.successResponse.Voucher?.RTSUniqueID ?? "")
+                .WithSellerTransactionId(executionResult.successResponse.Voucher?.SellerTransactionID ?? "")
                 .WithTransactionStatus(TransactionStatus.Success)
                 .WithReceivedFrom(executionResult.receivedFrom)
                 .WithResponse(executionResult.response)
@@ -545,7 +544,7 @@ namespace vendtechext.BLL.Repository
         public async Task UpdateSuceessSaleTransactionLogOnStatusQuery(ExecutionResult executionResult, Transaction trans)
         {
             trans = new TransactionsBuilder(trans)
-                .WithSellerTransactionId(executionResult.successResponse.Voucher?.RTSUniqueID ?? "")
+                .WithSellerTransactionId(executionResult.successResponse.Voucher?.SellerTransactionID ?? "")
                 .WithQueryStatusMessage(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
                 .WithTransactionStatus(TransactionStatus.Success)
                 .WithReceivedFrom(executionResult.receivedFrom)

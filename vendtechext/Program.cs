@@ -195,7 +195,14 @@ app.MapControllers();
 
 //Recurring Jobs
 var integratorBalanceJob = new IntegratorBalanceJob();
-RecurringJob.AddOrUpdate("midnight-job", () => integratorBalanceJob.Run(), "0 0 * * *");
+RecurringJob.AddOrUpdate(
+    "midnight-job",
+    () => integratorBalanceJob.Run(),
+    "0 0 * * *",
+    new RecurringJobOptions
+    {
+        TimeZone = TimeZoneInfo.FindSystemTimeZoneById("UTC")
+    });
 
 
 FirebaseApp.Create(new AppOptions()

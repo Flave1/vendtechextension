@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using System.Net;
 using System.Text;
 using vendtechext.BLL.Interfaces;
-using vendtechext;
 using vendtechext.Contracts;
 using Xunit;
 

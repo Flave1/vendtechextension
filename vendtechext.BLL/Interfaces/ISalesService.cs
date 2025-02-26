@@ -7,5 +7,6 @@ namespace vendtechext.BLL.Interfaces
         Task<APIResponse> GetSalesReportAsync(PaginatedSearchRequest request);
         Task<List<TransactionExportDto>> GetSalesReportForExportAsync(PaginatedSearchRequest req);
         Task<APIResponse> GetSingleTransactionAsync(SingleTransation req);
+        Task<List<TransactionDto>> GetTransactionReportAsync(PaginatedSearchRequest req);
     }
 }

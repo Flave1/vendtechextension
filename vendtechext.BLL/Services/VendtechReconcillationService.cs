@@ -1,11 +1,9 @@
-﻿using FirebaseAdmin.Messaging;
-using Hangfire;
+﻿using Hangfire;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Text;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts.VtchMainModels;
-using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
 namespace vendtechext.BLL.Services

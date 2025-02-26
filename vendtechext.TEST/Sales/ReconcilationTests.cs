@@ -1,7 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Net;
+﻿using System.Net;
 using System.Text;
-using vendtechext.Contracts;
 using Xunit;
 
 namespace vendtechext.TEST.Sales
