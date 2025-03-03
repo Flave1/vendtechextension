@@ -12,7 +12,7 @@ namespace vendtechext.Helper
     public class EmailHelper
     {
         public readonly IConfiguration _configuration;
-        public static bool SendNotification = false;
+        public static bool SendNotification = true;
         private readonly string _dir;
         public EmailHelper(IConfiguration configuration)
         {
@@ -261,8 +261,31 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[Datetime]", Utils.formatDate(DateTime.UtcNow));
                 emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(wallet.Balance));
                 emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}/deposit_form");
-                notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
+                //notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
              
+                helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
+                helper.SendEmail("vblell@gmail.com", subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+        public void SendEmailToIntegratorOnBalanceAlert(Wallet wallet, Integrator integrator)
+        {
+            try
+            {
+                string subject = "BALANCE RUNNING LOW";
+                string emailBody = helper.GetEmailTemplate("midnight_balance");
+
+                emailBody = emailBody.Replace("[Username]", integrator.AppUser.FirstName);
+                emailBody = emailBody.Replace("[Wallet_ID]", wallet.WALLET_ID);
+                emailBody = emailBody.Replace("[Datetime]", Utils.formatDate(DateTime.UtcNow));
+                emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(wallet.Balance));
+                emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}/deposit_form");
+                emailBody = emailBody.Replace("[email_setting_link]", $"{DomainEnvironment.DashboardUrl}/edit-profile ");
+                //notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
+
                 helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
                 helper.SendEmail("vblell@gmail.com", subject, emailBody);
             }

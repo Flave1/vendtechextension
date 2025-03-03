@@ -37,7 +37,7 @@ namespace vendtechext.Controllers
             {
                 Guid integrator_id = Guid.Parse(_contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "integrator_id")?.Value ?? "");
                 var result = await _depositService.GetWalletBalance(integrator_id, includeLastDeposit);
-                return Ok(result);
+                return Ok(result); 
             }
             else if (User.IsInRole(APP_ROLES.SuperAdmin))
             {

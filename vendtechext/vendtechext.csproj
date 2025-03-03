@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\balance_low.html" />
+    <Content Remove="wwwroot\EmailTemplates\midnight_balance.html" />
     <Content Remove="wwwroot\EmailTemplates\new_integrator.html" />
     <Content Remove="wwwroot\EmailTemplates\password_reset.html" />
   </ItemGroup>
@@ -44,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\EmailTemplates\midnight_balance.html" />
     <None Include="wwwroot\EmailTemplates\password_reset.html" />
     <None Include="wwwroot\EmailTemplates\new_integrator.html" />
     <None Include="wwwroot\EmailTemplates\simple.html" />

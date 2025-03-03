@@ -15,6 +15,7 @@ namespace vendtechext.Contracts
         public string AppUserId { get; set; }
         public string Phone { get; set; }
         public int CommissionLevel { get; set; }
+        public int MinThreshold { get; set; }
         public IFormFile image { get; set; }
         public BusinessUserDTO(Integrator x)
         {
@@ -52,6 +53,7 @@ namespace vendtechext.Contracts
         public int CommissionLevel { get; set; }
         public double CommissionLevelName { get; set; }
         public string Logo { get; set; }
+        public int MinThreshold { get;set; }
         public BusinessUserListDTO(Integrator x, List<Commission> commissions)
         {
             Id = x.Id;
@@ -68,6 +70,7 @@ namespace vendtechext.Contracts
             Balance = x.Wallet.Balance;
             CommissionLevel = x.Wallet.CommissionId;
             Logo = x.Logo;
+            MinThreshold = x.Wallet.MinThreshold;
             CommissionLevelName = commissions.FirstOrDefault(d => d.Id == CommissionLevel)?.Percentage ?? 0;
         }
     }
@@ -80,6 +83,7 @@ namespace vendtechext.Contracts
         public string LastName { get; set; }
         public string Phone { get; set; }
         public string About { get; set; }
+        public int MinThreshold { get; set; }
         public int CommissionLevel { get; set; }
         public IFormFile image { get; set; }
     }

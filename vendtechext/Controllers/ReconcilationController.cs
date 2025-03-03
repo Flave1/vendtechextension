@@ -27,13 +27,5 @@ namespace vendtechext.Controllers
             return Ok();
         }
 
-
-        [HttpPost("test")]
-        public async Task<IActionResult> Test([FromBody] ReconcileRequest request)
-        {
-            var rec = new IntegratorBalanceJob();
-            await rec.Run();
-            return Ok();
-        }
     }
 }

@@ -1,9 +1,12 @@
 ﻿using Hangfire;
+using Hangfire.Storage;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
+using vendtechext.BLL.Services.RecurringJobs;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -14,10 +17,11 @@ namespace vendtechext.BLL.Services
         private readonly RequestExecutionContext _executionContext; 
         private readonly TransactionRepository _repository;
         private readonly IRecurringJobManager _recurringJobManager;
+        private readonly IBackgroundJobClient _backgroundJobClient;
         private readonly WalletRepository _walletReo;
         private readonly LogService _logService;
         private readonly TransactionUpdate _transactionUpdate;
-        public APISalesService(RequestExecutionContext executionContext, TransactionRepository transactionRepository, IRecurringJobManager recurringJobManager, WalletRepository walletReo, LogService logService, TransactionUpdate transactionUpdate)
+        public APISalesService(RequestExecutionContext executionContext, TransactionRepository transactionRepository, IRecurringJobManager recurringJobManager, WalletRepository walletReo, LogService logService, TransactionUpdate transactionUpdate, IBackgroundJobClient backgroundJobClient)
         {
             _executionContext = executionContext;
             _repository = transactionRepository;
@@ -25,6 +29,7 @@ namespace vendtechext.BLL.Services
             _walletReo = walletReo;
             _logService = logService;
             _transactionUpdate = transactionUpdate;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         #region PRODUCTION
@@ -112,6 +117,7 @@ namespace vendtechext.BLL.Services
                         executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
                         await _transactionUpdate.UpdateSuceessSaleTransactionLogOnStatusQuery(executionResult, transaction);
                         transaction =await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
+                        CheckIntegratorBalanceThreshold(wallet);
                         return Response.WithStatus(executionResult.status).WithMessage("Transaction Successfully fetched").WithType(executionResult).GenerateResponse();
                     }
                     else if (executionResult.status == "failed")
@@ -164,7 +170,8 @@ namespace vendtechext.BLL.Services
                     wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
                     executionResult.successResponse.UpdateResponse(transaction, wallet);
                     executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
-                    await _transactionUpdate.UpdateSaleSuccessTransactionLogSANDBOX(transaction);
+                    await _transactionUpdate.UpdateSaleSuccessTransactionLogSANDBOX(existingTransaction, transaction);
+                    CheckIntegratorBalanceThreshold(wallet);
                     return Response.WithStatus(executionResult.status).WithMessage("Vend successful").WithType(executionResult).GenerateResponse();
                 }
                 else if (!existingTransaction.Finalized)
@@ -251,7 +258,7 @@ namespace vendtechext.BLL.Services
                     _logService.Log(LogType.QeueJob, $"Removing job {jobId}", transaction);
                     _recurringJobManager.RemoveIfExists(jobId);
                     Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
-                    transaction =await _repository.DeductFromWalletIfRefunded(transactionId: transaction.Id, walletId: wallet.Id);
+                    transaction = await _repository.DeductFromWalletIfRefunded(transactionId: transaction.Id, walletId: wallet.Id);
                     transaction.ClaimedStatus = (int)ClaimedStatus.Unclaimed;
                     await _transactionUpdate.UpdateSuceessSaleTransactionLogOnStatusQuery(executionResult, transaction);
                 }
@@ -274,5 +281,27 @@ namespace vendtechext.BLL.Services
 
         private ElectricitySaleRTO TransferRequestToRTO(ElectricitySaleRequest x, string vendtechTransactionId) => 
             new ElectricitySaleRTO { Amount = x.Amount, MeterNumber = x.MeterNumber, TransactionId = x.TransactionId, VendtechTransactionId = vendtechTransactionId };
+   
+
+        private void CheckIntegratorBalanceThreshold(Wallet wallet)
+        {
+            try
+            {
+                if(wallet.MinThreshold >= wallet.Balance)
+                {
+                    string jobId = "balance_low"+wallet.WALLET_ID;
+                    if (!wallet.IsBalanceLowReminderSent)
+                    {
+                        _walletReo.UpdateIsBalanceLowReminderSent(wallet.Id, value: true, walletId: wallet.WALLET_ID);
+                        _recurringJobManager.AddOrUpdate(jobId, () => new IntegratorBalanceJob().SendLowBalanceAlert(wallet.Id), Cron.Yearly);
+                        _recurringJobManager.Trigger(jobId);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
     }
 }

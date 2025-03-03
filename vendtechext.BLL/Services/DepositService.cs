@@ -66,7 +66,7 @@ namespace vendtechext.BLL.Services
 
 
             deposit = await _repository.GetDepositTransaction(deposit.Id);
-            if (settings.Notification.SendAdminDepositEmail)
+            if (settings.Notification.Deposits)
                 _backgroundJobClient.Enqueue(() => CreateDepositNotification(wallet.WALLET_ID, deposit.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, deposit.CreatedAt));
 
             return Response.WithStatus("success").WithMessage("Successfully created deposit").WithType(request).GenerateResponse();
@@ -97,15 +97,16 @@ namespace vendtechext.BLL.Services
             Wallet wallet = await _walletRepository.GetWalletByIntegratorId(request.IntegratorId);
             await _walletRepository.UpdateWalletRealBalance(wallet.Id, deposit.Amount);
             await CreateCommision(deposit, request.IntegratorId, wallet);
+            _walletRepository.UpdateIsBalanceLowReminderSent(wallet.Id, value: false, walletId: wallet.WALLET_ID);
 
             SettingsPayload settings = AppConfiguration.GetSettings();
-            if (settings.Notification.SendDepositApprovalEmailToUser)
-                _backgroundJobClient.Enqueue(() => ApproveDepositNotification(request.IntegratorId, deposit.Amount, deposit.Id, wallet.CommissionId, request.ApprovingUserId));
+            if (settings.Notification.Deposits)
+                _backgroundJobClient.Enqueue(() => ApproveDepositNotification(request.IntegratorId, wallet.WALLET_ID, deposit.Amount, deposit.Id, wallet.CommissionId, request.ApprovingUserId));
 
             return Response.WithStatus("success").WithMessage("Successfully approved deposit").WithType(request).GenerateResponse();
         }
 
-        public async Task ApproveDepositNotification(Guid integratorId, decimal Amount, Guid DeposiId, int CommissionId, string currentAdminUserId)
+        public async Task ApproveDepositNotification(Guid integratorId, string walletId, decimal Amount, Guid DeposiId, int CommissionId, string currentAdminUserId)
         {
             long? notificationId = notification.GetNotificationId(DeposiId.ToString());
             if(notificationId != null && notificationId.Value > 0)
@@ -213,7 +214,7 @@ namespace vendtechext.BLL.Services
 
         public async Task<APIResponse> GetWalletBalance(Guid integratorId, bool includeLastDeposit)
         {
-            var wallet = await _walletRepository.GetWalletByIntegratorId(integratorId, true);
+            var wallet = await _walletRepository.GetWalletByIntegratorId(integratorId, includeIntegrator:true);
             List<LastDeposit> lastDeposit = null;
             if (includeLastDeposit)
             {

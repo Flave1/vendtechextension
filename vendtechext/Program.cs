@@ -131,6 +131,7 @@ builder.Services.AddSignalR();
 //Cache
 builder.Services.AddMemoryCache();
 
+
 // Dependency Injection
 builder.Services.AddScoped<IVendtechReconcillationService, VendtechReconcillationService>();
 builder.Services.AddScoped<IIntegratorService, IntegratorService>();
@@ -195,9 +196,8 @@ app.MapControllers();
 
 //Recurring Jobs
 var integratorBalanceJob = new IntegratorBalanceJob();
-RecurringJob.AddOrUpdate(
-    "midnight-job",
-    () => integratorBalanceJob.Run(),
+//RecurringJob.RemoveIfExists("Balance-low-job");
+RecurringJob.AddOrUpdate("MIDNIGHT-BALANCE-JOB", () => integratorBalanceJob.Run(), 
     "0 0 * * *",
     new RecurringJobOptions
     {

@@ -463,7 +463,7 @@ namespace vendtechext.BLL.Repository
 
         public async Task<Transaction> GetSaleTransactionByRandom(string meterNumber)
         {
-            string[] transactionIds = ["268085", "268027", "268029", "268025", "268023", "265514", "265511", "264840"];
+            string[] transactionIds = ["312643", "311878", "311567", "302734"];
             string randomTransactionId = transactionIds[new Random().Next(transactionIds.Length)];
 
             var trans = await _context.Transactions
@@ -584,16 +584,16 @@ namespace vendtechext.BLL.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateSaleSuccessTransactionLogSANDBOX(Transaction trans)
+        public async Task UpdateSaleSuccessTransactionLogSANDBOX(Transaction existingTrans, Transaction newTrans)
         {
-            trans = new TransactionsBuilder(trans)
-                .WithSellerReturnedBalance(trans.SellerReturnedBalance)
-                .WithVendStatusDescription(trans.VendStatusDescription ?? "")
-                .WithSellerTransactionId(trans.SellerTransactionID ?? "")
+            newTrans = new TransactionsBuilder(newTrans)
+                .WithSellerReturnedBalance(existingTrans.SellerReturnedBalance)
+                .WithVendStatusDescription(existingTrans.VendStatusDescription ?? "")
+                .WithSellerTransactionId(existingTrans.SellerTransactionID ?? "")
                 .WithTransactionStatus(TransactionStatus.Success)
-                .WithReceivedFrom(trans.ReceivedFrom)
-                .WithResponse(trans.Response)
-                .WithRequest(trans.Request)
+                .WithReceivedFrom(existingTrans.ReceivedFrom)
+                .WithResponse(existingTrans.Response)
+                .WithRequest(existingTrans.Request)
                 .WithFinalized(true)
                 .Build();
 

@@ -21,6 +21,11 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public WalletBuilder WithMinThreshold(int minThreshold)
+        {
+            _wallet.MinThreshold = minThreshold;
+            return this;
+        }
         public WalletBuilder SetIntegratorId(Guid integratorId)
         {
             _wallet.IntegratorId = integratorId;

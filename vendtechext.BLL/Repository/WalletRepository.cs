@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Hangfire;
+using Hangfire.Server;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using vendtechext.BLL.Common;
@@ -21,10 +23,11 @@ namespace vendtechext.BLL.Repository
             _context = context;
         }
 
-        public async Task<Wallet> CreateWallet(Guid integratorId, int CommissionLevel)
+        public async Task<Wallet> CreateWallet(Guid integratorId, int CommissionLevel, int minThreshold)
         {
             var wallet = new WalletBuilder()
                 .SetWalletId(UniqueIDGenerator.GenerateAccountNumber("000"))
+                .WithMinThreshold(minThreshold)
                 .SetCommission(CommissionLevel)
                 .SetIntegratorId(integratorId)
                 .SetBalance(0)
@@ -58,28 +61,16 @@ namespace vendtechext.BLL.Repository
 
                 using (var command = connection.CreateCommand())
                 {
-                    if (!includeIntegrator)
-                    {
-                        // Query wallet without Integrator details
-                        command.CommandText = @"
-                    SELECT Id, WALLET_ID, Balance, BookBalance, CommissionId, IntegratorId 
-                    FROM Wallets WHERE IntegratorId = @integratorId;";
-                    }
-                    else
-                    {
-                        // Query wallet with Integrator details
-                        command.CommandText = @"
-                    SELECT w.Id, w.WALLET_ID, w.Balance, w.BookBalance, w.CommissionId, w.IntegratorId, 
-                           i.Id as IntegratorId, i.AppUserId, i.BusinessName, i.About, i.Logo, i.Disabled, i.ApiKey
+                    command.CommandText = includeIntegrator
+                        ? @"SELECT w.Id, w.WALLET_ID, w.Balance, w.BookBalance, w.CommissionId, w.IntegratorId, w.MinThreshold, w.IsBalanceLowReminderSent,
+                         i.Id as IntegratorId, i.AppUserId, i.BusinessName, i.About, i.Logo, i.Disabled, i.ApiKey
                     FROM Wallets w
-                    INNER JOIN Integrators i ON w.IntegratorId = i.Id
-                    WHERE w.IntegratorId = @integratorId;";
-                    }
+                    LEFT JOIN Integrators i ON w.IntegratorId = i.Id
+                    WHERE w.IntegratorId = @integratorId;"
+                        : @"SELECT Id, WALLET_ID, Balance, BookBalance, CommissionId, IntegratorId, MinThreshold, IsBalanceLowReminderSent
+                    FROM Wallets WHERE IntegratorId = @integratorId;";
 
-                    var integratorIdParam = command.CreateParameter();
-                    integratorIdParam.ParameterName = "@integratorId";
-                    integratorIdParam.Value = integratorId;
-                    command.Parameters.Add(integratorIdParam);
+                    command.Parameters.AddWithValue("@integratorId", integratorId);
 
                     using (var reader = await command.ExecuteReaderAsync())
                     {
@@ -90,25 +81,27 @@ namespace vendtechext.BLL.Repository
 
                         var wallet = new Wallet
                         {
-                            Id = reader.GetGuid(0),
-                            WALLET_ID = reader.GetString(1),
-                            Balance = reader.GetDecimal(2),
-                            BookBalance = reader.GetDecimal(3),
-                            CommissionId = reader.GetInt32(4),
-                            IntegratorId = reader.GetGuid(5),
+                            Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                            WALLET_ID = reader.GetString(reader.GetOrdinal("WALLET_ID")),
+                            Balance = reader.GetDecimal(reader.GetOrdinal("Balance")),
+                            BookBalance = reader.GetDecimal(reader.GetOrdinal("BookBalance")),
+                            CommissionId = reader.IsDBNull(reader.GetOrdinal("CommissionId")) ? 0 : reader.GetInt32(reader.GetOrdinal("CommissionId")),
+                            IntegratorId = reader.IsDBNull(reader.GetOrdinal("IntegratorId")) ? Guid.Empty : reader.GetGuid(reader.GetOrdinal("IntegratorId")),
+                            MinThreshold = reader.GetInt32(reader.GetOrdinal("MinThreshold")),
+                            IsBalanceLowReminderSent = reader.GetBoolean(reader.GetOrdinal("IsBalanceLowReminderSent"))
                         };
 
-                        if (includeIntegrator && reader.FieldCount > 6)
+                        if (includeIntegrator && reader.FieldCount > 7)
                         {
                             wallet.Integrator = new Integrator
                             {
-                                Id = reader.GetGuid(6),
-                                AppUserId = reader.GetString(7),
-                                BusinessName = reader.GetString(8),
-                                About = reader.IsDBNull(9) ? null : reader.GetString(9),
-                                Logo = reader.IsDBNull(10) ? null : reader.GetString(10),
-                                Disabled = reader.GetBoolean(11),
-                                ApiKey = reader.GetString(12)
+                                Id = reader.GetGuid(reader.GetOrdinal("IntegratorId")),
+                                AppUserId = reader.GetString(reader.GetOrdinal("AppUserId")),
+                                BusinessName = reader.GetString(reader.GetOrdinal("BusinessName")),
+                                About = reader.IsDBNull(reader.GetOrdinal("About")) ? null : reader.GetString(reader.GetOrdinal("About")),
+                                Logo = reader.IsDBNull(reader.GetOrdinal("Logo")) ? null : reader.GetString(reader.GetOrdinal("Logo")),
+                                Disabled = reader.GetBoolean(reader.GetOrdinal("Disabled")),
+                                ApiKey = reader.GetString(reader.GetOrdinal("ApiKey"))
                             };
                         }
 
@@ -117,6 +110,7 @@ namespace vendtechext.BLL.Repository
                 }
             }
         }
+
 
 
         public async Task<decimal> GetAdminBalance()
@@ -137,6 +131,26 @@ namespace vendtechext.BLL.Repository
             await _context.Database.ExecuteSqlRawAsync(
                 "UPDATE Wallets SET Balance = Balance + @p0 WHERE Id = @p1",
                 parameters: new[] { newBalance.ToString(), walletId.ToString() });
+        }
+
+        public void UpdateIsBalanceLowReminderSent(Guid id, bool value, string walletId)
+        {
+            int sent = 0;
+            if (value)
+            {
+                sent = 1;
+            }
+            else
+            {
+                sent = 0;
+            }
+
+            if(!value)
+                RecurringJob.RemoveIfExists($"balance_low{walletId}");
+
+             _context.Database.ExecuteSqlRaw(
+                "UPDATE Wallets SET IsBalanceLowReminderSent = @p0 WHERE Id = @p1",
+                parameters: new[] { sent.ToString(), id.ToString() });
         }
         public async Task UpdateWalletBookBalance(Wallet wallet, decimal newBalance)
         {

@@ -57,6 +57,7 @@ namespace vendtechext.BLL.Services
         {
             ValidateIntegrator(model);
 
+            Integrator account = null;
             AppUser userAccount = await _authService.FindUserByEmail(model.Email);
 
             if (userAccount != null)
@@ -65,36 +66,48 @@ namespace vendtechext.BLL.Services
             if (_dbcxt.Integrators.Any(d => d.BusinessName.Trim().ToLower() == model.BusinessName.Trim().ToLower()))
                 throw new BadRequestException("Business Account with name already  exist");
 
-            userAccount = await _authService.RegisterAndReturnUserAsync(new RegisterDto {
-                Firstname = model.FirstName,
-                Email = model.Email,
-                Lastname = model.LastName,
-                Password = CREDENTIALS.INTEGRATOR_PASSWORD,
-                Username = model.Email,
-                UserType = UserType.External,
-                Phone = model.Phone,
-            });
-
-            string imgPath = await _fileHelper.CreateFile(model.image);
-            Integrator account = null;
-            if (userAccount != null)
+            using(var transaction = await _dbcxt.Database.BeginTransactionAsync())
             {
-                account = new IntegratorsBuilder()
-                .WithApiKey(AesEncryption.Encrypt(model.BusinessName + model.Email + model.Phone))
-                .WithBusinessName(model.BusinessName)
-                .WithAppUserId(userAccount.Id)
-                .WithAbout(model.About)
-                .WithDisabled(false)
-                .WithLogo(imgPath)
-                .Build();
+                try
+                {
+                    userAccount = await _authService.RegisterAndReturnUserAsync(new RegisterDto
+                    {
+                        Firstname = model.FirstName,
+                        Email = model.Email,
+                        Lastname = model.LastName,
+                        Password = CREDENTIALS.INTEGRATOR_PASSWORD,
+                        Username = model.Email,
+                        UserType = UserType.External,
+                        Phone = model.Phone,
+                    });
 
-                _dbcxt.Integrators.Add(account);
-                await _dbcxt.SaveChangesAsync();
+                    string imgPath = await _fileHelper.CreateFile(model.image);
+                    if (userAccount != null)
+                    {
+                        account = new IntegratorsBuilder()
+                        .WithApiKey(AesEncryption.Encrypt(model.BusinessName + model.Email + model.Phone))
+                        .WithBusinessName(model.BusinessName)
+                        .WithAppUserId(userAccount.Id)
+                        .WithAbout(model.About)
+                        .WithDisabled(false)
+                        .WithLogo(imgPath)
+                        .Build();
 
-                await _walletRepository.CreateWallet(account.Id, model.CommissionLevel);
+                        _dbcxt.Integrators.Add(account);
+                        await _dbcxt.SaveChangesAsync();
+
+                        await _walletRepository.CreateWallet(account.Id, model.CommissionLevel, minThreshold: model.MinThreshold);
+                        await transaction.CommitAsync();
+                        _backgroundJobClient.Enqueue(() => SendNotificationToIntegrator(account.Id));
+                    }
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+                finally {  }
             }
-
-            _backgroundJobClient.Enqueue(() => SendNotificationToIntegrator(account.Id));
 
             return Response.WithStatus("success").WithMessage("Successfully created integrator").WithType(model).GenerateResponse();
         }
@@ -140,31 +153,45 @@ namespace vendtechext.BLL.Services
             {
                 throw new BadRequestException("Business Account with name already  exist.");
             }
-             
-            AppUser userAccount = await _authService.UpdateAndReturnUserAsync(new RegisterDto
+
+            using (var transaction = await _dbcxt.Database.BeginTransactionAsync())
             {
-                Firstname = model.FirstName,
-                Email = model.Email,
-                Lastname = model.LastName,
-                Username = model.Email,
-                UserType = UserType.External,
-                Phone = model.Phone,
-            }, model.AppUserId);
+                try
+                {
+                    AppUser userAccount = await _authService.UpdateAndReturnUserAsync(new RegisterDto
+                    {
+                        Firstname = model.FirstName,
+                        Email = model.Email,
+                        Lastname = model.LastName,
+                        Username = model.Email,
+                        UserType = UserType.External,
+                        Phone = model.Phone,
+                    }, model.AppUserId);
 
-            string imgPath = await _fileHelper.UpdateFile(model.image, account.Logo);
+                    string imgPath = await _fileHelper.UpdateFile(model.image, account.Logo);
 
-            account = new IntegratorsBuilder(account)
-                .WithBusinessName(model.BusinessName)
-                .WithAbout(model.About)
-                .WithLogo(imgPath)
-                .WithId(model.Id)
-                .Build();
+                    account = new IntegratorsBuilder(account)
+                        .WithBusinessName(model.BusinessName)
+                        .WithAbout(model.About)
+                        .WithLogo(imgPath)
+                        .WithId(model.Id)
+                        .Build();
 
-            Wallet wallet = await _dbcxt.Wallets.FirstOrDefaultAsync(d => d.IntegratorId == model.Id);
-            if(isAdmin)
-                wallet = new WalletBuilder(wallet).SetCommission(model.CommissionLevel).Build();
-
-            await _dbcxt.SaveChangesAsync();
+                    Wallet wallet = await _dbcxt.Wallets.FirstOrDefaultAsync(d => d.IntegratorId == model.Id);
+                    if (isAdmin)
+                    {
+                        wallet = new WalletBuilder(wallet).SetCommission(model.CommissionLevel).WithMinThreshold(model.MinThreshold).Build();
+                    }
+                        
+                    await _dbcxt.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
             return Response.WithStatus("success").WithMessage("Successfully updated account").WithType(model).GenerateResponse();
         }
 
