@@ -98,7 +98,7 @@ namespace vendtechext.Helper
             {
                 salesResponse = new ExecutionResult(_integrator.successResponse);
                 salesResponse.status = "success";
-                salesResponse.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                salesResponse.code = API_MESSAGE_CONSTANTS.OKAY_REQEUST;
             }
             else
             {

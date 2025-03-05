@@ -122,18 +122,18 @@ namespace vendtechext.Helper
         {
             if (message == "Error: Vending is disabled")
             {
-                return API_MESSAGE_CONSTANCE.VENDING_DISABLE;
+                return API_MESSAGE_CONSTANTS.VENDING_DISABLE;
             }
 
             if (message == "-9137 : InCMS-BL-CB001607. Purchase not allowed, not enought vendor balance")
             {
-                return API_MESSAGE_CONSTANCE.VENDING_DISABLE;
+                return API_MESSAGE_CONSTANTS.VENDING_DISABLE;
             }
             if(message == "Insufficient Funds")
             {
-                return API_MESSAGE_CONSTANCE.VENDING_DISABLE;
+                return API_MESSAGE_CONSTANTS.VENDING_DISABLE;
             }
-            return API_MESSAGE_CONSTANCE.BAD_REQUEST;
+            return API_MESSAGE_CONSTANTS.BAD_REQUEST;
         }
 
         public void Dispose()

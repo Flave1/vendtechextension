@@ -81,15 +81,15 @@ namespace vendtechext.BLL.Services
             {
                 case 1:
                     executionResult.status = "success";
-                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                    executionResult.code = API_MESSAGE_CONSTANTS.OKAY_REQEUST;
                     break;
                 case 2:
                     executionResult.status = "pending";
-                    executionResult.code = API_MESSAGE_CONSTANCE.OKAY_REQEUST;
+                    executionResult.code = API_MESSAGE_CONSTANTS.OKAY_REQEUST;
                     break;
                 case 3:
                     executionResult.status = "failed";
-                    executionResult.code = API_MESSAGE_CONSTANCE.BAD_REQUEST;
+                    executionResult.code = API_MESSAGE_CONSTANTS.BAD_REQUEST;
                     break;
                 default:
                     break;

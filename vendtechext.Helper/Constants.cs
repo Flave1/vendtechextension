@@ -1,6 +1,6 @@
 ﻿namespace vendtechext.Helper
 {
-    public static class API_MESSAGE_CONSTANCE
+    public static class API_MESSAGE_CONSTANTS
     {
         public const int REQUEST_TIMEOUT = 4084;
         public const int VENDING_DISABLE = 4514;
