@@ -182,6 +182,10 @@ namespace vendtechext.BLL.Services
                     {
                         wallet = new WalletBuilder(wallet).SetCommission(model.CommissionLevel).WithMinThreshold(model.MinThreshold).Build();
                     }
+                    else
+                    {
+                        wallet = new WalletBuilder(wallet).SetMidnightBalanceAlertSwitch(model.MidnightBalanceAlertSwitch).Build();
+                    }
                         
                     await _dbcxt.SaveChangesAsync();
                     await transaction.CommitAsync();

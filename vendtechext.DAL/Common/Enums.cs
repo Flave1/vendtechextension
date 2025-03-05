@@ -84,4 +84,10 @@ namespace vendtechext.DAL.Common
         External = 0,
         Internal = 1
     }
+
+    public enum SwitchEnum
+    {
+        ON = 0,
+        OFF = 1
+    }
 }

@@ -215,17 +215,19 @@ namespace vendtechext.BLL.Services
             string about;
             string apiKey;
             string logo = "";
+            int midnightBalanceAlertSwitch = 0;
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
                 throw new BadRequestException("User does not exist");
 
             if (user.UserType == (int)UserType.External)
             {
-                var integrator = _dataContext.Integrators.Where(d => d.AppUserId == user.Id).FirstOrDefault();
+                var integrator = _dataContext.Integrators.Where(d => d.AppUserId == user.Id).Include(c => c.Wallet).FirstOrDefault();
                 businessName = integrator.BusinessName;
                 about = integrator.About;
                 apiKey = integrator.ApiKey;
                 logo = integrator.Logo;
+                midnightBalanceAlertSwitch = integrator.Wallet.MidnightBalanceAlertSwitch;
             }
             else
             {
@@ -233,9 +235,10 @@ namespace vendtechext.BLL.Services
                 about = "About";
                 apiKey = "";
                 logo = user.ProfilePic;
+                midnightBalanceAlertSwitch = 0;
             }
 
-            var profile = new ProfileDto(user, businessName, about, apiKey, logo);
+            var profile = new ProfileDto(user, businessName, about, apiKey, logo, midnightBalanceAlertSwitch);
 
             return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(profile).GenerateResponse();
         }

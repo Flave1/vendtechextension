@@ -64,7 +64,8 @@ namespace vendtechext.Contracts
         public string Phone { get; set; }
         public string ApiKey { get; set; }
         public string Logo { get; set; }
-        public ProfileDto(AppUser x, string businessName, string description, string apiKey, string logo = "")
+        public int MidnightBalanceAlertSwitch { get; set; }
+        public ProfileDto(AppUser x, string businessName, string description, string apiKey, string logo = "", int midnightBalanceAlertSwitch = 0)
         {
 
             Firstname = x.FirstName;
@@ -76,7 +77,8 @@ namespace vendtechext.Contracts
             Description = description;
             Phone = x.PhoneNumber;
             ApiKey = apiKey;
-            Logo = logo;
+            Logo = logo; 
+            MidnightBalanceAlertSwitch = midnightBalanceAlertSwitch;
         }
 
     }

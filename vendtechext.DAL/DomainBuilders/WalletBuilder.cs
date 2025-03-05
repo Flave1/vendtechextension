@@ -1,4 +1,5 @@
 ﻿
+using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.DAL.DomainBuilders
@@ -29,6 +30,12 @@ namespace vendtechext.DAL.DomainBuilders
         public WalletBuilder SetIntegratorId(Guid integratorId)
         {
             _wallet.IntegratorId = integratorId;
+            return this;
+        }
+
+        public WalletBuilder SetMidnightBalanceAlertSwitch(int switchEnum)
+        {
+            _wallet.MidnightBalanceAlertSwitch = switchEnum;
             return this;
         }
 

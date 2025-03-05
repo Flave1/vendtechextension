@@ -13,6 +13,7 @@ namespace vendtechext.DAL.Models
         public int CommissionId { get; set; }
         public int MinThreshold { get; set; }
         public bool IsBalanceLowReminderSent { get; set; }
+        public int MidnightBalanceAlertSwitch { get; set; }
         public Guid IntegratorId { get; set; }
         [ForeignKey("IntegratorId")]
         public virtual Integrator Integrator { get; set; }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using vendtechext.Contracts;
+using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -7,7 +8,7 @@ namespace vendtechext.BLL.Services.RecurringJobs
 {
     public class IntegratorBalanceJob
     {
-        public async Task Run()
+        public async Task RunMidnight()
         {
             if (DomainEnvironment.IsSandbox)
             {
@@ -23,7 +24,8 @@ namespace vendtechext.BLL.Services.RecurringJobs
                         var notification = new NotificationHelper(db);
                         for (int i = 0; i < wallets.Count; i++)
                         {
-                            new Emailer(new EmailHelper(DomainEnvironment.Configuration), notification).SendEmailToIntegratorOnBalanceAlert(wallets[i], wallets[i].Integrator);
+                            if (wallets[i].MidnightBalanceAlertSwitch == (int)SwitchEnum.ON)
+                                new Emailer(new EmailHelper(DomainEnvironment.Configuration), notification).SendEmailToIntegratorOnBalanceAlert(wallets[i], wallets[i].Integrator);
                         }
                     }
 

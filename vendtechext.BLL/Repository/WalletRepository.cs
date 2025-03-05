@@ -1,5 +1,4 @@
 ﻿using Hangfire;
-using Hangfire.Server;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +26,7 @@ namespace vendtechext.BLL.Repository
         {
             var wallet = new WalletBuilder()
                 .SetWalletId(UniqueIDGenerator.GenerateAccountNumber("000"))
+                .SetMidnightBalanceAlertSwitch((int)SwitchEnum.ON)
                 .WithMinThreshold(minThreshold)
                 .SetCommission(CommissionLevel)
                 .SetIntegratorId(integratorId)
@@ -38,19 +38,6 @@ namespace vendtechext.BLL.Repository
             return wallet;
         }
 
-        //public async Task<Wallet> GetWalletByIntegratorId(Guid integratorId, bool includeIntegrator = false)
-        //{
-        //    Wallet wallet = null;
-        //    if(!includeIntegrator)
-        //        wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.IntegratorId == integratorId);
-        //    else
-        //        wallet = await _context.Wallets.Where(w => w.IntegratorId == integratorId).Include(g => g.Integrator).FirstOrDefaultAsync();
-        //    if (wallet == null)
-        //    {
-        //        throw new BadRequestException("Unable to find integrator wallet");
-        //    }
-        //    return wallet;
-        //}
 
         public async Task<Wallet> GetWalletByIntegratorId(Guid integratorId, bool includeIntegrator = false)
         {
@@ -110,8 +97,6 @@ namespace vendtechext.BLL.Repository
                 }
             }
         }
-
-
 
         public async Task<decimal> GetAdminBalance()
         {

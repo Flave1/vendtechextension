@@ -252,17 +252,16 @@ namespace vendtechext.Helper
         {
             try
             {
-                string subject = "BALANCE RUNNING LOW";
+                string subject = "Balance low warning";
                 string emailBody = helper.GetEmailTemplate("balance_low");
 
-                emailBody = emailBody.Replace("[Username]", integrator.AppUser.FirstName);
-                emailBody = emailBody.Replace("[Wallet_ID]", wallet.WALLET_ID);
-                emailBody = emailBody.Replace("[Email]", integrator.AppUser.Email);
-                emailBody = emailBody.Replace("[Datetime]", Utils.formatDate(DateTime.UtcNow));
+                emailBody = emailBody.Replace("[BusinessName]", integrator.BusinessName);
+                emailBody = emailBody.Replace("[Date]", Utils.formatDate(DateTime.UtcNow).Split(" ")[0]);
+                emailBody = emailBody.Replace("[Time]", Utils.formatDate(DateTime.UtcNow).Split(" ")[1]);
                 emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(wallet.Balance));
                 emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}/deposit_form");
-                //notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
-             
+                notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
+
                 helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
                 helper.SendEmail("vblell@gmail.com", subject, emailBody);
             }
@@ -275,16 +274,16 @@ namespace vendtechext.Helper
         {
             try
             {
-                string subject = "BALANCE RUNNING LOW";
+                string subject = "Integrator Balance";
                 string emailBody = helper.GetEmailTemplate("midnight_balance");
 
-                emailBody = emailBody.Replace("[Username]", integrator.AppUser.FirstName);
-                emailBody = emailBody.Replace("[Wallet_ID]", wallet.WALLET_ID);
-                emailBody = emailBody.Replace("[Datetime]", Utils.formatDate(DateTime.UtcNow));
+                emailBody = emailBody.Replace("[BusinessName]", integrator.BusinessName);
+                emailBody = emailBody.Replace("[Date]", Utils.formatDate(DateTime.UtcNow).Split(" ")[0]);
+                emailBody = emailBody.Replace("[Time]", Utils.formatDate(DateTime.UtcNow).Split(" ")[1]);
                 emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(wallet.Balance));
                 emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}/deposit_form");
                 emailBody = emailBody.Replace("[email_setting_link]", $"{DomainEnvironment.DashboardUrl}/edit-profile ");
-                //notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
+                notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
 
                 helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
                 helper.SendEmail("vblell@gmail.com", subject, emailBody);

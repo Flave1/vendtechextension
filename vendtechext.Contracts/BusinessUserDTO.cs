@@ -16,6 +16,7 @@ namespace vendtechext.Contracts
         public string Phone { get; set; }
         public int CommissionLevel { get; set; }
         public int MinThreshold { get; set; }
+        public int MidnightBalanceAlertSwitch { get; set; }
         public IFormFile image { get; set; }
         public BusinessUserDTO(Integrator x)
         {
@@ -85,6 +86,7 @@ namespace vendtechext.Contracts
         public string About { get; set; }
         public int MinThreshold { get; set; }
         public int CommissionLevel { get; set; }
+        public int MidnightBalanceAlertSwitch { get; set; }
         public IFormFile image { get; set; }
     }
 
