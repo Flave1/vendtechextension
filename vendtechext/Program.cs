@@ -198,7 +198,7 @@ app.MapControllers();
 var integratorBalanceJob = new IntegratorBalanceJob();
 //RecurringJob.RemoveIfExists("Balance-low-job");
 RecurringJob.AddOrUpdate("MIDNIGHT-BALANCE-JOB", () => integratorBalanceJob.RunMidnight(), 
-    "0 12 * * *",
+    "0 0 * * *",
     new RecurringJobOptions
     {
         TimeZone = TimeZoneInfo.FindSystemTimeZoneById("UTC")

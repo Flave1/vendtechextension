@@ -74,7 +74,7 @@ namespace vendtechext.Contracts
             TransactionStatus = x.TransactionStatus;
             return this;
         }
-        public SuccessResponse UpdateResponseForUI(Transaction x)
+        public SuccessResponse UpdateResponseForStatusQuery(Transaction x)
         {
             TransactionId = x.TransactionUniqueId;
             RequestDate = x.CreatedAt;

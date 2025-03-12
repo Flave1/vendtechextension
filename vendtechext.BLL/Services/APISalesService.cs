@@ -55,6 +55,7 @@ namespace vendtechext.BLL.Services
                     wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
                     executionResult.successResponse.UpdateResponse(transaction, wallet);
                     await _transactionUpdate.UpdateSaleSuccessTransactionLog(executionResult, transaction);
+                    CheckIntegratorBalanceThreshold(wallet);
                     return Response.WithStatus(executionResult.status).WithMessage("Vend was successful").WithType(executionResult).GenerateResponse();
                 }
                 else if (executionResult.status == "pending")
@@ -104,7 +105,7 @@ namespace vendtechext.BLL.Services
                     executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
                     executionResult.status = "success";
                     executionResult.code = API_MESSAGE_CONSTANTS.OKAY_REQEUST;
-
+                    executionResult.successResponse.UpdateResponseForStatusQuery(transaction);
                     return Response.WithStatus(executionResult.status).WithMessage("Transaction Successfully fetched").WithType(executionResult).GenerateResponse();
                 }
                 else if (!transaction.Finalized)
@@ -113,7 +114,7 @@ namespace vendtechext.BLL.Services
                     if (executionResult.status == "success")
                     {
                         wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
-                        executionResult.successResponse.UpdateResponse(transaction, wallet);
+                        executionResult.successResponse.UpdateResponseForStatusQuery(transaction);
                         executionResult.code = API_MESSAGE_CONSTANTS.OKAY_REQEUST;
                         await _transactionUpdate.UpdateSuceessSaleTransactionLogOnStatusQuery(executionResult, transaction);
                         transaction =await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
@@ -160,7 +161,7 @@ namespace vendtechext.BLL.Services
 
                 if (existingTransaction == null)
                 {
-                    executionResult = new ExecutionResult(false);
+                    executionResult = new ExecutionResult(isSuccessful: false);
                     executionResult.status = "failed";
                 }
                 else if (existingTransaction.Finalized)
@@ -207,7 +208,7 @@ namespace vendtechext.BLL.Services
                 if (transaction == null)
                 {
                     executionResult = GenerateExecutionResult(new BadRequestException("The specified transaction was not found"), API_MESSAGE_CONSTANTS.BAD_REQUEST);
-                    return Response.WithStatus(executionResult.status).WithMessage("").WithType(executionResult).GenerateResponse();
+                    return Response.WithStatus("failed").WithMessage("Transaction not found").WithType(executionResult).GenerateResponse();
                 }
                 else if (transaction.Finalized && string.IsNullOrEmpty(transaction.Response))
                 {

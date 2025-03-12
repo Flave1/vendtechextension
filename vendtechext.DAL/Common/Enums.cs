@@ -87,7 +87,7 @@ namespace vendtechext.DAL.Common
 
     public enum SwitchEnum
     {
-        ON = 0,
-        OFF = 1
+        ON = 1,
+        OFF = 0
     }
 }

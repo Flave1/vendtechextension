@@ -51,7 +51,7 @@ namespace vendtechext.BLL.Services
                 TransactionId = transaction.TransactionUniqueId
             };
             executionResult = new ExecutionResult(transaction, transaction.ReceivedFrom);
-            executionResult.successResponse.UpdateResponseForUI(transaction);
+            executionResult.successResponse.UpdateResponseForStatusQuery(transaction);
             var requestResponse1 = new RequestResponse(initial_request, executionResult);
             requestResponses.Add(requestResponse1);
 
@@ -89,7 +89,7 @@ namespace vendtechext.BLL.Services
                     break;
                 case 3:
                     executionResult.status = "failed";
-                    executionResult.code = API_MESSAGE_CONSTANTS.BAD_REQUEST;
+                    executionResult.code = new RTSProperties().ReadErrorAndReturnStatusCode(transaction.VendStatusDescription);
                     break;
                 default:
                     break;

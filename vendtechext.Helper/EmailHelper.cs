@@ -252,7 +252,7 @@ namespace vendtechext.Helper
         {
             try
             {
-                string subject = "Balance low warning";
+                string subject = "VENDTECH SUPPORT | WALLET BALANCE LOW NOTIFICATION";
                 string emailBody = helper.GetEmailTemplate("balance_low");
 
                 emailBody = emailBody.Replace("[BusinessName]", integrator.BusinessName);
@@ -263,7 +263,7 @@ namespace vendtechext.Helper
                 notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
 
                 helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
-                helper.SendEmail("vblell@gmail.com", subject, emailBody);
+                helper.SendEmail(integrator.AppUser.Email, subject, emailBody);
             }
             catch (Exception)
             {
@@ -286,7 +286,7 @@ namespace vendtechext.Helper
                 notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
 
                 helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
-                helper.SendEmail("vblell@gmail.com", subject, emailBody);
+                helper.SendEmail(integrator.AppUser.Email, subject, emailBody);
             }
             catch (Exception)
             {

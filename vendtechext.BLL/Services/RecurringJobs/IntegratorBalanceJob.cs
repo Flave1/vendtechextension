@@ -10,7 +10,7 @@ namespace vendtechext.BLL.Services.RecurringJobs
     {
         public async Task RunMidnight()
         {
-            if (DomainEnvironment.IsSandbox)
+            if (DomainEnvironment.IsProduction)
             {
                 using (DataContext db = new DataContext())
                 {
@@ -35,7 +35,7 @@ namespace vendtechext.BLL.Services.RecurringJobs
 
         public async Task SendLowBalanceAlert(Guid id)
         {
-            if (DomainEnvironment.IsSandbox)
+            if (DomainEnvironment.IsProduction)
             {
                 using (DataContext db = new DataContext())
                 {

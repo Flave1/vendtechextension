@@ -22,7 +22,7 @@ namespace vendtechext.Helper
         public bool isFinalized = false;
 
         // Private constructor to prevent direct instantiation
-        private RTSProperties()
+        public RTSProperties()
         {
 
         }
