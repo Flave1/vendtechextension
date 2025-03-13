@@ -93,6 +93,11 @@ namespace vendtechext.DAL.DomainBuilders
             _transaction.MeterNumber = meterNumber;
             return this;
         }
+        public TransactionsBuilder WithSerialNumber(string serialNumber)
+        {
+            _transaction.VoucherSerialNumber = serialNumber;
+            return this;
+        }
 
         public TransactionsBuilder WithTransactionStatus(TransactionStatus transactionStatus)
         {

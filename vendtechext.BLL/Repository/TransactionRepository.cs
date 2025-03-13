@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
@@ -531,6 +532,7 @@ namespace vendtechext.BLL.Repository
                 .WithSellerReturnedBalance(executionResult.successResponse?.Voucher?.SellerReturnedBalance ?? 0)
                 .WithVendStatusDescription(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
                 .WithSellerTransactionId(executionResult.successResponse.Voucher?.SellerTransactionID ?? "")
+                .WithSerialNumber(executionResult.successResponse?.Voucher?.VoucherSerialNumber)
                 .WithTransactionStatus(TransactionStatus.Success)
                 .WithReceivedFrom(executionResult.receivedFrom)
                 .WithResponse(executionResult.response)
@@ -546,6 +548,7 @@ namespace vendtechext.BLL.Repository
             trans = new TransactionsBuilder(trans)
                 .WithSellerTransactionId(executionResult.successResponse.Voucher?.SellerTransactionID ?? "")
                 .WithQueryStatusMessage(executionResult.successResponse.Voucher?.VendStatusDescription ?? "")
+                .WithSerialNumber(executionResult.successResponse?.Voucher?.VoucherSerialNumber)
                 .WithTransactionStatus(TransactionStatus.Success)
                 .WithReceivedFrom(executionResult.receivedFrom)
                 .WithStatusResponse(executionResult.response)
@@ -590,6 +593,7 @@ namespace vendtechext.BLL.Repository
                 .WithSellerReturnedBalance(existingTrans.SellerReturnedBalance)
                 .WithVendStatusDescription(existingTrans.VendStatusDescription ?? "")
                 .WithSellerTransactionId(existingTrans.SellerTransactionID ?? "")
+                .WithSerialNumber(existingTrans.VoucherSerialNumber)
                 .WithTransactionStatus(TransactionStatus.Success)
                 .WithReceivedFrom(existingTrans.ReceivedFrom)
                 .WithResponse(existingTrans.Response)
