@@ -50,7 +50,7 @@ namespace vendtechext.BLL.Services
             {
                 throw new BadRequestException($"Deposit amount must not be less than {settings.Threshholds.MinimumDeposit}.");
             }
-            var wallet = await _walletRepository.GetWalletByIntegratorId(integratorid, true);
+            var wallet = await _walletRepository.GetWalletByIntegratorId(integratorid, includeIntegrator: true);
             CreateDepositDto dto = new CreateDepositDto
             {
                 Reference = request.Reference,
@@ -58,25 +58,28 @@ namespace vendtechext.BLL.Services
                 Amount = request.Amount,
                 BalanceAfter = wallet.Balance + request.Amount,
                 IntegratorId = integratorid,
-                PaymentTypeId = request.PaymentTypeId
+                PaymentTypeId = request.PaymentTypeId,
+                CommissionDepositId = null
             };
-            Deposit deposit = await _repository.CreateDepositTransaction(dto, DepositStatus.Waiting);
-            if(deposit != null) 
-                await _walletRepository.UpdateWalletBookBalance(wallet, deposit.BalanceAfter);
+            Deposit parentDeposit = await _repository.CreateDepositTransaction(dto, DepositStatus.Waiting);
+            Deposit commissionDeposit = await CreateCommision(parentDeposit, integratorid, wallet);
+            parentDeposit.CommissionDepositId = commissionDeposit.Id;
+            if (parentDeposit != null)
+                await _walletRepository.UpdateWalletBookBalance(wallet, parentDeposit.BalanceAfter + commissionDeposit.Amount);
 
-
-            deposit = await _repository.GetDepositTransaction(deposit.Id);
+            parentDeposit = await _repository.GetDepositTransaction(parentDeposit.Id);
+            
             if (settings.Notification.Deposits)
-                _backgroundJobClient.Enqueue(() => CreateDepositNotification(wallet.WALLET_ID, deposit.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, deposit.CreatedAt));
+                _backgroundJobClient.Enqueue(() =>  CreateDepositNotification(wallet, parentDeposit));
 
-            return Response.WithStatus("success").WithMessage("Successfully created deposit").WithType(request).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully Created Deposit.").WithType(request).GenerateResponse();
         }
 
         
-        public async Task CreateDepositNotification(string WALLET_ID, string BusinessName, int CommissionId, decimal Amount, Guid DepositId, DateTime CreatedAt)
+        public async Task CreateDepositNotification(Wallet wallet, Deposit deposit)
         {
             AppUser user = await _authService.FindAdminUser();
-            new Emailer(_emailHelper, notification).SendEmailToAdminOnPendingDeposits(WALLET_ID, BusinessName, CommissionId, Amount, DepositId, CreatedAt, user);
+            new Emailer(_emailHelper, notification).SendEmailToAdminOnPendingDeposits(wallet.WALLET_ID, wallet.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, wallet.CreatedAt, user);
         }
 
         public async Task<APIResponse> ApproveDeposit(ApproveDepositRequest request)
@@ -84,40 +87,40 @@ namespace vendtechext.BLL.Services
             Deposit deposit = await _repository.GetDepositTransaction(request.DepositId);
             if (!request.Approve)
             {
-                await _repository.DeleteDepositTransaction(deposit);
+                await _repository.CancelDepositTransaction(deposit);
                 long? notificationId = notification.GetNotificationId(request.DepositId.ToString());
                 if (notificationId != null && notificationId.Value > 0)
                 {
                     notification.UpdateNotificationReadStatus(notificationId.Value, request.ApprovingUserId);
                 }
-                return Response.WithStatus("success").WithMessage("Successfully Cancelled deposit").WithType(request).GenerateResponse();
+                return Response.WithStatus("success").WithMessage("Successfully Cancelled parentDeposit").WithType(request).GenerateResponse();
             }
 
             await _repository.ApproveDepositTransaction(deposit);
             Wallet wallet = await _walletRepository.GetWalletByIntegratorId(request.IntegratorId);
-            await _walletRepository.UpdateWalletRealBalance(wallet.Id, deposit.Amount);
-            await CreateCommision(deposit, request.IntegratorId, wallet);
-            _walletRepository.UpdateIsBalanceLowReminderSent(wallet.Id, value: false, walletId: wallet.WALLET_ID);
+            decimal totalDeposit = deposit.Amount + deposit.CommissionDeposit.Amount;
+            await _walletRepository.UpdateWalletRealBalance(wallet.Id, totalDeposit);
+            _walletRepository.UpdateBalanceLowReminder(wallet.Id, value: false, walletId: wallet.WALLET_ID);
 
             SettingsPayload settings = AppConfiguration.GetSettings();
             if (settings.Notification.Deposits)
-                _backgroundJobClient.Enqueue(() => ApproveDepositNotification(request.IntegratorId, wallet.WALLET_ID, deposit.Amount, deposit.Id, wallet.CommissionId, request.ApprovingUserId));
+                _backgroundJobClient.Enqueue(() => ApproveDepositNotification(deposit, wallet.CommissionId, request.ApprovingUserId));
 
-            return Response.WithStatus("success").WithMessage("Successfully approved deposit").WithType(request).GenerateResponse();
+            return Response.WithStatus("success").WithMessage("Successfully approved parentDeposit").WithType(request).GenerateResponse();
         }
 
-        public async Task ApproveDepositNotification(Guid integratorId, string walletId, decimal Amount, Guid DeposiId, int CommissionId, string currentAdminUserId)
+        public async Task ApproveDepositNotification(Deposit deposit, int CommissionId, string currentAdminUserId)
         {
-            long? notificationId = notification.GetNotificationId(DeposiId.ToString());
+            long? notificationId = notification.GetNotificationId(deposit.Id.ToString());
             if(notificationId != null && notificationId.Value > 0)
             {
                 notification.UpdateNotificationReadStatus(notificationId.Value, currentAdminUserId);
             }
-            AppUser user = await _authService.FindUserByIntegratorId(integratorId);
-            new Emailer(_emailHelper, notification).SendEmailToIntegratorOnDepositApproval(Amount, DeposiId, CommissionId, user);
+            AppUser user = await _authService.FindUserByIntegratorId(deposit.IntegratorId);
+            new Emailer(_emailHelper, notification).SendEmailToIntegratorOnDepositApproval(deposit.Amount, deposit.Id, CommissionId, user);
         }
 
-        private async Task CreateCommision(Deposit deposit, Guid integratorid, Wallet wallet)
+        private async Task<Deposit> CreateCommision(Deposit deposit, Guid integratorid, Wallet wallet)
         {
             decimal commission = AppConfiguration.ProcessCommsion(deposit.Amount, wallet.CommissionId);
             PaymentTypeDto commissionMethod = await _repository.GetCommissionType();
@@ -129,9 +132,10 @@ namespace vendtechext.BLL.Services
                 BalanceAfter = deposit.BalanceAfter + commission,
                 IntegratorId = integratorid,
                 PaymentTypeId = commissionMethod.Id,
+                CommissionDepositId = null
             };
-            await _repository.CreateDepositTransaction(commsionDto, DepositStatus.Approved);
-            await _walletRepository.UpdateWalletRealBalance(wallet.Id, commission);
+            
+            return await _repository.CreateDepositTransaction(commsionDto, DepositStatus.Waiting);
         }
 
         public async Task<APIResponse> GetIntegratorDeposits(PaginatedSearchRequest req)

@@ -13,6 +13,9 @@ namespace vendtechext.DAL.Models
         public decimal BalanceAfter { get; set; }
         public string Reference { get; set; }
         public string TransactionId { get; set; }
+        public Guid? CommissionDepositId { get; set; }
+        [ForeignKey("CommissionDepositId")]
+        public Deposit CommissionDeposit { get; set; }
         public int PaymentTypeId { get; set; }
         [ForeignKey("PaymentTypeId")]
         public PaymentMethod PaymentMethod { get; set; }

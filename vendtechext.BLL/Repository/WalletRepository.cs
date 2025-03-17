@@ -118,17 +118,13 @@ namespace vendtechext.BLL.Repository
                 parameters: new[] { newBalance.ToString(), walletId.ToString() });
         }
 
-        public void UpdateIsBalanceLowReminderSent(Guid id, bool value, string walletId)
+        public void UpdateBalanceLowReminder(Guid id, bool value, string walletId)
         {
-            int sent = 0;
+            int sent;
             if (value)
-            {
                 sent = 1;
-            }
             else
-            {
                 sent = 0;
-            }
 
             if(!value)
                 RecurringJob.RemoveIfExists($"balance_low{walletId}");

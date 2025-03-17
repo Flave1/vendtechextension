@@ -296,8 +296,8 @@ namespace vendtechext.BLL.Services
                     string jobId = "balance_low"+wallet.WALLET_ID;
                     if (!wallet.IsBalanceLowReminderSent)
                     {
-                        _walletReo.UpdateIsBalanceLowReminderSent(wallet.Id, value: true, walletId: wallet.WALLET_ID);
-                        _recurringJobManager.AddOrUpdate(jobId, () => new IntegratorBalanceJob().SendLowBalanceAlert(wallet.Id), Cron.Yearly);
+                        _walletReo.UpdateBalanceLowReminder(wallet.Id, value: true, walletId: wallet.WALLET_ID);
+                        _recurringJobManager.AddOrUpdate(jobId, () => new IntegratorBalanceJob().SendLowBalanceAlert(wallet.Id), Cron.Daily);
                         _recurringJobManager.Trigger(jobId);
                     }
                 }

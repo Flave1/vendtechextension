@@ -16,6 +16,7 @@ namespace vendtechext.Contracts
         public string IntegratorName { get; set; }
         public string Date { get; set; }
         public int Status { get; set; }
+        public string CommissionDepositId { get; set; }
   
         public DepositDto(Deposit d)
         {
@@ -31,6 +32,7 @@ namespace vendtechext.Contracts
             PaymentTypeName = d.PaymentMethod.Name;
             Date = d.CreatedAt.ToString("dd-MM-yyyy hh:mm");
             Status = d.Status;
+            CommissionDepositId = d.CommissionDepositId.ToString();
         }
     }
 
@@ -67,6 +69,7 @@ namespace vendtechext.Contracts
         public decimal BalanceAfter { get; set; }
         public string Reference { get; set; }
         public int PaymentTypeId { get; set; }
+        public Guid? CommissionDepositId { get;set; }
     }
 
     public class DepositRequest

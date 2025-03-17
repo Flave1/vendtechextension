@@ -35,6 +35,7 @@ namespace vendtechext.DAL.Common
     {
         Approved = 1,
         Waiting = 2,
+        Cancelled = 3
     }
 
 

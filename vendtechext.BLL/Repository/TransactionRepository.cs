@@ -51,6 +51,7 @@ namespace vendtechext.BLL.Repository
         {
             var deposit = new DepositBuilder()
                     .SetTransactionId(UniqueIDGenerator.NewDepositTransactionId())
+                    .SetParentDepositId(dto.CommissionDepositId)
                     .SetBalanceBefore(dto.BalanceBefore)
                     .SetPaymentTypeId(dto.PaymentTypeId)
                     .SetIntegratorId(dto.IntegratorId)
@@ -67,26 +68,25 @@ namespace vendtechext.BLL.Repository
 
         public async Task<Deposit> ApproveDepositTransaction(Deposit deposit)
         {
-            deposit = new DepositBuilder(deposit)
-                    .SetStatus(DepositStatus.Approved)
-                    .Build();
-
+            deposit.Status = (int)DepositStatus.Approved;
+            deposit.CommissionDeposit.Status = (int)DepositStatus.Approved;
             await _context.SaveChangesAsync();
             return deposit;
         }
 
         public async Task<Deposit> GetDepositTransaction(Guid Id)
         {
-            var trans = await _context.Deposits.Include(d => d.Integrator).FirstOrDefaultAsync(d => d.Id == Id && d.Deleted == false) ?? null;
+            var trans = await _context.Deposits.Include(d => d.CommissionDeposit).FirstOrDefaultAsync(d => d.Id == Id && d.Deleted == false) ?? null;
             if (trans == null)
                 throw new BadRequestException("Unable to find deposit");
             return trans;
         }
-        public async Task DeleteDepositTransaction(Deposit deposit)
+        public async Task CancelDepositTransaction(Deposit deposit)
         {
             if (deposit == null)
                 throw new BadRequestException("Unable to find deposit");
-            deposit.Deleted = true;
+            deposit.Status = (int)DepositStatus.Cancelled;
+            deposit.CommissionDeposit.Status = (int)DepositStatus.Cancelled;
             await _context.SaveChangesAsync();
         }
         public async Task<List<LastDeposit>> GetLastDepositTransaction(Guid integratorId)

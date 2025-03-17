@@ -28,6 +28,12 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public DepositBuilder SetParentDepositId(Guid? parentDepositId)
+        {
+            _deposit.CommissionDepositId = parentDepositId;
+            return this;
+        }
+
         public DepositBuilder SetPaymentTypeId(int id)
         {
             _deposit.PaymentTypeId = id;
