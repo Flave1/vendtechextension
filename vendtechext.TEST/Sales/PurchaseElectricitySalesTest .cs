@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
+using vendtechext.DAL.Common;
 using Xunit;
 
 namespace vendtechext.TEST.Sales
@@ -24,11 +25,11 @@ namespace vendtechext.TEST.Sales
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
             _mockSalesService = new Mock<IAPISalesService>();
-            _connectionString = "Server=92.205.181.48;Database=VENDTECH_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
+            _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
         }
 
         [Theory]
-        [InlineData(devApikey, 1000, meternumber, 2002)]
+        [InlineData(liveApikey, 40, meternumber, 2002)]
         public async Task Test_for_successful_response(
             string apiKey,
             decimal amount,
@@ -63,7 +64,7 @@ namespace vendtechext.TEST.Sales
 
 
         [Theory]
-        [InlineData(liveApikey, "328769", HttpStatusCode.OK)]
+        [InlineData(liveApikey, "330878", HttpStatusCode.OK)]
         public async Task Test_for_successful_query(
            string apiKey,
            string transactionId,
@@ -155,6 +156,8 @@ namespace vendtechext.TEST.Sales
                     CurrentDealerBalance = 0,
                     TaxCharge = 0,
                     Units = 0,
+                    PaymentStatus = 1,
+                    VoucherSerialNumber = "",
                 };
 
                 // Build the SQL query
@@ -162,12 +165,12 @@ namespace vendtechext.TEST.Sales
                      (PlatFormId, UserId, MeterNumber1, POSId, Amount, 
                       IsDeleted, status, CreatedAt, RTSUniqueID, TenderedAmount, 
                       TransactionAmount, Finalised, StatusRequestCount, Sold, DebitRecovery, 
-                      CostOfUnits, TransactionId, RequestDate, CurrentDealerBalance, TaxCharge, Units)
+                      CostOfUnits, TransactionId, RequestDate, CurrentDealerBalance, TaxCharge, Units, PaymentStatus, VoucherSerialNumber)
                       VALUES 
                       (@PlatFormId, @UserId, @MeterNumber1, @POSId, @Amount,
                        @IsDeleted, @status, @CreatedAt, @RTSUniqueID, @TenderedAmount, 
                        @TransactionAmount, @Finalised, @StatusRequestCount, @Sold, @DebitRecovery, 
-                       @CostOfUnits, @TransactionId, @RequestDate, @CurrentDealerBalance, @TaxCharge, @Units)";
+                       @CostOfUnits, @TransactionId, @RequestDate, @CurrentDealerBalance, @TaxCharge, @Units, @PaymentStatus, @VoucherSerialNumber)";
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
@@ -197,6 +200,8 @@ namespace vendtechext.TEST.Sales
                         command.Parameters.AddWithValue("@CurrentDealerBalance", transaction.CurrentDealerBalance);
                         command.Parameters.AddWithValue("@TaxCharge", transaction.TaxCharge);
                         command.Parameters.AddWithValue("@Units", transaction.Units);
+                        command.Parameters.AddWithValue("@VoucherSerialNumber", transaction.VoucherSerialNumber);
+                        command.Parameters.AddWithValue("@PaymentStatus", transaction.PaymentStatus);
 
                         // Execute the SQL command
                         await command.ExecuteNonQueryAsync();

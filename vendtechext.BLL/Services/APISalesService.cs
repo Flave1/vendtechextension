@@ -123,8 +123,11 @@ namespace vendtechext.BLL.Services
                     }
                     else if (executionResult.status == "failed")
                     {
+                        if (executionResult.code == API_MESSAGE_CONSTANTS.VENDING_DISABLE)
+                        {
+                            await AppConfiguration.DisableSales();
+                        }
                         transaction = await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
-                        executionResult.code = API_MESSAGE_CONSTANTS.BAD_REQUEST;
                         await _transactionUpdate.UpdateFailedSaleTransactionLogOnStatusQuery(executionResult, transaction);
                         return Response.WithStatus(executionResult.status).WithMessage("Transaction unsuccessful").WithType(executionResult).GenerateResponse();
                     }
