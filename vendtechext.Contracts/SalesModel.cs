@@ -11,6 +11,7 @@ namespace vendtechext.Contracts
     {
         public decimal Amount { get; set; }
         public string MeterNumber { get; set; }
+        public string Simulate { get; set; }
     }
 
     public class ElectricitySaleRTO

@@ -197,6 +197,9 @@ namespace vendtechext.BLL.Repository
 
             if (settings.DisableElectricitySales)
                 throw new SystemDisabledException("Electricity vending is currently disabled.");
+
+            if(!string.IsNullOrEmpty(request.Simulate) && DomainEnvironment.IsProduction)
+                throw new BadRequestException("Request cannot be simulated in a production environment.");
         }
 
         //public async Task DeductFromWallet(Wallet wallet, Transaction transaction)
@@ -462,14 +465,29 @@ namespace vendtechext.BLL.Repository
             return trans;
         }
 
-        public async Task<Transaction> GetSaleTransactionByRandom(string meterNumber)
+        public async Task<Transaction> GetSaleTransactionByRandom(ElectricitySaleRequest request)
         {
-            string[] transactionIds = ["312643", "311878", "311567", "302734"];
-            string randomTransactionId = transactionIds[new Random().Next(transactionIds.Length)];
+            string successTranxId = "311567";
+            string pendingTranxId = "312742";
+            string failedTranxId = "312740";
 
-            var trans = await _context.Transactions
-                .Where(d => d.VendtechTransactionID == randomTransactionId)
+            Transaction trans = null;
+            if (string.IsNullOrEmpty(request.Simulate) || request.Simulate?.ToLower() == "success")
+                trans = await _context.Transactions
+                .Where(d => d.VendtechTransactionID == successTranxId)
                 .FirstOrDefaultAsync();
+
+            else if (request.Simulate.ToLower() == "pending")
+                trans = await _context.Transactions
+                .Where(d => d.VendtechTransactionID == pendingTranxId)
+                .FirstOrDefaultAsync();
+
+            else if (request.Simulate.ToLower() == "failed")
+                trans = await _context.Transactions
+                .Where(d => d.VendtechTransactionID == failedTranxId)
+                .FirstOrDefaultAsync();
+            else
+                throw new BadRequestException("Invalid simulation value.");
 
             return trans;
         }
@@ -579,6 +597,20 @@ namespace vendtechext.BLL.Repository
                .WithVendStatusDescription(executionResult.failedResponse.ErrorDetail)
                .WithTransactionStatus(TransactionStatus.Failed)
                .WithReceivedFrom(executionResult.receivedFrom)
+               .WithResponse(executionResult.response)
+               .WithBalanceAfter(trans.BalanceBefore)
+               .WithRequest(executionResult.request)
+               .Build();
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateSalePendingTransactionLog(ExecutionResult executionResult, Transaction trans)
+        {
+            trans = new TransactionsBuilder(trans)
+               .WithVendStatusDescription(executionResult.failedResponse.ErrorDetail)
+               .WithTransactionStatus(TransactionStatus.Pending)
+               .WithReceivedFrom(executionResult.receivedFrom)  
                .WithResponse(executionResult.response)
                .WithBalanceAfter(trans.BalanceBefore)
                .WithRequest(executionResult.request)

@@ -158,7 +158,7 @@ namespace vendtechext.BLL.Services
                 await _repository.SalesInternalValidation(wallet, request, integratorid);
 
                 ExecutionResult executionResult = null;
-                Transaction existingTransaction = await _repository.GetSaleTransactionByRandom(request.MeterNumber);
+                Transaction existingTransaction = await _repository.GetSaleTransactionByRandom(request);
                 Transaction transaction = await _repository.CreateSaleTransactionLog(request, integratorid);
                 transaction =await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
 
@@ -167,7 +167,7 @@ namespace vendtechext.BLL.Services
                     executionResult = new ExecutionResult(isSuccessful: false);
                     executionResult.status = "failed";
                 }
-                else if (existingTransaction.Finalized)
+                else if (existingTransaction.TransactionStatus == (int)TransactionStatus.Success)
                 {
                     executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
                     executionResult.status = "success";
@@ -178,13 +178,21 @@ namespace vendtechext.BLL.Services
                     CheckIntegratorBalanceThreshold(wallet);
                     return Response.WithStatus(executionResult.status).WithMessage("Vend successful").WithType(executionResult).GenerateResponse();
                 }
-                else if (!existingTransaction.Finalized)
+                else if (existingTransaction.TransactionStatus == (int)TransactionStatus.Failed)
                 {
                     executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
                     executionResult.status = "failed";
                     executionResult.code = API_MESSAGE_CONSTANTS.BAD_REQUEST;
                     transaction = await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
                     await _transactionUpdate.UpdateSaleFailedTransactionLog(executionResult, transaction);
+                    return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
+                }
+                else if(existingTransaction.TransactionStatus == (int)TransactionStatus.Pending)
+                {
+                    executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
+                    executionResult.status = "pending";
+                    executionResult.code = API_MESSAGE_CONSTANTS.BAD_REQUEST;
+                    await _transactionUpdate.UpdateSalePendingTransactionLog(executionResult, transaction);
                     return Response.WithStatus(executionResult.status).WithMessage(executionResult.failedResponse.ErrorMessage).WithType(executionResult).GenerateResponse();
                 }
                 return Response.WithStatus(executionResult.status).WithMessage("").WithType(executionResult).GenerateResponse();

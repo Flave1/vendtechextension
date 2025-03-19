@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Runtime.Intrinsics.Arm;
 using vendtechext.Contracts;
 using vendtechext.Helper.Configurations;
 
@@ -132,6 +133,15 @@ namespace vendtechext.Helper
             if(message == "Insufficient Funds")
             {
                 return API_MESSAGE_CONSTANTS.VENDING_DISABLE;
+            }
+
+            if (DomainEnvironment.IsSandbox)
+            {
+                if (message == "Error Occurred! Unable to process request")
+                    return API_MESSAGE_CONSTANTS.BAD_REQUEST;
+
+                if (message == "Voucher Processing")
+                    return API_MESSAGE_CONSTANTS.BAD_REQUEST;
             }
             return API_MESSAGE_CONSTANTS.BAD_REQUEST;
         }

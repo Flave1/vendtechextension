@@ -25,16 +25,18 @@ namespace vendtechext.TEST.Sales
             TestServerFixture testServer = new TestServerFixture();
             _client = testServer.Client;
             _mockSalesService = new Mock<IAPISalesService>();
-            _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
+            _connectionString = "Server=92.205.181.48;Database=VENDTECH_DEV;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
         }
 
         [Theory]
-        [InlineData(liveApikey, 40, meternumber, 2002)]
+        [InlineData(devApikey, 40, meternumber, 2002, "failed")]
+        //[InlineData(liveApikey, 40, meternumber, 2002, "")]
         public async Task Test_for_successful_response(
             string apiKey,
             decimal amount,
             string meterNumber,
-            int expectedStatusCode)
+            int expectedStatusCode,
+            string simulate)
 
         {
 
@@ -45,6 +47,7 @@ namespace vendtechext.TEST.Sales
                 TransactionId = transaction.TransactionId,
                 MeterNumber = meterNumber,
                 Amount = amount,
+                Simulate = simulate
             };
 
             var json = System.Text.Json.JsonSerializer.Serialize(requestModel);
@@ -84,7 +87,7 @@ namespace vendtechext.TEST.Sales
             var response = await _client.PostAsync("/sales/v1/status", content);
 
             // Assert
-            //response.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
             APIResponse result = JsonConvert.DeserializeObject<APIResponse>(responseString);
 
