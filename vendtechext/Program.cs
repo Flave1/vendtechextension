@@ -131,6 +131,16 @@ builder.Services.AddSignalR();
 //Cache
 builder.Services.AddMemoryCache();
 
+// Add this near the other service registrations
+builder.Services.AddHttpClient();
+
+// If you need a named client for specific configuration:
+builder.Services.AddHttpClient("VendTech", client =>
+{
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    // Add any other default configuration for your HTTP client
+    client.Timeout = TimeSpan.FromSeconds(100);
+});
 
 // Dependency Injection
 builder.Services.AddScoped<IVendtechReconcillationService, VendtechReconcillationService>();

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
@@ -14,11 +13,10 @@ namespace vendtechext.BLL.Repository
 {
     public class TransactionRepository
     {
-        protected readonly DataContext _context;
+        public readonly DataContext _context;
         private readonly LogService _logService;
         private readonly TransactionIdGenerator _idgenerator;
         private readonly IConfiguration _configuration;
-        public TransactionRepository() { }
 
         public TransactionRepository(DataContext context, LogService logService, TransactionIdGenerator idgenerator, IConfiguration configuration)
         {
@@ -202,26 +200,15 @@ namespace vendtechext.BLL.Repository
                 throw new BadRequestException("Request cannot be simulated in a production environment.");
         }
 
-        //public async Task DeductFromWallet(Wallet wallet, Transaction transaction)
-        //{
-        //    if(transaction.PaymentStatus == (int)PaymentStatus.Pending)
-        //    {
-        //        transaction.BalanceBefore = wallet.Balance;
-        //        wallet.Balance = (wallet.Balance - transaction.Amount);
-        //        transaction.BalanceAfter = wallet.Balance;
-        //        transaction.PaymentStatus = (int)PaymentStatus.Deducted;
-        //        await _context.SaveChangesAsync();
-        //    }
-        //}
 
         public async Task<Transaction> DeductFromWallet(Guid transactionId, Guid walletId)
         {
             string connectionString = _configuration.GetConnectionString("DefaultConnection");
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            await using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync().ConfigureAwait(false);
 
-                using (var command = connection.CreateCommand())
+                await using (var command = connection.CreateCommand())
                 {
                     // Step 1: Retrieve transaction and wallet details
                     command.CommandText = @"
@@ -238,7 +225,7 @@ namespace vendtechext.BLL.Repository
                     walletIdParam.Value = walletId;
                     command.Parameters.Add(walletIdParam);
 
-                    using (var reader = await command.ExecuteReaderAsync())
+                    await using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                     {
                         if (!reader.Read()) throw new ServerTechnicalException("Unable to find transaction");
                         decimal amount = reader.GetDecimal(0);
@@ -277,19 +264,6 @@ namespace vendtechext.BLL.Repository
             return await _context.Transactions.FindAsync(transactionId);
         }
 
-
-        //public async Task DeductFromWalletIfRefunded(Wallet wallet, Transaction transaction)
-        //{
-        //    if (transaction.PaymentStatus == (int)PaymentStatus.Refunded)
-        //    {
-        //        transaction.BalanceBefore = wallet.Balance;
-        //        wallet.Balance = (wallet.Balance - transaction.Amount);
-        //        transaction.BalanceAfter = wallet.Balance;
-        //        transaction.PaymentStatus = (int)PaymentStatus.Deducted;
-        //        await _context.SaveChangesAsync();
-        //        _logService.Log(LogType.Refund, $"fund_claimed {transaction.Amount} to {wallet.WALLET_ID} " + $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
-        //    }
-        //}
 
         public async Task<Transaction> DeductFromWalletIfRefunded(Guid transactionId, Guid walletId)
         {
@@ -363,22 +337,6 @@ namespace vendtechext.BLL.Repository
             return await _context.Transactions.FindAsync(transactionId);
         }
 
-
-        //public async Task RefundToWallet(Wallet wallet, Transaction transaction)
-        //{
-        //    if(transaction.PaymentStatus == (int)PaymentStatus.Deducted)
-        //    {
-        //        wallet.Balance = (wallet.Balance + transaction.Amount);
-        //        transaction.PaymentStatus = (int)PaymentStatus.Refunded;
-        //        transaction.BalanceAfter = transaction.BalanceBefore;
-        //        await _context.SaveChangesAsync();
-        //        _logService.Log(LogType.Refund, $"refunded {transaction.Amount} to {wallet.WALLET_ID} " + $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
-        //    }
-        //    else
-        //    {
-        //        _logService.Log(LogType.Refund, $"attempted refund {transaction.Amount} to {wallet.WALLET_ID} " +  $"for {transaction.VendtechTransactionID} ID", transaction?.Response ?? "");
-        //    }
-        //}
 
         public async Task<Transaction> RefundToWallet(Guid transactionId, Guid walletId)
         {
@@ -540,10 +498,12 @@ namespace vendtechext.BLL.Repository
     public class TransactionUpdate
     {
         private readonly DataContext _context;
+
         public TransactionUpdate(DataContext context)
         {
             _context = context;
         }
+
         public async Task UpdateSaleSuccessTransactionLog(ExecutionResult executionResult, Transaction trans)
         {
             trans = new TransactionsBuilder(trans)

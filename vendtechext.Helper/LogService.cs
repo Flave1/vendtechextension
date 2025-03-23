@@ -7,12 +7,13 @@ namespace vendtechext.Helper
     public class LogService
     {
         public readonly DataContext _dataContext;
+        
         public LogService(DataContext dataContext)
         {
             _dataContext = dataContext;
         }
 
-       public void Log(LogType type, string message, dynamic data = null, string stackTrace = "")
+        public void Log(LogType type, string message, dynamic data = null, string stackTrace = "")
         {
             var log = new Log
             {
@@ -25,6 +26,5 @@ namespace vendtechext.Helper
             _dataContext.Logs.Add(log);
             _dataContext.SaveChanges();
         }
-
     }
 }

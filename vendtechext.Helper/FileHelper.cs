@@ -3,17 +3,20 @@ using vendtechext.DAL.Common;
 
 namespace vendtechext.Helper
 {
-    public class FileHelper
+    public class FileHelper : IDisposable
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly LogService _log;
         private readonly string _dir;
+        private bool disposed = false;
+
         public FileHelper(IHttpContextAccessor httpContextAccessor, LogService log)
         {
             _httpContextAccessor = httpContextAccessor;
             _log = log;
             _dir = "images";
         }
+
         public async Task<string> CreateFile(IFormFile file)
         {
             try
@@ -37,9 +40,9 @@ namespace vendtechext.Helper
                     var filePath = Path.Combine(directoryPath, fileName);
 
                     // Save the file to the specified file path
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    await using (var fileStream = new FileStream(filePath, FileMode.Create))
                     {
-                        await file.CopyToAsync(stream);
+                        await file.CopyToAsync(fileStream).ConfigureAwait(false);
                     }
 
                     // Return the actual URL to the uploaded file
@@ -108,5 +111,27 @@ namespace vendtechext.Helper
                 
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources if any
+                }
+                disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~FileHelper()
+        {
+            Dispose(false);
+        }
     }
 }

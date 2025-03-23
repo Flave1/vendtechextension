@@ -10,7 +10,7 @@ using vendtechext.Helper;
 
 namespace vendtechext.BLL.Services
 {
-    public class DepositService: BaseService, IDepositService
+    public class DepositService : BaseService, IDepositService
     {
         private readonly TransactionRepository _repository;
         private readonly WalletRepository _walletRepository;

@@ -133,6 +133,8 @@ namespace vendtechext.BLL.Services
             {
                 if (req.SortBy == "TRANSACTION_ID")
                     query = query.Where(d => d.TransactionUniqueId.Contains(req.SortValue));
+                if (req.SortBy == "VTECHEXT_ID")
+                    query = query.Where(d => d.VendtechTransactionID.Contains(req.SortValue));
                 else if (req.SortBy == "AMOUNT")
                     query = query.Where(d => d.Amount.ToString().Contains(req.SortValue));
                 else if (req.SortBy == "METER_NUMBER")

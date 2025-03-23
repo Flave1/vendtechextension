@@ -1,11 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System.Runtime.Intrinsics.Arm;
 using vendtechext.Contracts;
 using vendtechext.Helper.Configurations;
 
 namespace vendtechext.Helper
 {
-    public class RTSProperties : IDisposable
+    public class RTSProperties
     {
         // Static Lazy Singleton
         private static readonly Lazy<RTSProperties> _instance = new Lazy<RTSProperties>(() => new RTSProperties());
@@ -144,11 +143,6 @@ namespace vendtechext.Helper
                     return API_MESSAGE_CONSTANTS.BAD_REQUEST;
             }
             return API_MESSAGE_CONSTANTS.BAD_REQUEST;
-        }
-
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
         }
     }
 }

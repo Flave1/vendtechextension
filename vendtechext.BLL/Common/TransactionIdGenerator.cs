@@ -1,18 +1,23 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Data.SqlClient;
-using vendtechext.Helper;
 using vendtechext.DAL.Common;
+using vendtechext.Helper;
+
 namespace vendtechext.BLL.Common
 {
     public class TransactionIdGenerator
     {
         private readonly IMemoryCache _cache;
-        private const string CacheKey = "EXTTransactionIds"; 
+        private const string CacheKey = "EXTTransactionIds";
         private readonly IConfiguration _configuration;
         private readonly LogService _logService;
 
-        public TransactionIdGenerator(IMemoryCache memoryCache, IConfiguration configuration, LogService logService)
+        public TransactionIdGenerator(
+            IMemoryCache memoryCache,
+            IConfiguration configuration,
+            LogService logService
+        )
         {
             _cache = memoryCache;
             _configuration = configuration;
@@ -23,7 +28,11 @@ namespace vendtechext.BLL.Common
         {
             if (_cache.TryGetValue(CacheKey, out List<long> ids))
             {
-                _logService.Log(LogType.Infor, $"Checking TransactionIdExist for {transactionId}", string.Join(", ", ids));
+                _logService.Log(
+                    LogType.Infor,
+                    $"Checking TransactionIdExist for {transactionId}",
+                    string.Join(", ", ids)
+                );
 
                 return ids.Contains(transactionId);
             }
@@ -49,19 +58,22 @@ namespace vendtechext.BLL.Common
         {
             try
             {
-                // Retrieve the connection string from appsettings.json
                 string connectionString = _configuration.GetConnectionString("DefaultConnection");
                 long transactionId = 0;
-                string query = @"SELECT TOP 1 VendtechTransactionID FROM Transactions ORDER BY CreatedAt DESC";
+                string query =
+                    @"SELECT TOP 1 VendtechTransactionID FROM Transactions ORDER BY CreatedAt DESC";
 
-                using (SqlConnection connection = new SqlConnection(connectionString))
+                await using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    await connection.OpenAsync();
+                    await connection.OpenAsync().ConfigureAwait(false);
 
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    await using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        var result = await command.ExecuteScalarAsync();
-                        if (result != null && long.TryParse(result.ToString(), out long lastTransactionId))
+                        var result = await command.ExecuteScalarAsync().ConfigureAwait(false);
+                        if (
+                            result != null
+                            && long.TryParse(result.ToString(), out long lastTransactionId)
+                        )
                         {
                             transactionId = lastTransactionId;
                             do
@@ -76,14 +88,12 @@ namespace vendtechext.BLL.Common
                             transactionId = 1;
                         }
                     }
-                    connection.Close();
                 }
 
                 return transactionId.ToString();
             }
             catch (Exception ex)
             {
-                // Replace Utilities.LogExceptionToDatabase with appropriate logging for .NET Core
                 Console.WriteLine($"Error on GenerateNewTransactionId: {ex.Message}");
                 throw;
             }

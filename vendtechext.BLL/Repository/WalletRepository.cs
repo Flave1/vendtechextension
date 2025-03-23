@@ -42,11 +42,11 @@ namespace vendtechext.BLL.Repository
         public async Task<Wallet> GetWalletByIntegratorId(Guid integratorId, bool includeIntegrator = false)
         {
             string connectionString = _configuration.GetConnectionString("DefaultConnection");
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            await using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync().ConfigureAwait(false);
 
-                using (var command = connection.CreateCommand())
+                await using (var command = connection.CreateCommand())
                 {
                     command.CommandText = includeIntegrator
                         ? @"SELECT w.Id, w.WALLET_ID, w.Balance, w.BookBalance, w.CommissionId, w.IntegratorId, w.MinThreshold, w.IsBalanceLowReminderSent,
@@ -59,7 +59,7 @@ namespace vendtechext.BLL.Repository
 
                     command.Parameters.AddWithValue("@integratorId", integratorId);
 
-                    using (var reader = await command.ExecuteReaderAsync())
+                    await using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                     {
                         if (!reader.Read())
                         {

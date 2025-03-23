@@ -18,14 +18,11 @@ namespace vendtechext.BLL.Common
                 ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
 
                 using (MemoryStream ms = new MemoryStream())
+                using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                using (StreamWriter sw = new StreamWriter(cs))
                 {
-                    using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (StreamWriter sw = new StreamWriter(cs))
-                        {
-                            sw.Write(plainText);
-                        }
-                    }
+                    sw.WriteAsync(plainText);
+                    sw.FlushAsync();
                     return Convert.ToBase64String(ms.ToArray());
                 }
             }
