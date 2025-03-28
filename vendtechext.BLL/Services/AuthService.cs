@@ -214,6 +214,7 @@ namespace vendtechext.BLL.Services
             string businessName;
             string about;
             string apiKey;
+            string subApiKey;
             string logo = "";
             int midnightBalanceAlertSwitch = 0;
             var user = await _userManager.FindByIdAsync(userId);
@@ -226,6 +227,7 @@ namespace vendtechext.BLL.Services
                 businessName = integrator.BusinessName;
                 about = integrator.About;
                 apiKey = integrator.ApiKey;
+                subApiKey = integrator.SubApiKey;
                 logo = integrator.Logo;
                 midnightBalanceAlertSwitch = integrator.Wallet.MidnightBalanceAlertSwitch;
             }
@@ -234,11 +236,12 @@ namespace vendtechext.BLL.Services
                 businessName = "VENDTECH";
                 about = "About";
                 apiKey = "";
+                subApiKey = "";
                 logo = user.ProfilePic;
                 midnightBalanceAlertSwitch = 0;
             }
 
-            var profile = new ProfileDto(user, businessName, about, apiKey, logo, midnightBalanceAlertSwitch);
+            var profile = new ProfileDto(user, businessName, about, apiKey, subApiKey, logo, midnightBalanceAlertSwitch);
 
             return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(profile).GenerateResponse();
         }

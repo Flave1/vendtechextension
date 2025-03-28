@@ -293,5 +293,60 @@ namespace vendtechext.Helper
                 return;
             }
         }
+
+
+        public void SendApiKeyGenerationEmail(Integrator integrator, string key)
+        {
+            try
+            {
+                string msg = $@"
+        <p>A new API key has been successfully generated for your account. Please review the details below:</p>
+        <p><strong>API Key:</strong> <code>{key}</code></p>
+        <p><strong>Important Information:</strong></p>
+        <ul>
+            <li><strong>Activation Required:</strong> This API key is <strong> not yet active.</strong> Ensure you complete the necessary steps to activate it.</li>
+            <li>If you did not request this key or suspect any unauthorized activity, please contact our support team immediately.</li>
+        </ul>
+        <p>Once you are ready to go live, integrate this key into your system accordingly.</p>
+        ";
+
+                string subject = "Action Required: Your New API Key Has Been Generated";
+                string emailBody = helper.GetEmailTemplate("simple");
+                emailBody = emailBody.Replace("[recipient]", integrator.BusinessName);
+                emailBody = emailBody.Replace("[body]", msg);
+                helper.SendEmail(integrator.AppUser.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+        public void SendApiKeyAssociationConfirmationEmail(Integrator integrator, string key)
+        {
+            try
+            {
+                string msg = $@"
+        <p>Your API key has been successfully associated with your account and is <strong>now ready for use</strong>.</p>
+        <p><strong>API Key:</strong> <code>{key}</code></p>
+        <p><strong>Next Steps:</strong></p>
+        <ul>
+            <li>Ensure your system is correctly configured to use this API key.</li>
+            <li>If you experience any issues or did not authorize this change, contact our support team immediately.</li>
+        </ul>
+        ";
+
+                string subject = "Confirmation: Your API Key Has Been Successfully Associated";
+                string emailBody = helper.GetEmailTemplate("simple");
+                emailBody = emailBody.Replace("[recipient]", integrator.BusinessName);
+                emailBody = emailBody.Replace("[body]", msg);
+                helper.SendEmail(integrator.AppUser.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+
     }
 }

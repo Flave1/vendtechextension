@@ -12,5 +12,7 @@ namespace vendtechext.BLL.Interfaces
         Task<APIResponse> GetIntegrators(PaginatedSearchRequest req);
         Task<APIResponse> GetIntegrator(Guid id);
         Task<APIResponse> EnableDisable(EnableIntegrator model);
+        Task<APIResponse> GenerateApiKey(ApiKeyMgt model);
+        Task<APIResponse> AssociateApiKey(ApiKeyMgt model);
     }
 }

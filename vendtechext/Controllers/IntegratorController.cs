@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.Controllers.Base;
+using vendtechext.DAL.Migrations;
 using vendtechext.Helper;
 
 namespace vendtechext.Controllers
@@ -62,6 +63,20 @@ namespace vendtechext.Controllers
                 return Ok(result);
             }
             else { return Unauthorized(); }
+        }
+
+        [HttpPost("generate-apikey")]
+        public async Task<IActionResult> GenerateAPIKey([FromBody] ApiKeyMgt model)
+        {
+            var result = await service.GenerateApiKey(model);
+            return Ok(result);
+        }
+
+        [HttpPost("associate-apikey")]
+        public async Task<IActionResult> AssociateAPIKey([FromBody] ApiKeyMgt model)
+        {
+            var result = await service.AssociateApiKey(model);
+            return Ok(result);
         }
     }
 }

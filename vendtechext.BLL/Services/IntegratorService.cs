@@ -8,6 +8,7 @@ using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -304,5 +305,48 @@ namespace vendtechext.BLL.Services
                 new Emailer(_emailHelper, notification).SendEmailToIntegratorOnAccountCreation(integrator, user);
             }
         }
+
+        async Task<APIResponse> IIntegratorService.GenerateApiKey(ApiKeyMgt model)
+        {
+            var account = _dbcxt.Integrators.Where(d => d.Id == model.IntegratorId).Include(d => d.AppUser).FirstOrDefault();
+            if (account == null)
+            {
+                throw new BadRequestException("Business Account not found.");
+            }
+            if (account.Disabled)
+                throw new BadImageFormatException("Account not active.");
+
+            account.SubApiKey = AesEncryption.Encrypt(account.BusinessName + account.AppUser.Email + account.AppUser.PhoneNumber);
+            await _dbcxt.SaveChangesAsync();
+            model.CurrentApiKey = account.ApiKey;
+            model.SubApiKey = account.SubApiKey;
+            _backgroundJobClient.Enqueue(() => SendNotificationOnGenerateApiKey(account));
+            return Response.WithStatus("success").WithMessage("Successfully generated API key.").WithType(model).GenerateResponse();
+        }
+
+        public void SendNotificationOnGenerateApiKey(Integrator integrator) 
+            => new Emailer(_emailHelper, notification).SendApiKeyGenerationEmail(integrator, integrator.SubApiKey);
+        async Task<APIResponse> IIntegratorService.AssociateApiKey(ApiKeyMgt model)
+        {
+            var account = _dbcxt.Integrators.Where(d => d.Id == model.IntegratorId).Include(d => d.AppUser).FirstOrDefault();
+            if (account == null)
+                throw new BadRequestException("Business Account not found");
+            if (account.Disabled)
+                throw new BadImageFormatException("Account not active.");
+            if (string.IsNullOrEmpty(account.SubApiKey))
+                throw new BadRequestException("API Key already associated.");
+            if (account.SubApiKey == account.ApiKey)
+                throw new BadRequestException("API Key already associated.");
+
+            account.ApiKey = account.SubApiKey;
+            account.SubApiKey = "";
+            await _dbcxt.SaveChangesAsync();
+            model.CurrentApiKey = account.SubApiKey;
+            model.SubApiKey = "";
+            _backgroundJobClient.Enqueue(() => SendNotificationOnAssociateApiKey(account));
+            return Response.WithStatus("success").WithMessage("Successfully generated API key").WithType(model).GenerateResponse();
+        }
+        public void SendNotificationOnAssociateApiKey(Integrator integrator)
+            => new Emailer(_emailHelper, notification).SendApiKeyAssociationConfirmationEmail(integrator, integrator.ApiKey);
     }
 }

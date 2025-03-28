@@ -66,7 +66,7 @@ namespace vendtechext.Contracts
             Email = x.AppUser.Email;
             AppUserId = x.AppUserId;
             Phone = x.AppUser.PhoneNumber;
-            WalletId = x.Wallet.WALLET_ID;
+            WalletId = x.Wallet?.WALLET_ID ?? "";
             UserAccountStatus = x.AppUser.UserAccountStatus;
             Balance = x.Wallet.Balance;
             CommissionLevel = x.Wallet.CommissionId;
@@ -95,5 +95,10 @@ namespace vendtechext.Contracts
         public bool Enable { get; set; }
         public Guid IntegratorId{ get; set; }
     }
-
+    public class ApiKeyMgt
+    {
+        public Guid IntegratorId { get; set; }
+        public string CurrentApiKey { get; set; }
+        public string SubApiKey { get; set; }
+    }
 }

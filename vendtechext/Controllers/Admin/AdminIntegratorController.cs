@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.Controllers.Base;
+using vendtechext.Helper;
 
 namespace vendtechext.Controllers
 {
     [ApiController]
     [Route("admin-integrator/v1")]
-    [Authorize(Roles = "Super Admin")]
+    [Authorize(Roles = APP_ROLES.SuperAdmin)]
     public class AdminIntegratorController : BaseController
     {
         private readonly IIntegratorService service;

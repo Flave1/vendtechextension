@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System.Net;
 using System.Text;
+using vendtechext.BLL.Common;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using Xunit;
@@ -82,6 +83,17 @@ namespace vendtechext.TEST.Account
             Assert.Equal(expectedStatusCode, response.StatusCode);
 
         }
+        [Theory]
+        [InlineData("76601994", "AFRO INTERNATIONAL LTD", "navin@afroint.com")]
+        public void Test_api_key_generattion(string phone, string businessName, string email)
+        {
+            var apiKey = AesEncryption.Encrypt(businessName + email + phone);
+            var derypted = AesEncryption.Decrypt(businessName + email + phone);
+
+            Assert.NotEqual(derypted, apiKey);
+
+        }
+        
     }
 
 }

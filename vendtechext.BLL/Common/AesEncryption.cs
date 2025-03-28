@@ -10,6 +10,7 @@ namespace vendtechext.BLL.Common
         // Encrypt a string and return the encrypted data as a base64-encoded string
         public static string Encrypt(string plainText, string key = key, string iv = iv)
         {
+            plainText = plainText + DateTime.UtcNow.ToString();
             using (Aes aes = Aes.Create())
             {
                 aes.Key = Encoding.UTF8.GetBytes(key);

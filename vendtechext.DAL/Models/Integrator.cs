@@ -13,6 +13,7 @@ namespace vendtechext.DAL.Models
         public string Logo { get; set; }
         public bool Disabled { get; set; } 
         public string ApiKey { get; set; }
+        public string SubApiKey { get; set; }
         [ForeignKey("AppUserId")]
         public virtual AppUser AppUser { get; set; }
         public virtual Wallet Wallet { get; set; }
