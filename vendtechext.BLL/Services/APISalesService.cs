@@ -288,8 +288,6 @@ namespace vendtechext.BLL.Services
             string integratorName
         )
         {
-            await using var dbTransaction = await _repository._context.Database.BeginTransactionAsync(
-                System.Data.IsolationLevel.ReadUncommitted);
             try
             {
                 Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
@@ -299,14 +297,8 @@ namespace vendtechext.BLL.Services
                 Transaction existingTransaction = await _repository.GetSaleTransactionByRandom(
                     request
                 );
-                Transaction transaction = await _repository.CreateSaleTransactionLog(
-                    request,
-                    integratorid
-                );
-                transaction = await _repository.DeductFromWallet(
-                    transactionId: transaction.Id,
-                    walletId: wallet.Id
-                );
+                Transaction transaction = await _repository.CreateSaleTransactionLog(request, integratorid);
+                transaction = await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
 
                 if (existingTransaction == null)
                 {
@@ -315,31 +307,21 @@ namespace vendtechext.BLL.Services
                 }
                 else if (existingTransaction.TransactionStatus == (int)TransactionStatus.Success)
                 {
-                    executionResult = new ExecutionResult(
-                        existingTransaction,
-                        existingTransaction.ReceivedFrom
-                    );
+                    executionResult = new ExecutionResult(existingTransaction,existingTransaction.ReceivedFrom);
                     executionResult.status = "success";
                     wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
                     executionResult.successResponse.UpdateResponse(transaction, wallet);
                     executionResult.code = API_MESSAGE_CONSTANTS.OKAY_REQEUST;
-                    await _transactionUpdate.UpdateSaleSuccessTransactionLogSANDBOX(
-                        existingTransaction,
-                        transaction
-                    );
+                    await _transactionUpdate.UpdateSaleSuccessTransactionLogSANDBOX(existingTransaction, transaction);
                     CheckIntegratorBalanceThreshold(wallet);
-                    return Response
-                        .WithStatus(executionResult.status)
+                    return Response.WithStatus(executionResult.status)
                         .WithMessage("Vend successful")
                         .WithType(executionResult)
                         .GenerateResponse();
                 }
                 else if (existingTransaction.TransactionStatus == (int)TransactionStatus.Failed)
                 {
-                    executionResult = new ExecutionResult(
-                        existingTransaction,
-                        existingTransaction.ReceivedFrom
-                    );
+                    executionResult = new ExecutionResult(existingTransaction, existingTransaction.ReceivedFrom);
                     executionResult.status = "failed";
                     executionResult.code = API_MESSAGE_CONSTANTS.BAD_REQUEST;
                     transaction = await _repository.RefundToWallet(
@@ -403,11 +385,6 @@ namespace vendtechext.BLL.Services
                     .WithMessage(ex.Message)
                     .WithType(executionResult)
                     .GenerateResponse();
-            }
-            catch (Exception ex)
-            {
-                await dbTransaction.RollbackAsync();
-                throw;
             }
         }
 

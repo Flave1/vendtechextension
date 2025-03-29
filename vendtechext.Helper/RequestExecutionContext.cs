@@ -151,19 +151,19 @@ namespace vendtechext.Helper
                 request.MeterNumber
             );
 
-            _log.Log(
-                LogType.Infor,
-                $"executing request for {request.TransactionId} from {integratorName}",
-                requestAsString
-            );
+            //_log.Log(
+            //    LogType.Infor,
+            //    $"executing request for {request.TransactionId} from {integratorName}",
+            //    requestAsString
+            //);
             await ExecuteRequest();
 
             await ProcessResponse();
-            _log.Log(
-                LogType.Infor,
-                $"executed request for {request.TransactionId} from {integratorName}",
-                responseAsString
-            );
+            //_log.Log(
+            //    LogType.Infor,
+            //    $"executed request for {request.TransactionId} from {integratorName}",
+            //    responseAsString
+            //);
 
             ExecutionResult executionResult = salesResponse;
             executionResult.InitializeRequestAndResponse(requestAsString, responseAsString);

@@ -29,14 +29,14 @@ namespace vendtechext.Controllers
             var integratorName = HttpContext.Items["IntegratorName"] as string;
             APIResponse reponse = new APIResponse();
 
-            _log.Log(LogType.Infor, $"received request for {request.TransactionId} from {integratorName}", request);
+            //_log.Log(LogType.Infor, $"received request for {request.TransactionId} from {integratorName}", request);
 
             if (DomainEnvironment.IsProduction)
                 reponse = await service.PurchaseElectricity(request, integratorId, integratorName);
             else
                 reponse = await service.PurchaseElectricityForSandbox(request, integratorId, integratorName);
 
-            _log.Log(LogType.Infor, $"response sent for {request.TransactionId} to {integratorName}", reponse);
+            //_log.Log(LogType.Infor, $"response sent for {request.TransactionId} to {integratorName}", reponse);
 
             return Ok(reponse);
         }

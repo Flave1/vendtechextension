@@ -166,7 +166,6 @@ namespace vendtechext.BLL.Repository
             }
         }
 
-
         public async Task SalesInternalValidation(Wallet wallet, ElectricitySaleRequest request, Guid integratorid)
         {
             SettingsPayload settings = AppConfiguration.GetSettings();
@@ -199,7 +198,6 @@ namespace vendtechext.BLL.Repository
             if(!string.IsNullOrEmpty(request.Simulate) && DomainEnvironment.IsProduction)
                 throw new BadRequestException("Request cannot be simulated in a production environment.");
         }
-
 
         public async Task<Transaction> DeductFromWallet(Guid transactionId, Guid walletId)
         {
@@ -263,7 +261,6 @@ namespace vendtechext.BLL.Repository
             }
             return await _context.Transactions.FindAsync(transactionId);
         }
-
 
         public async Task<Transaction> DeductFromWalletIfRefunded(Guid transactionId, Guid walletId)
         {
@@ -337,7 +334,6 @@ namespace vendtechext.BLL.Repository
             return await _context.Transactions.FindAsync(transactionId);
         }
 
-
         public async Task<Transaction> RefundToWallet(Guid transactionId, Guid walletId)
         {
             string connectionString = _configuration.GetConnectionString("DefaultConnection");
@@ -398,11 +394,6 @@ namespace vendtechext.BLL.Repository
                             command.Parameters.Add(new SqlParameter("@walletId", walletId));
 
                             await command.ExecuteNonQueryAsync();
-
-                            // Step 3: Log the successful refund
-                            _logService.Log(LogType.Refund,
-                                $"refunded {amount} to {walletId} for {vendtechTransactionID} ID",
-                                response);
                         }
                         else
                         {

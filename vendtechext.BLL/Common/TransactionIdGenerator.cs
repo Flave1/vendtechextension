@@ -28,12 +28,6 @@ namespace vendtechext.BLL.Common
         {
             if (_cache.TryGetValue(CacheKey, out List<long> ids))
             {
-                _logService.Log(
-                    LogType.Infor,
-                    $"Checking TransactionIdExist for {transactionId}",
-                    string.Join(", ", ids)
-                );
-
                 return ids.Contains(transactionId);
             }
             return false;
