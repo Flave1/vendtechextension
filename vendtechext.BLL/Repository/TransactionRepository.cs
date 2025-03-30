@@ -195,8 +195,8 @@ namespace vendtechext.BLL.Repository
             if (settings.DisableElectricitySales)
                 throw new SystemDisabledException("Electricity vending is currently disabled.");
 
-            if(!string.IsNullOrEmpty(request.Simulate) && DomainEnvironment.IsProduction)
-                throw new BadRequestException("Request cannot be simulated in a production environment.");
+            if (!string.IsNullOrEmpty(request.Simulate) && DomainEnvironment.IsProduction)
+                request.Simulate = "";
         }
 
         public async Task<Transaction> DeductFromWallet(Guid transactionId, Guid walletId)

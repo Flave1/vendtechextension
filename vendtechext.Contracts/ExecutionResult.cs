@@ -153,7 +153,7 @@ namespace vendtechext.Contracts
                 }
                 else
                 {
-                    failedResponse = new FailedResponse("Could not result in a vend", "Error occurred trying to vend for theis meter");
+                    failedResponse = new FailedResponse("Could not result in a vend", "Error occurred trying to vend for this meter");
                 }
                 return;
             }
