@@ -505,11 +505,6 @@ namespace vendtechext.BLL.Services
                 );
                 if (transaction == null)
                 {
-                    _logService.Log(
-                        LogType.Error,
-                        $"Transaction not found in CheckPendingSalesStatus: {transactionId}",
-                        null
-                    );
                     _recurringJobManager.RemoveIfExists(jobId);
                     return;
                 }
@@ -543,7 +538,6 @@ namespace vendtechext.BLL.Services
                     return;
                 }
 
-                _logService.Log(LogType.QeueJob, $"Failed job {jobId}", transaction);
                 wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
                 transaction = await _repository.RefundToWallet(
                     transactionId: transaction.Id,

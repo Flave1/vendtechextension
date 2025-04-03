@@ -322,11 +322,6 @@ namespace vendtechext.BLL.Repository
                             command.Parameters.Add(new SqlParameter("@walletId", walletId));
 
                             await command.ExecuteNonQueryAsync();
-
-                            // Step 3: Log the transaction
-                            _logService.Log(LogType.Refund,
-                                $"fund_claimed {amount} to {walletId} for {vendtechTransactionID} ID",
-                                response);
                         }
                     }
                 }
@@ -394,13 +389,6 @@ namespace vendtechext.BLL.Repository
                             command.Parameters.Add(new SqlParameter("@walletId", walletId));
 
                             await command.ExecuteNonQueryAsync();
-                        }
-                        else
-                        {
-                            // Step 4: Log the failed refund attempt
-                            _logService.Log(LogType.Refund,
-                                $"attempted refund {amount} to {walletId} for {vendtechTransactionID} ID",
-                                response);
                         }
                     }
                 }
