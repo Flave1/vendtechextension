@@ -520,15 +520,9 @@ namespace vendtechext.BLL.Services
                     _logService.Log(LogType.QeueJob, $"Removing job {jobId}", transaction);
                     _recurringJobManager.RemoveIfExists(jobId);
                     wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
-                    transaction = await _repository.DeductFromWalletIfRefunded(
-                        transactionId: transaction.Id,
-                        walletId: wallet.Id
-                    );
+                    transaction = await _repository.DeductFromWalletIfRefunded(transactionId: transaction.Id, walletId: wallet.Id);
                     transaction.ClaimedStatus = (int)ClaimedStatus.Unclaimed;
-                    await _transactionUpdate.UpdateSuceessSaleTransactionLogOnStatusQuery(
-                        executionResult,
-                        transaction
-                    );
+                    await _transactionUpdate.UpdateSuceessSaleTransactionLogOnStatusQuery(executionResult, transaction);
                     return;
                 }
 
@@ -539,14 +533,8 @@ namespace vendtechext.BLL.Services
                 }
 
                 wallet = await _walletReo.GetWalletByIntegratorId(integratorId);
-                transaction = await _repository.RefundToWallet(
-                    transactionId: transaction.Id,
-                    walletId: wallet.Id
-                );
-                await _transactionUpdate.UpdateFailedSaleTransactionLogOnStatusQuery(
-                    executionResult,
-                    transaction
-                );
+                transaction = await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
+                await _transactionUpdate.UpdateFailedSaleTransactionLogOnStatusQuery(executionResult, transaction);
                 _recurringJobManager.RemoveIfExists(jobId);
             }
             catch (Exception ex)
