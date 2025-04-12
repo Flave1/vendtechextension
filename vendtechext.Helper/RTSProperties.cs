@@ -19,7 +19,7 @@ namespace vendtechext.Helper
         public RTSStatusResponse statusResponse = null;
         public ProviderInformation rts;
         public bool isSuccessful = false;
-        public bool isFinalized = false;
+        public bool isFinalized = true;
 
         // Private constructor to prevent direct instantiation
         public RTSProperties()
@@ -94,7 +94,7 @@ namespace vendtechext.Helper
                 if (string.IsNullOrEmpty(successResponse.Content.Data.Data[0].PinNumber))
                 {
                     isSuccessful = false;
-                    isFinalized = statusResponse.Content.Finalised;
+                    isFinalized = false;
                 }
             }
             catch (JsonSerializationException)
@@ -112,11 +112,10 @@ namespace vendtechext.Helper
             {
                 isSuccessful = false;
                 isFinalized = statusResponse.Content.Finalised;
-                if (statusResponse.Content.StatusDescription == "The specified Transaction does not exist.")
-                    isFinalized = true;
             }
             else
                 isSuccessful = true;
+            isFinalized = true;
         }
         public int ReadErrorAndReturnStatusCode(string message)
         {

@@ -52,20 +52,11 @@ namespace vendtechext.BLL.Services
                 Wallet wallet = await _walletReo.GetWalletByIntegratorId(integratorid);
                 await _repository.SalesInternalValidation(wallet, request, integratorid);
 
-                Transaction transaction = await _repository.CreateSaleTransactionLog(
-                    request,
-                    integratorid
-                );
-                transaction = await _repository.DeductFromWallet(
-                    transactionId: transaction.Id,
-                    walletId: wallet.Id
-                );
+                Transaction transaction = await _repository.CreateSaleTransactionLog(request, integratorid);
+                transaction = await _repository.DeductFromWallet(transactionId: transaction.Id, walletId: wallet.Id);
 
                 ExecutionResult executionResult = await _executionContext.ExecuteTransaction(
-                    TransferRequestToRTO(request, transaction.VendtechTransactionID),
-                    integratorid,
-                    integratorName
-                );
+                    TransferRequestToRTO(request, transaction.VendtechTransactionID), integratorid, integratorName);
 
                 if (executionResult.status == "success")
                 {
@@ -78,7 +69,7 @@ namespace vendtechext.BLL.Services
                     CheckIntegratorBalanceThreshold(wallet);
                     return Response
                         .WithStatus(executionResult.status)
-                        .WithMessage("Vend was successful")
+                        .WithMessage("Vend Was Successful")
                         .WithType(executionResult)
                         .GenerateResponse();
                 }
@@ -91,10 +82,7 @@ namespace vendtechext.BLL.Services
                         integratorid,
                         integratorName
                     );
-                    await _transactionUpdate.UpdateSaleFailedTransactionLog(
-                        executionResult,
-                        transaction
-                    );
+                    await _transactionUpdate.UpdateSaleFailedTransactionLog(executionResult, transaction);
                     return Response
                         .WithStatus(executionResult.status)
                         .WithMessage(executionResult.failedResponse.ErrorDetail)
@@ -103,17 +91,10 @@ namespace vendtechext.BLL.Services
                 }
 
                 if (executionResult.code == API_MESSAGE_CONSTANTS.VENDING_DISABLE)
-                {
                     await AppConfiguration.DisableSales();
-                }
-                await _transactionUpdate.UpdateSaleFailedTransactionLog(
-                    executionResult,
-                    transaction
-                );
-                transaction = await _repository.RefundToWallet(
-                    transactionId: transaction.Id,
-                    walletId: wallet.Id
-                );
+
+                await _transactionUpdate.UpdateSaleFailedTransactionLog(executionResult, transaction);
+                transaction = await _repository.RefundToWallet(transactionId: transaction.Id, walletId: wallet.Id);
 
                 return Response
                     .WithStatus(executionResult.status)
@@ -124,12 +105,7 @@ namespace vendtechext.BLL.Services
             catch (BadRequestException ex)
             {
                 _logService.Log(LogType.Error, "Bad Request in PurchaseElectricity", ex.ToString());
-                ExecutionResult executionResult = GenerateExecutionResult(
-                    ex,
-                    API_MESSAGE_CONSTANTS.BAD_REQUEST
-                );
-
-
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANTS.BAD_REQUEST);
                 return Response
                     .WithStatus("failed")
                     .WithMessage(ex.Message)
@@ -138,17 +114,8 @@ namespace vendtechext.BLL.Services
             }
             catch (SystemDisabledException ex)
             {
-                _logService.Log(
-                    LogType.Error,
-                    "System Disabled Exception in PurchaseElectricity",
-                    ex.ToString()
-                );
-
-                ExecutionResult executionResult = GenerateExecutionResult(
-                    ex,
-                    API_MESSAGE_CONSTANTS.VENDING_DISABLE
-                );
-
+                _logService.Log(LogType.Error, "System Disabled Exception in PurchaseElectricity", ex.ToString());
+                ExecutionResult executionResult = GenerateExecutionResult(ex, API_MESSAGE_CONSTANTS.VENDING_DISABLE);
                 return Response
                     .WithStatus("failed")
                     .WithMessage(ex.Message)
@@ -194,7 +161,7 @@ namespace vendtechext.BLL.Services
                     executionResult.successResponse.UpdateResponseForStatusQuery(transaction);
                     return Response
                         .WithStatus(executionResult.status)
-                        .WithMessage("Transaction Successfully fetched")
+                        .WithMessage("Transaction Successfully Fetched.")
                         .WithType(executionResult)
                         .GenerateResponse();
                 }
@@ -221,7 +188,7 @@ namespace vendtechext.BLL.Services
                         CheckIntegratorBalanceThreshold(wallet);
                         return Response
                             .WithStatus(executionResult.status)
-                            .WithMessage("Transaction Successfully fetched")
+                            .WithMessage("Transaction Successfully Fetched.")
                             .WithType(executionResult)
                             .GenerateResponse();
                     }
@@ -241,7 +208,7 @@ namespace vendtechext.BLL.Services
                         );
                         return Response
                             .WithStatus(executionResult.status)
-                            .WithMessage("Transaction unsuccessful")
+                            .WithMessage("Transaction Not Successful.")
                             .WithType(executionResult)
                             .GenerateResponse();
                     }
@@ -315,7 +282,7 @@ namespace vendtechext.BLL.Services
                     await _transactionUpdate.UpdateSaleSuccessTransactionLogSANDBOX(existingTransaction, transaction);
                     CheckIntegratorBalanceThreshold(wallet);
                     return Response.WithStatus(executionResult.status)
-                        .WithMessage("Vend successful")
+                        .WithMessage("Vend Successful")
                         .WithType(executionResult)
                         .GenerateResponse();
                 }

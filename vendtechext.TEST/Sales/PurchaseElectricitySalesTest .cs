@@ -17,7 +17,7 @@ namespace vendtechext.TEST.Sales
         const string transactionId = "274867";//274733
         const string devApikey = "FCcHkRm7bBTaJkjgFyL6C2FH6RSGy6ff0YX3zK1kok87R+HL4blEj+PygevBefS0";
         const string liveApikey = "e+KZgZZl1GZcLUHQkZ2lqQmWwAHBQvyQZ99ChmNOd4+HCoVqRm/trmKOztwiv7LB";
-        const string meternumber = "98000142897";
+        const string meternumber = "11111111111"; //"98000142897";
 
         private readonly string _connectionString;
         public PurchaseElectricitySalesTest()
@@ -158,7 +158,7 @@ namespace vendtechext.TEST.Sales
                     CurrentDealerBalance = 0,
                     TaxCharge = 0,
                     Units = 0,
-                    PaymentStatus = 1,
+                    PaymentStatus = 0,
                     VoucherSerialNumber = "",
                 };
 

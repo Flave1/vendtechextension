@@ -202,7 +202,7 @@ namespace vendtechext.Helper
                     salesResponse = new ExecutionResult(_integrator.errorResponse);
                     salesResponse.status = "failed";
 
-                    if (_integrator.isFinalized)
+                    if (!_integrator.isFinalized)
                         salesResponse.status = "pending";
 
                     salesResponse.code = _integrator.ReadErrorAndReturnStatusCode(
