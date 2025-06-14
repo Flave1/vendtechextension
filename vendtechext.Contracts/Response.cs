@@ -1,6 +1,6 @@
 ﻿namespace vendtechext.Contracts
 {
-    public class Response : IDisposable
+    public class Response<T> : IDisposable
     {
         //private static readonly Lazy<response> _instance = new Lazy<response>(() => new response());
         private readonly APIResponse _response;
@@ -9,35 +9,24 @@
             _response = new APIResponse();
         }
 
-
         //public static response Instance => _instance.Value;
 
-        public Response WithStatus(string status)
+        public Response<T> WithStatus(string status)
         {
             _response.status = status;
             return this;
         }
-        //public Response WithStatusCode(int statusCode)
-        //{
-        //    _response.statusCode = statusCode;
-        //    return this;
-        //}
-        public Response WithDetail(string detail)
+        public Response<T> WithDetail(string detail)
         {
             _response.detailed = detail;
             return this;
         }
-        public Response WithMessage(string message)
+        public Response<T> WithMessage(string message)
         {
             _response.message = message;
             return this;
         }
-        public Response WithType(ExecutionResult result)
-        {
-            _response.result = result;
-            return this;
-        }
-        public Response WithType(dynamic result)
+        public Response<T> WithType(T result)
         {
             _response.result = result;
             return this;
@@ -47,7 +36,6 @@
             Dispose();
             return _response;
         }
-
         public void Dispose()
         {
             GC.SuppressFinalize(this);

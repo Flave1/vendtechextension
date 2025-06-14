@@ -30,6 +30,7 @@ namespace vendtechext.Helper
         public static string DashboardUrl => _configuration["Client:BaseUrl"];
         public static string APIUrl => IsProduction ? _configuration["Client:Production"] : _configuration["Client:Sandbox"];
         public static IConfiguration Configuration => _configuration;
+        public static string DefaultGateway => _configuration["Client:DefaultGateway"];
     }
 
 }

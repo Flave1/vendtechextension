@@ -50,7 +50,9 @@ namespace vendtechext.DAL.Common
     public enum UserType
     {
         Internal = 0,
-        External = 1
+        Integrator = 1,
+        Vendor = 2,
+        Agency = 3
     }
 
     public enum UserAccountStatus
@@ -90,5 +92,12 @@ namespace vendtechext.DAL.Common
     {
         ON = 1,
         OFF = 0
+    }
+
+    public enum RoleType
+    {
+        Primary = 0,
+        Secondary = 1
+
     }
 }

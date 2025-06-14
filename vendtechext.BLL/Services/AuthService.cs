@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -9,6 +10,7 @@ using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -53,10 +55,7 @@ namespace vendtechext.BLL.Services
 
            return await _userManager.CreateAsync(user, registerDto.Password);
         }
-        public async Task<AppUser> FindUserByEmail(string email)
-        {
-            return await _userManager.FindByEmailAsync(email);
-        }
+        public async Task<AppUser> FindUserByEmail(string email) => await _userManager.FindByEmailAsync(email);
 
         public async Task<AppUser> FindAdminUser()
         {
@@ -74,7 +73,7 @@ namespace vendtechext.BLL.Services
                 .Select(d => d.AppUser).FirstOrDefaultAsync();
         }
 
-        public async Task<AppUser> RegisterAndReturnUserAsync(RegisterDto registerDto)
+        public async Task<AppUser> RegisterAndReturnUserAsync(RegisterDto registerDto, string imageUrl, string primary_role)
         {
             var user = new AppUser
             {
@@ -85,6 +84,7 @@ namespace vendtechext.BLL.Services
                 UserType = (int)registerDto.UserType,
                 PhoneNumber = registerDto.Phone,
                 UserAccountStatus = (int)UserAccountStatus.Active,
+                ProfilePic = imageUrl
             };
 
             IdentityResult result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -92,7 +92,7 @@ namespace vendtechext.BLL.Services
             {
                 throw new BadRequestException(result.Errors.FirstOrDefault().Description);
             }
-            await _userManager.AddToRoleAsync(user, "Integrator");
+            await _userManager.AddToRoleAsync(user, primary_role);
             return user;
         }
 
@@ -179,36 +179,30 @@ namespace vendtechext.BLL.Services
 
         private async Task<SecurityTokenDescriptor> GetSecurityTokenDescriptor(AppUser user)
         {
-            var user_role = await GetUserRole(user);
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
+            var user_roles = await GetUserRoleNamesAsync(user);
             var integrator = await _dataContext.Integrators.FirstOrDefaultAsync(d => d.AppUserId == user.Id);
-
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
 
             return new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim("integrator_id", user_role != "Integrator" ? "": integrator.Id.ToString()),
-                    new Claim("user_id", user.Id),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(ClaimTypes.Name, user_role != "Integrator" ? "": integrator?.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Aud, "vendtech"),
-                    new Claim(JwtRegisteredClaimNames.Iss, "vendtech"),
-                    new Claim(ClaimTypes.Role, user_role)
-                }),
+                Subject = new ClaimsIdentity(user.GenerateUserClaims(user_roles, integrator?.Id)),
                 Expires = DateTime.UtcNow.AddMinutes(60),
-
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
         }
 
-        private async Task<string> GetUserRole(AppUser user)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-            return roles.FirstOrDefault();
-        }
 
+        private async Task<List<RoleInfoDto>> GetUserRoleNamesAsync(AppUser user)
+        {
+            return await (from ur in _dataContext.UserRoles
+                          join r in _dataContext.Roles on ur.RoleId equals r.Id
+                          where ur.UserId == user.Id
+                          select new RoleInfoDto
+                          {
+                              Name = r.Name,
+                              Type = ((AppRole)r).Type
+                          }).ToListAsync();
+        }
         public async Task<APIResponse> GetProfileAsync(string userId)
         {
             string businessName;
@@ -221,7 +215,7 @@ namespace vendtechext.BLL.Services
             if (user == null)
                 throw new BadRequestException("User does not exist");
 
-            if (user.UserType == (int)UserType.External)
+            if (user.UserType == (int)UserType.Integrator)
             {
                 var integrator = _dataContext.Integrators.Where(d => d.AppUserId == user.Id).Include(c => c.Wallet).FirstOrDefault();
                 businessName = integrator.BusinessName;
@@ -230,6 +224,15 @@ namespace vendtechext.BLL.Services
                 subApiKey = integrator.SubApiKey;
                 logo = integrator.Logo;
                 midnightBalanceAlertSwitch = integrator.Wallet.MidnightBalanceAlertSwitch;
+            }
+            else if(user.UserType == (int)UserType.Vendor)
+            {
+                businessName = user.FirstName +" "+ user.LastName;
+                about = "About";
+                apiKey = "";
+                subApiKey = "";
+                logo = user.ProfilePic;
+                midnightBalanceAlertSwitch = 0;
             }
             else
             {
@@ -246,6 +249,7 @@ namespace vendtechext.BLL.Services
             return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(profile).GenerateResponse();
         }
 
+       
         public async Task<APIResponse> ChangePassword(string userId, string oldPassword, string newPassword)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -304,6 +308,79 @@ namespace vendtechext.BLL.Services
             }, model.AppUserId);
 
             return Response.WithStatus("success").WithMessage("Updated Successfully").GenerateResponse();
+        }
+
+        public async Task<APIResponse> GetUserPermissionsAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                throw new BadRequestException("User does not exist");
+
+            var roleNames = await _userManager.GetRolesAsync(user);
+
+            if (!roleNames.Any())
+                return Response.WithStatus("success")
+                               .WithMessage("User has no roles assigned")
+                               .WithType(new List<string>())
+                               .GenerateResponse();
+
+            // Get role IDs based on role names
+            var roleIds = await _dataContext.Roles
+                .Where(r => roleNames.Contains(r.Name))
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            // Get permissions associated with those roles
+            var rolePermissions = await _dataContext.RolePermissions
+                .Where(rp => roleIds.Contains(rp.RoleId))
+                .ToListAsync();
+
+            // Flatten all PermissionIds (assuming comma-separated strings)
+            var permissionList = rolePermissions
+                .SelectMany(rp => rp.PermissionIds?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
+                .Distinct()
+                .ToList();
+
+            return Response.WithStatus("success")
+                           .WithMessage("Permissions fetched successfully")
+                           .WithType(permissionList)
+                           .GenerateResponse();
+        }
+
+    }
+
+    public static class ClaimExtensions
+    {
+        public static IEnumerable<Claim> GenerateUserClaims(this AppUser user, List<RoleInfoDto> roles, Guid? integratorId = null)
+        {
+            var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(JwtRegisteredClaimNames.Aud, "vendtech"),
+            new Claim(JwtRegisteredClaimNames.Iss, "vendtech"),
+        };
+
+            var primaryRole = roles.FirstOrDefault(r => r.Type == (int)RoleType.Primary);
+
+            if (primaryRole != null)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, primaryRole.Name));
+                claims.Add(new Claim("user_id", user.Id));
+
+                if (primaryRole.Name == APP_ROLES.Integrator && integratorId.HasValue)
+                {
+                    claims.Add(new Claim("integrator_id", integratorId.Value.ToString()));
+                }
+            }
+
+            // Optional: Add all roles as multi-valued "roles"
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim("roles", role.Name));
+            }
+
+            return claims;
         }
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.Controllers.Base;
+using vendtechext.DAL.Seed;
 using vendtechext.Helper;
 
 namespace vendtechext.Controllers
@@ -30,7 +31,7 @@ namespace vendtechext.Controllers
         public IActionResult Settings()
         {
             var result = AppConfiguration.GetSettings();
-            Response Response = new Response();
+            Response<object> Response = new Response<object>();
             return Ok(Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse());
         }
 
@@ -41,5 +42,12 @@ namespace vendtechext.Controllers
             return Ok(result);
         }
 
+        [HttpGet("navigations")]
+        public IActionResult nav()
+        {
+            var nav = new NavigationService();
+            Response<object> Response = new Response<object>();
+            return Ok(Response.WithStatus("success").WithMessage("Successfully fetched").WithType(nav.GetNavigationItems()).GenerateResponse());
+        }
     }
 }

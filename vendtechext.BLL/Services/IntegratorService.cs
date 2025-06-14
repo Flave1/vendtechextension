@@ -8,7 +8,6 @@ using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -71,6 +70,8 @@ namespace vendtechext.BLL.Services
             {
                 try
                 {
+
+                    string imgPath = await _fileHelper.CreateFile(model.image);
                     userAccount = await _authService.RegisterAndReturnUserAsync(new RegisterDto
                     {
                         Firstname = model.FirstName,
@@ -78,11 +79,10 @@ namespace vendtechext.BLL.Services
                         Lastname = model.LastName,
                         Password = CREDENTIALS.INTEGRATOR_PASSWORD,
                         Username = model.Email,
-                        UserType = UserType.External,
+                        UserType = UserType.Integrator,
                         Phone = model.Phone,
-                    });
+                    }, imgPath, APP_ROLES.Integrator);
 
-                    string imgPath = await _fileHelper.CreateFile(model.image);
                     if (userAccount != null)
                     {
                         account = new IntegratorsBuilder()
@@ -91,7 +91,6 @@ namespace vendtechext.BLL.Services
                         .WithAppUserId(userAccount.Id)
                         .WithAbout(model.About)
                         .WithDisabled(false)
-                        .WithLogo(imgPath)
                         .Build();
 
                         _dbcxt.Integrators.Add(account);
@@ -165,7 +164,7 @@ namespace vendtechext.BLL.Services
                         Email = model.Email,
                         Lastname = model.LastName,
                         Username = model.Email,
-                        UserType = UserType.External,
+                        UserType = UserType.Integrator,
                         Phone = model.Phone,
                     }, model.AppUserId);
 
@@ -216,7 +215,7 @@ namespace vendtechext.BLL.Services
 
         public async Task<APIResponse> GetIntegrators(PaginatedSearchRequest req)
         {
-            IQueryable<Integrator> query = _dbcxt.Integrators.Where(d => d.Deleted == false && d.AppUser.UserType == (int)UserType.External && req.Status == d.AppUser.UserAccountStatus)
+            IQueryable<Integrator> query = _dbcxt.Integrators.Where(d => d.Deleted == false && d.AppUser.UserType == (int)UserType.Integrator && req.Status == d.AppUser.UserAccountStatus)
                 .Include(d => d.AppUser).Include(d => d.Wallet);
 
             query = FilterQuery(req, query);

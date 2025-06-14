@@ -94,4 +94,49 @@ namespace vendtechext.Contracts
         public string AppUserId { get; set; }
         public IFormFile image { get; set; }
     }
+
+    public class AgencyAccount
+    {
+        public int Id;
+        public Guid PosId;
+        public string UserId;
+        public string AgencyName { get; set; }
+        public string Description { get; set; }
+        public int Status { get; set; }
+        public string PosNumber { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public int CommissionLevelId { get; set; }
+        public IFormFile image { get; set; }
+        public string imgUrl { get; set; }
+    }
+
+    public class VendorAccount
+    {
+        public int Id;
+        public string PosId { get; set; }
+        public string UserId;
+        public int AgencyId { get; set; }
+        public string AgencyName { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public int Status { get; set; }
+        public string PosNumber { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public int CommissionLevelId { get; set; }
+        public IFormFile image { get; set; }
+        public string imgUrl { get; set; }
+    }
+
+    public class UserDto
+    {
+        public string UserId { get; set; }
+        public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Phone { get; set; }
+        public string ImagwUrl { get; set; }
+    }
+
 }

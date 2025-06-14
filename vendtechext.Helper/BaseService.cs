@@ -6,9 +6,9 @@ namespace vendtechext.Helper
     {
         public BaseService()
         {
-            Response = new Response();
+            Response = new Response<object>();
         }
-        public Response Response { get; set; } = new Response();
+        public Response<object> Response { get; set; } = new Response<object>();
 
         public ExecutionResult GenerateExecutionResult(Exception ex, int code)
         {

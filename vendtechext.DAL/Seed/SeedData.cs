@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.DAL.Seed
@@ -10,16 +11,16 @@ namespace vendtechext.DAL.Seed
 
         public static async Task Initialize(IServiceProvider serviceProvider)
         {
-            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<AppRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
 
-            string[] roleNames = { "Super Admin", "Integrator" };
+            string[] roleNames = { "Super Admin", "Integrator", "Agency", "Vendor" };
             foreach (var roleName in roleNames)
             {
                 var roleExist = await roleManager.RoleExistsAsync(roleName);
                 if (!roleExist)
                 {
-                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                    await roleManager.CreateAsync(new AppRole(roleName, RoleType.Primary));
                 }
             }
 

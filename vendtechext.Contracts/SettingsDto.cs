@@ -30,6 +30,7 @@
     {
         public int MinimumVend { get; set; }
         public int MinimumDeposit { get; set; }
+        public int VendorsMinimumDeposit { get; set; }
     }
 
 }

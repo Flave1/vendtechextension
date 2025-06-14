@@ -24,6 +24,7 @@ namespace vendtechext.Contracts
 
     public class SaleStatusRequest: SaleRequestBase
     {
+
     }
 
     public class TransactionDto
@@ -65,6 +66,8 @@ namespace vendtechext.Contracts
             IntegratorName = x?.Integrator?.BusinessName?? "";
             IntegratorId = x.IntegratorId;
             WalletId = x?.Integrator?.Wallet?.WALLET_ID ?? "";
+            if (x.PaymentStatus != (int)PaymentStatus.Deducted && x.TransactionStatus == (int)DAL.Common.TransactionStatus.Success)
+                TransactionStatus = 101;
         }
         public TransactionDto()
         {

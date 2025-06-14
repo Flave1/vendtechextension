@@ -37,7 +37,7 @@ namespace vendtechext.BLL.Middlewares
             if (!context.HttpContext.Request.Headers.TryGetValue("X-Api-Key", out var extractedApiKey))
             {
                 ExecutionResult executionResult = new BaseService().GenerateExecutionResult(new UnauthorizedAccessException("Unauthorized Access"), API_MESSAGE_CONSTANTS.AUTHENTICATION_ERROR);
-                APIResponse response = new Response().WithStatus("failed")
+                APIResponse response = new Response<object>().WithStatus("failed")
                    .WithMessage("Unauthorized Access")
                    .WithDetail("Credentials are required in other to vend")
                    .WithType(executionResult)
@@ -61,7 +61,7 @@ namespace vendtechext.BLL.Middlewares
             if (integrator == ("404", "not_found"))
             {
                 ExecutionResult executionResult = new BaseService().GenerateExecutionResult(new UnauthorizedAccessException("Access credentials not valid"), API_MESSAGE_CONSTANTS.NOTFOUND_ERROR);
-                APIResponse response = new Response().WithStatus("failed")
+                APIResponse response = new Response<object>().WithStatus("failed")
                    .WithMessage("Access credentials not valid")
                    .WithDetail("Valid credentials are required in other to vend")
                    .WithType(executionResult)
@@ -81,7 +81,7 @@ namespace vendtechext.BLL.Middlewares
             {
 
                 ExecutionResult executionResult = new BaseService().GenerateExecutionResult(new ForbiddenResultException("Access to API denied"), API_MESSAGE_CONSTANTS.ACCESS_DENIED);
-                APIResponse response = new Response().WithStatus("failed")
+                APIResponse response = new Response<object>().WithStatus("failed")
                    .WithMessage("Access to API denied")
                    .WithDetail("This usually occurs when Vendor account is disabled")
                    .WithType(executionResult)

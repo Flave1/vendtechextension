@@ -64,11 +64,23 @@ namespace vendtechext.Controllers
             return Ok(result);
         }
 
+        [Authorize]
+        [HttpGet("get-permissions")]
+        public async Task<IActionResult> GetPermissions()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await _service.GetUserPermissionsAsync(userId);
+            return Ok(result);
+        }
+
+        [Authorize]
         [HttpPost("update-admin-account")]
         public async Task<IActionResult> UpdateUser([FromForm] AdminAccount request)
         {
             var result = await _service.UpdateAdminAccount(request);
             return Ok(result);
         }
+
+       
     }
 }

@@ -16,11 +16,21 @@
     public static class CREDENTIALS
     {
         public const string INTEGRATOR_PASSWORD = "Password@123";
+        public const string AGENCY_PASSWORD = "Agency@0000";
+        public const string VENDOR_PASSWORD = "Vendor@0000";
     }
 
     public static class APP_ROLES
     {
         public const string SuperAdmin = "Super Admin";
         public const string Integrator = "Integrator";
+        public const string Vendor = "Vendor";
+        public const string Agency = "Agency";
+    }
+
+    public static class CacheKeys
+    {
+        public const string AgencyUsers = "agency_users";
+        public const string VendorUsers = "vendor_users";
     }
 }

@@ -33,6 +33,7 @@ public partial class DataContext : IdentityDbContext<AppUser>
     public virtual DbSet<AppSetting> AppSettings { get; set; }
     public virtual DbSet<Notification> Notifications { get; set; }
     public virtual DbSet<PaymentMethod> PaymentMethod { get; set; }
+    public virtual DbSet<RolePermission> RolePermissions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

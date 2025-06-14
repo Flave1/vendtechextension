@@ -1,5 +1,4 @@
 ﻿using Hangfire;
-using Microsoft.EntityFrameworkCore;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
@@ -8,7 +7,6 @@ using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
-using System.Data;
 
 namespace vendtechext.BLL.Services
 {
@@ -159,6 +157,10 @@ namespace vendtechext.BLL.Services
                     executionResult.status = "success";
                     executionResult.code = API_MESSAGE_CONSTANTS.OKAY_REQEUST;
                     executionResult.successResponse.UpdateResponseForStatusQuery(transaction);
+                    transaction = await _repository.DeductFromWallet(
+                            transactionId: transaction.Id,
+                            walletId: wallet.Id
+                        );
                     return Response
                         .WithStatus(executionResult.status)
                         .WithMessage("Transaction Successfully Fetched.")

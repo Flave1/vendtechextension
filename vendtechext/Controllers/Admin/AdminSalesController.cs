@@ -11,10 +11,12 @@ namespace vendtechext.Controllers
     public class AdminSalesController : ControllerBase
     {
         private readonly ISalesService _service;
+        private readonly IAPISalesService _aPISalesService;
 
-        public AdminSalesController(ISalesService service)
+        public AdminSalesController(ISalesService service, IAPISalesService aPISalesService)
         {
             _service = service;
+            _aPISalesService = aPISalesService;
         }
 
         [HttpPost("get-all")]
@@ -24,6 +26,15 @@ namespace vendtechext.Controllers
             return Ok(result);
         }
 
-        
+
+        [HttpPost("resolve-electricity-sale")]
+        public async Task<IActionResult> ResolveSale([FromBody] SaleStatusRequest request, string integratorId, string integratorName)
+        {
+
+            var result = await _aPISalesService.QuerySalesStatus(request, Guid.Parse(integratorId), integratorName);
+            return Ok(result);
+        }
+
+
     }
 }

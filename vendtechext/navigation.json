@@ -1,0 +1,125 @@
+[
+
+
+  {
+    "Id": 1,
+    "DisplayName": "Wallet Balance With RTS",    
+    "Modules": 1,
+    "SortNumber": 1,
+    "Type": 0
+  },
+  {
+    "Id": 11,
+    "DisplayName": "Total Daily Sales",    
+    "Modules": 1,
+    "SortNumber": 1,
+    "Type": 0
+  },
+  {
+    "Id": 12,
+    "DisplayName": "Total Daily Deposit",    
+    "Modules": 1,
+    "SortNumber": 1,
+    "Type": 0
+  },
+
+
+
+
+
+
+
+  {
+    "Id": 2,
+    "DisplayName": "Sales Report",    
+    "Modules": 2,
+    "SortNumber": 1,
+    "Type": 1
+  },
+  {
+    "Id": 21,
+    "DisplayName": "Deposits Report",    
+    "Modules": 2,
+    "SortNumber": 1,
+    "Type": 1
+  },
+  {
+    "Id": 22,
+    "DisplayName": "Audit Report",    
+    "Modules": 2,
+    "SortNumber": 1,
+    "Type": 1
+  },
+  {
+    "Id": 23,
+    "DisplayName": "GST Report",    
+    "Modules": 2,
+    "SortNumber": 1,
+    "Type": 1
+  },
+  {
+    "Id": 24,
+    "DisplayName": "Balance Sheet Report",    
+    "Modules": 2,
+    "SortNumber": 1,
+    "Type": 1
+  },
+
+
+
+
+
+  {
+    "Id": 3,
+    "DisplayName": "Manage Integrators",    
+    "Modules": 3,
+    "SortNumber": 1,
+    "Type": 1
+  },
+  {
+    "Id": 31,
+    "DisplayName": "Manage Agencies",    
+    "Modules": 3,
+    "SortNumber": 1,
+    "Type": 1
+  },
+  {
+    "Id": 32,
+    "DisplayName": "Manage Vendors",    
+    "Modules": 3,
+    "SortNumber": 1,
+    "Type": 1
+  },
+
+
+
+
+
+  {
+    "Id": 4,
+    "DisplayName": "Settings",    
+    "Modules": 4,
+    "SortNumber": 1,
+    "Type": 1
+  },
+
+
+
+
+
+
+  {
+    "Id": 5,
+    "DisplayName": "Integrators Deposits Approval",    
+    "Modules": 5,
+    "SortNumber": 1,
+    "Type": 1
+  },
+  {
+    "Id": 51,
+    "DisplayName": "Vendors Deposits Approval",    
+    "Modules": 5,
+    "SortNumber": 1,
+    "Type": 1
+  }
+]

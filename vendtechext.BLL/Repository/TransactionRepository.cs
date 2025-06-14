@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Configuration;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
@@ -232,7 +233,7 @@ namespace vendtechext.BLL.Repository
                         if (!reader.NextResult() || !reader.Read()) throw new ServerTechnicalException("Unable to find wallet"); // Wallet not found
                         decimal walletBalance = reader.GetDecimal(0);
 
-                        if (paymentStatus == (int)PaymentStatus.Pending)
+                        if (paymentStatus != (int)PaymentStatus.Deducted)
                         {
                             // Step 2: Deduct balance and update transaction
                             reader.Close(); // Close the reader before executing another command
@@ -454,15 +455,28 @@ namespace vendtechext.BLL.Repository
 
         public IQueryable<Transaction> GetSalesTransactionQuery(int status, int claimedStatus)
         {
-            if(status != (int)TransactionStatus.All)
+            IIncludableQueryable<Transaction, Wallet> query = null;
+            if (status != (int)TransactionStatus.All)
             {
-                var query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status)
+                if(status == 101)
+                {
+                    query = _context.Transactions.Where(d => d.Deleted == false &&
+                    d.BalanceBefore == d.BalanceAfter &&
+                    d.BalanceAfter > 0 &&
+                    d.TransactionStatus == (int)TransactionStatus.Success)
                     .Include(d => d.Integrator).ThenInclude(d => d.Wallet);
-                return query;
+                    return query;
+                }
+                else
+                {
+                    query = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == status)
+                    .Include(d => d.Integrator).ThenInclude(d => d.Wallet);
+                    return query;
+                }
             }
             else
             {
-                var query = _context.Transactions.Where(d => d.Deleted == false)
+                query = _context.Transactions.Where(d => d.Deleted == false)
                             .Include(d => d.Integrator).ThenInclude(d => d.Wallet);
                 return query;
             }

@@ -45,6 +45,11 @@ namespace vendtechext.Controllers
                 var result = await _depositService.GetAdminBalance();
                 return Ok(result);
             }
+            else if (User.IsInRole(APP_ROLES.Vendor))
+            {
+                var result = await _depositService.GetAdminBalance();
+                return Ok(result);
+            }
             else { return Unauthorized(); }
         }
 
@@ -58,6 +63,11 @@ namespace vendtechext.Controllers
                 return Ok(result);
             }
             else if(User.IsInRole(APP_ROLES.SuperAdmin))
+            {
+                var result = _depositService.GetAdminTodaysTransaction();
+                return Ok(result);
+            }
+            else if (User.IsInRole(APP_ROLES.Vendor))
             {
                 var result = _depositService.GetAdminTodaysTransaction();
                 return Ok(result);

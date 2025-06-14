@@ -7,7 +7,7 @@ namespace vendtechext.BLL.Interfaces
     public interface IAuthService
     {
         Task<IdentityResult> RegisterAsync(RegisterDto registerDto);
-        Task<AppUser> RegisterAndReturnUserAsync(RegisterDto registerDto);
+        Task<AppUser> RegisterAndReturnUserAsync(RegisterDto registerDto, string imageUrl, string primary_role);
         Task<APIResponse> LoginAsync(LoginDto loginDto);
         Task<AppUser> FindUserByEmail(string email);
         Task<APIResponse> GetProfileAsync(string userId);
@@ -20,5 +20,6 @@ namespace vendtechext.BLL.Interfaces
         Task<APIResponse> UpdateAdminAccount(AdminAccount model);
         Task<AppUser> FindAdminUser();
         Task<AppUser> FindUserByIntegratorId(Guid id);
+        Task<APIResponse> GetUserPermissionsAsync(string userId);
     }
 }

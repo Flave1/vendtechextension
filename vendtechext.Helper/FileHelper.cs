@@ -46,7 +46,7 @@ namespace vendtechext.Helper
                     }
 
                     // Return the actual URL to the uploaded file
-                    var fileUrl = $"{_httpContextAccessor.HttpContext.Request.Scheme} :// {_httpContextAccessor.HttpContext.Request.Host}/{_dir}/{fileName}";
+                    var fileUrl = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/{_dir}/{fileName}";
                     return fileUrl;
                 }
                 return "";

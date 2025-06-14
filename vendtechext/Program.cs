@@ -18,6 +18,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Services.RecurringJobs;
+using vendtechext.DAL.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,7 +55,7 @@ builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 
 // Identity configuration
-builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+builder.Services.AddIdentity<AppUser, AppRole>(options =>
 {
     options.Password.RequiredLength = 6;
     options.User.RequireUniqueEmail = true;
@@ -66,8 +67,6 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 .AddTokenProvider<CustomTokenProvider<AppUser>>("vendtech");
 
 // Configure JWT Authentication
-
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -87,7 +86,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 // Swagger Configuration
-
 builder.Services.AddSwaggerGen(c =>
 {
     c.CustomSchemaIds(type => type.FullName);
@@ -134,22 +132,29 @@ builder.Services.AddMemoryCache();
 // Add this near the other service registrations
 builder.Services.AddHttpClient();
 
+
+builder.Services.AddTransient<JwtAuthorizationHandler>();
 // If you need a named client for specific configuration:
-builder.Services.AddHttpClient("VendTech", client =>
+builder.Services.AddHttpClient("VendTechClient", client =>
 {
+    client.BaseAddress = new Uri(DomainEnvironment.DefaultGateway);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
-    // Add any other default configuration for your HTTP client
     client.Timeout = TimeSpan.FromSeconds(100);
-});
+}).AddHttpMessageHandler<JwtAuthorizationHandler>(); ;
+
 
 // Dependency Injection
 builder.Services.AddScoped<IVendtechReconcillationService, VendtechReconcillationService>();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 builder.Services.AddScoped<IIntegratorService, IntegratorService>();
 builder.Services.AddScoped<IMobilePushService, MobilePushService>();
+builder.Services.AddScoped<IRoleService, RoleManagementService>();
 builder.Services.AddScoped<IAPISalesService, APISalesService>();
 builder.Services.AddScoped<IDepositService, DepositService>();
+builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<VendtechTransactionsService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
+builder.Services.AddScoped<IHttpService, HttpService>();
 builder.Services.AddScoped<TransactionIdGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RequestExecutionContext>();
@@ -193,13 +198,13 @@ app.UseAuthorization();
 ///
 ///REMOVE THE COMMENT TO SEED INTO A NEW DATABASE
 ///
-//using (var scope = app.Services.CreateScope())
-//{
-//    var services = scope.ServiceProvider;
-//    await SeedData.Initialize(services);
-//    await SeedData.Settings(services);
-//    await SeedData.PaymentMethods(services);
-//}
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await SeedData.Initialize(services);
+    await SeedData.Settings(services);
+    await SeedData.PaymentMethods(services);
+}
 
 // Map Controllers
 app.MapControllers();
