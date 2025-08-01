@@ -139,11 +139,11 @@ namespace vendtechext.Contracts
         }
         public ExecutionResult(Transaction transaction, string receivedFrom)
         {
-            if (transaction.Response == null)
-            {
-                failedResponse = new FailedResponse("Transaction in-valid", "Invalid transaction");
-                return;
-            }
+            //if (transaction.Response == null)
+            //{
+            //    failedResponse = new FailedResponse("Transaction in-valid", "Invalid transaction");
+            //    return;
+            //}
             if (!transaction.Finalized)
             {
                 if(transaction.Response != "")

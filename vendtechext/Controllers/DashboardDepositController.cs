@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using vendtechext.BLL.HubConnection;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 
@@ -13,10 +15,14 @@ namespace vendtechext.Controllers
         private readonly IDepositService _service;
         private readonly IHttpContextAccessor _contextAccessor;
 
-        public DashboardDepositController(IDepositService depositService, IHttpContextAccessor contextAccessor)
+        private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _integratorHubContext;
+        public DashboardDepositController(IDepositService depositService, IHttpContextAccessor contextAccessor
+            , IHubContext<CustomNotificationHub, ICustomNotificationHub> integratorHubContext
+            )
         {
             _service = depositService;
             _contextAccessor = contextAccessor;
+            _integratorHubContext = integratorHubContext;
         }
 
         [HttpPost("create")]
@@ -35,6 +41,22 @@ namespace vendtechext.Controllers
             return Ok(result);
         }
 
+
+
+        [HttpPost("test_alert")]
+        public async Task<IActionResult> Test([FromBody] DepositRequest request)
+        {
+
+            var user_id = _contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "user_id")?.Value ?? "";
+            //await _integratorHubContext.Clients.User(user_id).DepositCreated("Deposit has just been created");
+            //await _integratorHubContext.Clients.All.DepositCreated("Deposit has just been created");
+            await _integratorHubContext.Clients.Group(user_id).SuccessNotificationCreated("Deposit has just been created");
+            //await _integratorHubContext.Clients.Group(user_id).FailedNotificationCreated("Deposit has just been created");
+            //await _integratorHubContext.Clients.Group(user_id).WarningNotificationCreated("Deposit has just been created");
+            //await _integratorHubContext.Clients.Group(user_id).InfoNotificationCreated("Deposit has just been created");
+
+            return Ok("Alright");
+        }
 
     }
 }

@@ -3,7 +3,6 @@ using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Middleware;
 using vendtechext.BLL.Services;
 using vendtechext.DAL.Models;
-using signalrserver.HubConnection;
 using Hangfire;
 using vendtechext.Helper;
 using vendtechext.Helper.Configurations;
@@ -19,6 +18,8 @@ using Google.Apis.Auth.OAuth2;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Services.RecurringJobs;
 using vendtechext.DAL.Seed;
+using vendtechext.BLL.HubConnection;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,11 +29,13 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         policy =>
         {
-            policy.AllowAnyOrigin()
+            policy.WithOrigins("http://localhost:5173", "https://www.vendtechsl.com:466", "https://www.vendtechsl.com:460")
                    .AllowAnyHeader()
-                   .AllowAnyMethod();
+                   .AllowAnyMethod()
+                   .AllowCredentials();
         });
 });
+
 
 // Database Configuration
 builder.Services.AddDbContext<DataContext>(options =>
@@ -145,19 +148,22 @@ builder.Services.AddHttpClient("VendTechClient", client =>
 
 // Dependency Injection
 builder.Services.AddScoped<IVendtechReconcillationService, VendtechReconcillationService>();
-builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+builder.Services.AddScoped<ILocationSetupService, LocationSetupService>();
+builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 builder.Services.AddScoped<IIntegratorService, IntegratorService>();
 builder.Services.AddScoped<IMobilePushService, MobilePushService>();
 builder.Services.AddScoped<IRoleService, RoleManagementService>();
 builder.Services.AddScoped<IAPISalesService, APISalesService>();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 builder.Services.AddScoped<IDepositService, DepositService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<VendtechTransactionsService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
+builder.Services.AddScoped<IBankService, BankService>();
 builder.Services.AddScoped<IHttpService, HttpService>();
-builder.Services.AddScoped<TransactionIdGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RequestExecutionContext>();
+builder.Services.AddScoped<TransactionIdGenerator>();
 builder.Services.AddScoped<TransactionRepository>();
 builder.Services.AddScoped<NotificationHelper>();
 builder.Services.AddScoped<HttpRequestService>();
@@ -168,6 +174,7 @@ builder.Services.AddScoped<EmailHelper>();
 builder.Services.AddScoped<LogService>();
 builder.Services.AddScoped<FileHelper>();
 
+
 var app = builder.Build();
 
 // Middleware Configuration
@@ -177,12 +184,11 @@ app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Enable CORS
-app.UseCors("AllowSpecificOrigin");
 
 // Map SignalR Hubs
 app.MapHub<CustomersHub>("/customerHub");
 app.MapHub<AdminHub>("/adminHub");
+app.MapHub<CustomNotificationHub>("/notificationHub").RequireCors("AllowSpecificOrigin");
 
 //Use Hangfire Dashboard
 app.UseHangfireDashboard("/hangfire", new DashboardOptions()
@@ -190,6 +196,8 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions()
     Authorization = new[] { new CustomAuthorizeFilter() }
 });
 
+// Enable CORS
+app.UseCors("AllowSpecificOrigin");
 // Use authentication and authorization
 app.UseAuthentication(); 
 app.UseAuthorization();

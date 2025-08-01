@@ -63,17 +63,17 @@ namespace vendtechext.BLL.Services
                     throw;
                 }
 
-                var agency = new
+                var agency = new AgencyAccount
                 {
                     AgencyName = model.AgencyName,
                     UserId = userAccount.Id,
                     Description = model.Description,
-                    Status = UserAccountStatus.Active,
+                    Status = (int)UserAccountStatus.Active,
                     PosNumber = model.PosNumber,
                     CommissionLevelId = model.CommissionLevelId
                 };
 
-                APIResponse response = await _httpService.PostAsync<APIResponse>("/vconsumer/agency/v1/create", agency);
+                APIResponse<AgencyAccount> response = await _httpService.PostAsync<APIResponse<AgencyAccount>, AgencyAccount>("/vconsumer/agency/v1/create", agency);
                 if (response.status != "success")
                 {
                     await transaction.RollbackAsync();
@@ -116,17 +116,17 @@ namespace vendtechext.BLL.Services
                     throw;
                 }
 
-                var agency = new
+                var agency = new AgencyAccount
                 {
                     AgencyName = model.AgencyName,
                     UserId = userAccount.Id,
                     Description = model.Description,
-                    Status = UserAccountStatus.Active,
+                    Status = (int)UserAccountStatus.Active,
                     PosNumber = model.PosNumber,
                     CommissionLevelId = model.CommissionLevelId
                 };
 
-                APIResponse response = await _httpService.PutAsync<APIResponse>($"/vconsumer/agency/v1/update/{userid}", agency);
+                APIResponse<AgencyAccount> response = await _httpService.PutAsync<APIResponse<AgencyAccount>, AgencyAccount>($"/vconsumer/agency/v1/update/{userid}", agency);
                 if (response == null || response.status != "success")
                 {
                     await transaction.RollbackAsync();
@@ -194,17 +194,17 @@ namespace vendtechext.BLL.Services
                         Phone = model.Phone,
                     }, imgPath, APP_ROLES.Vendor);
 
-                    var vendor = new
+                    var vendor = new VendorAccount
                     {
                         UserId = userAccount.Id,
                         AgencyId = model.AgencyId,
                         PosId = model.PosId,
-                        Status = UserAccountStatus.Active,
+                        Status = (int)UserAccountStatus.Active,
                         PosNumber = model.PosNumber,
                         CommissionLevelId = model.CommissionLevelId
                     };
 
-                    APIResponse response = await _httpService.PostAsync<APIResponse>("/vconsumer/vendor/v1/create", vendor);
+                    APIResponse<VendorAccount> response = await _httpService.PostAsync<APIResponse<VendorAccount>, VendorAccount>("/vconsumer/vendor/v1/create", vendor);
                     if (response == null || response.status != "success")
                     {
                         await transaction.RollbackAsync();
@@ -234,7 +234,7 @@ namespace vendtechext.BLL.Services
 
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                string imgPath = await _fileHelper.CreateFile(model.image);
+                string imgPath = await _fileHelper.UpdateFile(model.image, userAccount.ProfilePic);
                 try
                 {
                     userAccount = await _authService.UpdateAndReturnUserAsync(new RegisterDto
@@ -245,19 +245,24 @@ namespace vendtechext.BLL.Services
                         Username = model.Email,
                         UserType = UserType.Vendor,
                         Phone = model.Phone,
+                        VendorName = model.VendorName,
+                        CountryId = model.CountryId,
+                        CityId = model.CityId,
+                        Address = model.Address,
                     }, userid);
 
-                    var vendor = new
+                    var vendor = new VendorCommand
                     {
                         UserId = userAccount.Id,
                         AgencyId = model.AgencyId,
                         PosId = model.PosId,
-                        Status = UserAccountStatus.Active,
+                        Status = (int)UserAccountStatus.Active,
                         PosNumber = model.PosNumber,
-                        CommissionLevelId = model.CommissionLevelId
+                        CommissionLevelId = model.CommissionLevelId,
+                        VendorName = model.VendorName,
                     };
 
-                    APIResponse response = await _httpService.PutAsync<APIResponse>($"/vconsumer/vendor/v1/update/{userid}", vendor);
+                    APIResponse<VendorCommand> response = await _httpService.PutAsync<APIResponse<VendorCommand>, VendorCommand>($"/vconsumer/vendor/v1/update/{userid}", vendor);
                     if (response == null || response.status != "success")
                     {
                         await transaction.RollbackAsync();
@@ -272,7 +277,7 @@ namespace vendtechext.BLL.Services
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    throw new Exception(ex.Message);
+                    throw new BadRequestException(ex.Message);
                 }
             }
         }
@@ -302,7 +307,11 @@ namespace vendtechext.BLL.Services
                 imgUrl = userAccount.ProfilePic,
                 CommissionLevelId = Convert.ToInt16(result["commissionLevelId"]),
                 PosNumber = result["posNumber"],
-                PosId = result["posId"].ToString()
+                PosId = result["posId"].ToString(),
+                VendorName = result["vendorName"],
+                Address = userAccount.Address,
+                CityId = userAccount.CityId,
+                CountryId = userAccount.CountryId,
             };
 
             return Response.WithStatus("success")

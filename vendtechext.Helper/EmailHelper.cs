@@ -5,6 +5,7 @@ using MimeKit;
 using vendtechext.BLL.Services;
 using vendtechext.Contracts;
 using vendtechext.Contracts.VtchMainModels;
+using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper
@@ -12,7 +13,7 @@ namespace vendtechext.Helper
     public class EmailHelper
     {
         public readonly IConfiguration _configuration;
-        public static bool SendNotification = true;
+        public static bool SendNotification = false;
         private readonly string _dir;
         public EmailHelper(IConfiguration configuration)
         {
@@ -44,24 +45,34 @@ namespace vendtechext.Helper
         }
         public void SendEmail(string to, string sub, string body)
         {
-            if (!SendNotification)
-                return;
+            try
+            {
+                if (!SendNotification)
+                    return;
 
-            string displayName = _configuration["ClieEmailServicent:displayName"];
-            var mimeMsg = new MimeMessage();
-        
-            var tos = new List<MailboxAddress>
+                string displayName = _configuration["ClieEmailServicent:displayName"];
+                var mimeMsg = new MimeMessage();
+
+                var tos = new List<MailboxAddress>
                 {
                      new MailboxAddress(displayName, to),
                 };
-            mimeMsg.To.AddRange(tos);
-            mimeMsg.Subject = sub;
+                mimeMsg.To.AddRange(tos);
+                mimeMsg.Subject = sub;
 
-            mimeMsg.Body = new TextPart("html")
+                mimeMsg.Body = new TextPart("html")
+                {
+                    Text = body
+                };
+                Send(mimeMsg);
+            }
+            catch (Exception ex)
             {
-                Text = body
-            };
-            Send(mimeMsg);
+                using (var db= new DataContext())
+                {
+                    new LogService(db).Log(LogType.Error, ex.Message, ex);
+                }
+            }
         }
 
         public string GetEmailTemplate(string template)
@@ -139,7 +150,7 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[recipient]", user.FirstName);
                 emailBody = emailBody.Replace("[body]", msg);
 
-                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositRequested, DepositId.ToString());
+                notificationHelper.SaveNotification(subject, msg, user.Id, NotificationType.IntegratorDepositRequested, DepositId.ToString());
                 //
                 helper.SendEmail(user.Email, subject, emailBody);
             }

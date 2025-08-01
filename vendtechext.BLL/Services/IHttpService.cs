@@ -6,8 +6,8 @@ namespace vendtechext.BLL.Services
     public interface IHttpService
     {
         Task<T> GetAsync<T>(string uri);
-        Task<T> PostAsync<T>(string uri, object data);
-        Task<T> PutAsync<T>(string uri, object data);
+        Task<T> PostAsync<T, Y>(string uri, Y data);
+        Task<T> PutAsync<T, Y>(string uri, Y data);
         Task<bool> DeleteAsync(string uri);
     }
 
@@ -27,7 +27,7 @@ namespace vendtechext.BLL.Services
             return JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
         }
 
-        public async Task<T> PostAsync<T>(string uri, object data)
+        public async Task<T> PostAsync<T, Y>(string uri, Y data)
         {
             var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync(uri, content);
@@ -35,7 +35,7 @@ namespace vendtechext.BLL.Services
             return JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
         }
 
-        public async Task<T> PutAsync<T>(string uri, object data)
+        public async Task<T> PutAsync<T, Y>(string uri, Y data)
         {
             var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
             var response = await _httpClient.PutAsync(uri, content);

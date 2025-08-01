@@ -7,9 +7,11 @@
         {
             UserId = string.Empty;
             Message = string.Empty;
+            InCludeEmail = false;
         }
         public string UserId { get; set; }
         public string Message { get; set; }
+        public bool InCludeEmail { get; set; }
     }
 
     public class APIResponse

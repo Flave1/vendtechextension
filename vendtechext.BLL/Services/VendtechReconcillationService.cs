@@ -219,7 +219,7 @@ namespace vendtechext.BLL.Services
                         string insertRefundQuery = GenerateInsertDepositQuery(
                             userId: userId,
                             posId: posId,
-                            createdAt: DateTime.Now,
+                            createdAt: DateTime.UtcNow,
                             transactionId: newTransactionId,
                             paymentType: 1,
                             balanceBefore: balanceBefore,
@@ -235,7 +235,7 @@ namespace vendtechext.BLL.Services
                             updatedAt: null,
                             bankAccountId: 1,
                             isAudit: true,
-                            valueDate: DateTime.Now.ToString(),
+                            valueDate: DateTime.UtcNow.ToString(),
                             nextReminderDate: null,
                             isDeleted: false,
                             valueDateStamp: null,

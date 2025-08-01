@@ -17,6 +17,7 @@ namespace vendtechext.TEST.Sales
         const string transactionId = "274867";//274733
         const string devApikey = "FCcHkRm7bBTaJkjgFyL6C2FH6RSGy6ff0YX3zK1kok87R+HL4blEj+PygevBefS0";
         const string liveApikey = "e+KZgZZl1GZcLUHQkZ2lqQmWwAHBQvyQZ99ChmNOd4+HCoVqRm/trmKOztwiv7LB";
+        const string ezeepayKey = "hbfXNniXjl85LRyAhVx9NBKgmc85G037+MEiXCQjNHaPGnhw9rV2T/QrKSb/svzo";
         const string meternumber = "11111111111"; //"98000142897";
 
         private readonly string _connectionString;
@@ -66,7 +67,7 @@ namespace vendtechext.TEST.Sales
 
 
         [Theory]
-        [InlineData(liveApikey, "330878", HttpStatusCode.OK)]
+        [InlineData(ezeepayKey, "EDA002-2025-LE40596", HttpStatusCode.OK)]
         public async Task Test_for_successful_query(
            string apiKey,
            string transactionId,

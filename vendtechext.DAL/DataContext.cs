@@ -34,6 +34,9 @@ public partial class DataContext : IdentityDbContext<AppUser>
     public virtual DbSet<Notification> Notifications { get; set; }
     public virtual DbSet<PaymentMethod> PaymentMethod { get; set; }
     public virtual DbSet<RolePermission> RolePermissions { get; set; }
+    public virtual DbSet<Country> Countries { get; set; }
+    public virtual DbSet<City> Cities { get; set; }
+    public virtual DbSet<Bank> Banks { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -71,11 +74,11 @@ public partial class DataContext : IdentityDbContext<AppUser>
             {
                 entry.Entity.Deleted = false;
                 entry.Entity.CreatedBy = userId;
-                entry.Entity.CreatedAt = DateTime.Now;
+                entry.Entity.CreatedAt = DateTime.UtcNow;
             }
             else
             {
-                entry.Entity.UpdatedAt = DateTime.Now;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
                 entry.Entity.UpdatedBy = userId;
             }
         }
@@ -90,12 +93,12 @@ public partial class DataContext : IdentityDbContext<AppUser>
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.Deleted = false;
-                entry.Entity.CreatedAt = DateTime.Now;
+                entry.Entity.CreatedAt = DateTime.UtcNow;
                 entry.Entity.CreatedBy = userId;
             }
             else
             {
-                entry.Entity.UpdatedAt = DateTime.Now;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
                 entry.Entity.UpdatedBy = userId;
             }
         }

@@ -147,7 +147,7 @@ namespace vendtechext.BLL.Repository
         {
             wallet = new WalletBuilder(wallet)
                 .SetDeleted(true)
-                .SetUpdatedAt(DateTime.Now)
+                .SetUpdatedAt(DateTime.UtcNow)
                 .Build();
 
             await _context.SaveChangesAsync();

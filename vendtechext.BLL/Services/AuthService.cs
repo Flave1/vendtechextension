@@ -57,10 +57,10 @@ namespace vendtechext.BLL.Services
         }
         public async Task<AppUser> FindUserByEmail(string email) => await _userManager.FindByEmailAsync(email);
 
-        public async Task<AppUser> FindAdminUser()
+        public async Task<IList<AppUser>> FindAdminUser()
         {
             IList<AppUser> users = await _userManager.GetUsersInRoleAsync("Super Admin");
-            return users[0];
+            return users;
         }
         public async Task<AppUser> FindUserById(string id)
         {
@@ -84,7 +84,10 @@ namespace vendtechext.BLL.Services
                 UserType = (int)registerDto.UserType,
                 PhoneNumber = registerDto.Phone,
                 UserAccountStatus = (int)UserAccountStatus.Active,
-                ProfilePic = imageUrl
+                ProfilePic = imageUrl,
+                Address = registerDto.Address,
+                CityId = registerDto.CityId,
+                CountryId = registerDto.CountryId,
             };
 
             IdentityResult result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -111,6 +114,9 @@ namespace vendtechext.BLL.Services
             user.UserType = (int)registerDto.UserType;
             user.PhoneNumber = registerDto.Phone;
             user.ProfilePic = img;
+            user.Address = registerDto.Address;
+            user.CityId = registerDto.CityId;
+            user.CountryId = registerDto.CountryId;
             IdentityResult result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {

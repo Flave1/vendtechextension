@@ -82,7 +82,7 @@ namespace vendtechext.BLL.Services
         public void UpdateNotificationReadStatus(long id, string userId)
         {
             var notification = _context.Notifications.Find(id);
-            notification.Deleted = true;
+            //notification.Deleted = false;
             if (notification != null)
             {
                 // If 'Read' is empty or does not contain the userId, append the userId

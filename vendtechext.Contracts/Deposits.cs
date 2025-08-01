@@ -70,6 +70,9 @@ namespace vendtechext.Contracts
         public string Reference { get; set; }
         public int PaymentTypeId { get; set; }
         public Guid? CommissionDepositId { get;set; }
+        public DateTime? ValueDate { get; set; }
+        public int? BankId { get; set; }
+        public string PayerName { get; set; }
     }
 
     public class DepositRequest
@@ -77,6 +80,9 @@ namespace vendtechext.Contracts
         public decimal Amount { get; set; }
         public string Reference { get; set; }
         public int PaymentTypeId { get; set; }
+        public DateTime? ValueDate { get; set; }
+        public int? BankId { get; set; }
+        public string PayerName { get; set; }
     }
     public class ApproveDepositRequest
     {
@@ -117,5 +123,23 @@ namespace vendtechext.Contracts
     {
         public decimal Sales { get; set;}
         public decimal Deposits { get; set; }
+    }
+
+    public class BankDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string ShortCode { get; set; }
+    }
+    public class CreateBankRequest
+    {
+        public string Name { get; set; }
+        public string ShortCode { get; set; }
+    }
+    public class UpdateBankRequest
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string ShortCode { get; set; }
     }
 }

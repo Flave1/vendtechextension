@@ -128,8 +128,8 @@ namespace vendtechext.BLL.Services
 
             if (string.IsNullOrWhiteSpace(user.Phone))
                 throw new BadRequestException("Phone number is required.");
-            if (!Regex.IsMatch(user.Phone, @"^\d{8}$"))
-                throw new BadRequestException("Phone number must be exactly 8 digits.");
+            //if (!Regex.IsMatch(user.Phone, @"^\d{8}$"))
+            //    throw new BadRequestException("Phone number must be exactly 8 digits.");
 
             if (string.IsNullOrWhiteSpace(user.BusinessName))
                 throw new BadRequestException("Business name is required.");

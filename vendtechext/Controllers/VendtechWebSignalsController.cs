@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using signalrserver.HubConnection;
+using vendtechext.BLL.HubConnection;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 

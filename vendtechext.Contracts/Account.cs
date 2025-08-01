@@ -15,6 +15,10 @@ namespace vendtechext.Contracts
         public UserType UserType { get; set; }
         public int CommissionLevel { get; set; }
         public IFormFile image { get; set; }
+        public string VendorName { get; set; }
+        public int CountryId { get; set; } = 0;
+        public int CityId { get; set; } = 0;
+        public string Address { get; set; } = "";
     }
     public class ChangePassword
     {
@@ -59,7 +63,7 @@ namespace vendtechext.Contracts
         public string Email { get; set; }
         public string BusinessName { get; set; }
         public string Id { get; set; }
-        public int UserType { get; set;}
+        public int UserType { get; set; }
         public string Description { get; set; }
         public string Phone { get; set; }
         public string ApiKey { get; set; }
@@ -118,6 +122,7 @@ namespace vendtechext.Contracts
         public string UserId;
         public int AgencyId { get; set; }
         public string AgencyName { get; set; }
+        public string VendorName { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public int Status { get; set; }
@@ -125,8 +130,22 @@ namespace vendtechext.Contracts
         public string Email { get; set; }
         public string Phone { get; set; }
         public int CommissionLevelId { get; set; }
+        public int CountryId { get; set; }
+        public int CityId { get; set; }
+        public string Address { get; set; }
         public IFormFile image { get; set; }
         public string imgUrl { get; set; }
+    }
+
+    public class VendorCommand
+    {
+        public string PosId { get; set; }
+        public string UserId { get; set; }
+        public int Status { get; set; }
+        public string PosNumber { get; set; }
+        public int AgencyId { get; set; }
+        public string VendorName { get; set; }
+        public int CommissionLevelId { get; set; }
     }
 
     public class UserDto

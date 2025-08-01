@@ -87,6 +87,22 @@ namespace vendtechext.DAL.DomainBuilders
             return this;
         }
 
+        public DepositBuilder SetValueDate(DateTime? valueDate)
+        {
+            _deposit.ValueDate = valueDate;
+            return this;
+        }
+        public DepositBuilder SetBankId(int? bankId)
+        {
+            _deposit.BankId = bankId;
+            return this;
+        }
+        public DepositBuilder SetPayerName(string payerName)
+        {
+            _deposit.PayerName = payerName;
+            return this;
+        }
+
         public Deposit Build()
         {
             return _deposit;

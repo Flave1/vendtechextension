@@ -58,6 +58,9 @@ namespace vendtechext.BLL.Repository
                     .SetReference(dto.Reference)
                     .SetAmount(dto.Amount)
                     .SetStatus(status)
+                    .SetValueDate(dto.ValueDate)
+                    .SetBankId(dto.BankId)
+                    .SetPayerName(dto.PayerName)
                     .Build();
 
             _context.Deposits.Add(deposit);
@@ -75,7 +78,9 @@ namespace vendtechext.BLL.Repository
 
         public async Task<Deposit> GetDepositTransaction(Guid Id)
         {
-            var trans = await _context.Deposits.Include(d => d.CommissionDeposit).FirstOrDefaultAsync(d => d.Id == Id && d.Deleted == false) ?? null;
+            var trans = await _context.Deposits.Include(d => d.CommissionDeposit)
+                .Include(d => d.Integrator)
+                .FirstOrDefaultAsync(d => d.Id == Id && d.Deleted == false) ?? null;
             if (trans == null)
                 throw new BadRequestException("Unable to find deposit");
             return trans;
@@ -442,7 +447,7 @@ namespace vendtechext.BLL.Repository
                 .WithMeterNumber(request.MeterNumber)
                 .WithIntegratorId(integratorId)
                 .WithSellerReturnedBalance(0)
-                .WithCreatedAt(DateTime.Now)
+                .WithCreatedAt(DateTime.UtcNow)
                 .WithTransactionId(newTrxid)
                 .WithAmount(request.Amount)
                 .Build();

@@ -1,6 +1,8 @@
 ﻿using Hangfire;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using vendtechext.BLL.Exceptions;
+using vendtechext.BLL.HubConnection;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
@@ -18,6 +20,7 @@ namespace vendtechext.BLL.Services
         private readonly IAuthService _authService;
         private readonly NotificationHelper notification;
         private readonly IBackgroundJobClient _backgroundJobClient;
+        private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _integratorHubContext;
 
         public DepositService(
             TransactionRepository transactionRepository,
@@ -25,7 +28,8 @@ namespace vendtechext.BLL.Services
             EmailHelper emailHelper,
             IAuthService authService,
             NotificationHelper notification,
-            IBackgroundJobClient backgroundJobClient)
+            IBackgroundJobClient backgroundJobClient,
+            IHubContext<CustomNotificationHub, ICustomNotificationHub> integratorHubContext)
         {
             _repository = transactionRepository;
             _walletRepository = walletRepository;
@@ -33,6 +37,7 @@ namespace vendtechext.BLL.Services
             _authService = authService;
             this.notification = notification;
             _backgroundJobClient = backgroundJobClient;
+            _integratorHubContext = integratorHubContext;
         }
 
         public async Task<APIResponse> CreateDeposit(DepositRequest request, Guid integratorid)
@@ -59,7 +64,10 @@ namespace vendtechext.BLL.Services
                 BalanceAfter = wallet.Balance + request.Amount,
                 IntegratorId = integratorid,
                 PaymentTypeId = request.PaymentTypeId,
-                CommissionDepositId = null
+                CommissionDepositId = null,
+                ValueDate = request.ValueDate,
+                BankId = request.BankId,
+                PayerName = request.PayerName
             };
             Deposit parentDeposit = await _repository.CreateDepositTransaction(dto, DepositStatus.Waiting);
             Deposit commissionDeposit = await CreateCommision(parentDeposit, integratorid, wallet);
@@ -78,8 +86,14 @@ namespace vendtechext.BLL.Services
         
         public async Task CreateDepositNotification(Wallet wallet, Deposit deposit)
         {
-            AppUser user = await _authService.FindAdminUser();
-            new Emailer(_emailHelper, notification).SendEmailToAdminOnPendingDeposits(wallet.WALLET_ID, wallet.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, wallet.CreatedAt, user);
+            IList<AppUser> users = await _authService.FindAdminUser();
+            for (int i = 0; i < users.Count; i++)
+            {
+                new Emailer(_emailHelper, notification).SendEmailToAdminOnPendingDeposits(wallet.WALLET_ID, wallet.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, wallet.CreatedAt, users[i]);
+
+                await _integratorHubContext.Clients.Group(users[i].Id).SuccessNotificationCreated($"{wallet.Integrator.BusinessName} Initiated A Deposit");
+            }
+            
         }
 
         public async Task<APIResponse> ApproveDeposit(ApproveDepositRequest request)
@@ -93,6 +107,8 @@ namespace vendtechext.BLL.Services
                 {
                     notification.UpdateNotificationReadStatus(notificationId.Value, request.ApprovingUserId);
                 }
+
+                await _integratorHubContext.Clients.Group(deposit.Integrator.AppUserId).InfoNotificationCreated($"{deposit.Amount} Was Not Approved");
                 return Response.WithStatus("success").WithMessage("Successfully Cancelled parentDeposit").WithType(request).GenerateResponse();
             }
 
@@ -117,6 +133,7 @@ namespace vendtechext.BLL.Services
                 notification.UpdateNotificationReadStatus(notificationId.Value, currentAdminUserId);
             }
             AppUser user = await _authService.FindUserByIntegratorId(deposit.IntegratorId);
+            await _integratorHubContext.Clients.Group(user.Id).InfoNotificationCreated($"{deposit.Amount} Has Been Approved And Credited Into Your Wallet");
             new Emailer(_emailHelper, notification).SendEmailToIntegratorOnDepositApproval(deposit.Amount, deposit.Id, CommissionId, user);
         }
 
@@ -132,7 +149,10 @@ namespace vendtechext.BLL.Services
                 BalanceAfter = deposit.BalanceAfter + commission,
                 IntegratorId = integratorid,
                 PaymentTypeId = commissionMethod.Id,
-                CommissionDepositId = null
+                CommissionDepositId = null,
+                ValueDate = null,
+                BankId = null,
+                PayerName = null
             };
             
             return await _repository.CreateDepositTransaction(commsionDto, DepositStatus.Waiting);
@@ -247,7 +267,7 @@ namespace vendtechext.BLL.Services
                 BookBalance = 0,
                 WalletBalance = balance,
                 LastDeposit = null,
-                Logo = user.ProfilePic
+                Logo = user[0].ProfilePic
             };
             return Response.WithStatus("success").WithMessage("Successfully fetched").WithType(result).GenerateResponse();
         }

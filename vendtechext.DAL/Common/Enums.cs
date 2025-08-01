@@ -61,16 +61,11 @@ namespace vendtechext.DAL.Common
         Active = 1,
     }
 
-    public enum NotificationTypeEnum
-    {
-        MeterRecharge = 1,
-        DepositStatusChange = 2,
-        AirtimeRecharge = 3
-    }
 
     public enum NotificationType
     {
-        DepositRequested = 1,
+        IntegratorDepositRequested = 1,
+        VendorDepositRequested = 11,
         DepositApproved = 2,
         Sales = 2,
     }

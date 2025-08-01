@@ -39,7 +39,7 @@ namespace vendtechext.BLL.Common
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Transaction ID generation failed at: " + DateTime.Now);
+                        Console.WriteLine("Transaction ID generation failed at: " + DateTime.UtcNow);
                         Console.WriteLine("Error: " + ex.Message);
                         throw;
                     }
@@ -78,7 +78,7 @@ namespace vendtechext.BLL.Common
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Transaction ID generation failed at: " + DateTime.Now);
+                        Console.WriteLine("Transaction ID generation failed at: " + DateTime.UtcNow);
                         Console.WriteLine("Error: " + ex.Message);
                         throw;
                     }
