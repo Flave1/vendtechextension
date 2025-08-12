@@ -10,6 +10,7 @@ using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 using System.Text.Json;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace vendtechext.BLL.Services
 {
@@ -178,48 +179,66 @@ namespace vendtechext.BLL.Services
             if (userAccount != null)
                 throw new BadRequestException("User Account with Email already exist");
 
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            string imgPath = await _fileHelper.CreateFile(model.image);
+
+            try
             {
-                string imgPath = await _fileHelper.CreateFile(model.image);
-                try
+                userAccount = await _authService.RegisterAndReturnUserAsync(new RegisterDto
                 {
-                    userAccount = await _authService.RegisterAndReturnUserAsync(new RegisterDto
-                    {
-                        Firstname = model.FirstName,
-                        Email = model.Email,
-                        Lastname = model.LastName,
-                        Password = CREDENTIALS.VENDOR_PASSWORD,
-                        Username = model.Email,
-                        UserType = UserType.Vendor,
-                        Phone = model.Phone,
-                    }, imgPath, APP_ROLES.Vendor);
+                    Firstname = model.FirstName,
+                    Email = model.Email,
+                    Lastname = model.LastName,
+                    Password = CREDENTIALS.VENDOR_PASSWORD,
+                    Username = model.Email,
+                    UserType = UserType.Vendor,
+                    Phone = model.Phone,
+                    Address = model.Address,
+                    CityId = model.CityId,
+                    CountryId = model.CountryId,
+                    
+                }, imgPath, APP_ROLES.Vendor);
 
-                    var vendor = new VendorAccount
-                    {
-                        UserId = userAccount.Id,
-                        AgencyId = model.AgencyId,
-                        PosId = model.PosId,
-                        Status = (int)UserAccountStatus.Active,
-                        PosNumber = model.PosNumber,
-                        CommissionLevelId = model.CommissionLevelId
-                    };
+                var vendor = new VendorAccount
+                {
+                    UserId = userAccount.Id,
+                    AgencyId = model.AgencyId,
+                    PosId = model.PosId,
+                    Status = (int)UserAccountStatus.Active,
+                    PosNumber = model.PosNumber,
+                    CommissionLevelId = model.CommissionLevelId,
+                    VendorName = model.VendorName,
 
-                    APIResponse<VendorAccount> response = await _httpService.PostAsync<APIResponse<VendorAccount>, VendorAccount>("/vconsumer/vendor/v1/create", vendor);
-                    if (response == null || response.status != "success")
-                    {
-                        await transaction.RollbackAsync();
-                        throw new BadRequestException(response?.message ?? "Unepected error occurred!");
-                    }
-                    await transaction.CommitAsync();
-                    await _cacheService.RemoveAsync(CacheKeys.AgencyUsers);
-                    return Response.WithStatus("success").WithMessage("Successfully created agency").WithType(model).GenerateResponse();
+                };
 
-                }
-                catch (Exception)
+                APIResponse<VendorAccount> response = await _httpService.PostAsync<APIResponse<VendorAccount>, VendorAccount>(
+                    "/vconsumer/vendor/v1/create", vendor
+                );
+
+                if (response == null || response.status != "success")
                 {
                     await transaction.RollbackAsync();
-                    throw;
+                    throw new BadRequestException(response?.message ?? "Unexpected error occurred!");
                 }
+
+                await transaction.CommitAsync();
+                await _cacheService.RemoveAsync(CacheKeys.AgencyUsers);
+
+                return Response
+                    .WithStatus("success")
+                    .WithMessage("Successfully created agency")
+                    .WithType(model)
+                    .GenerateResponse();
+            }
+            catch (BadRequestException)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new BadRequestException(ex.Message);
             }
         }
 
@@ -262,7 +281,7 @@ namespace vendtechext.BLL.Services
                         VendorName = model.VendorName,
                     };
 
-                    APIResponse<VendorCommand> response = await _httpService.PutAsync<APIResponse<VendorCommand>, VendorCommand>($"/vconsumer/vendor/v1/update/{userid}", vendor);
+                    APIResponse<VendorAccount> response = await _httpService.PutAsync<APIResponse<VendorAccount>, VendorCommand>($"/vconsumer/vendor/v1/update/{userid}", vendor);
                     if (response == null || response.status != "success")
                     {
                         await transaction.RollbackAsync();
@@ -273,6 +292,11 @@ namespace vendtechext.BLL.Services
                     await _cacheService.RemoveAsync(CacheKeys.VendorUsers);
                     return Response.WithStatus("success").WithMessage("Successfully created agency").WithType(model).GenerateResponse();
 
+                }
+                catch(JsonReaderException ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new BadRequestException(ex.Message);
                 }
                 catch (Exception ex)
                 {

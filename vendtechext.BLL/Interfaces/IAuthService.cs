@@ -21,5 +21,9 @@ namespace vendtechext.BLL.Interfaces
         Task<IList<AppUser>> FindAdminUser();
         Task<AppUser> FindUserByIntegratorId(Guid id);
         Task<APIResponse> GetUserPermissionsAsync(string userId);
+        Task<APIResponse> PinLoginAsync(PinLoginRequest request);
+        Task<APIResponse> SetPinCodeAsync(string email, string pinCode, string deviceToken);
+        Task<APIResponse> RecoverPinAsync(RecoverPinRequest request);
+        Task<APIResponse> ValidatePinTokenAsync(ValidatePinTokenRequest request);
     }
 }

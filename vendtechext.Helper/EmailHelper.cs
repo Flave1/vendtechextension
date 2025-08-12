@@ -259,6 +259,22 @@ namespace vendtechext.Helper
             }
         }
 
+        public void SendEmailForPinRecovery(AppUser user, string body)
+        {
+            try
+            {
+                string subject = "PIN Recovery Token";
+                string emailBody = helper.GetEmailTemplate("simple");
+                emailBody = emailBody.Replace("[recipient]", user.FirstName);
+                emailBody = emailBody.Replace("[body]", body);
+                helper.SendEmail(user.Email, subject, emailBody);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
         public void SendEmailToIntegratorOnBalanceLow(Wallet wallet, Integrator integrator)
         {
             try

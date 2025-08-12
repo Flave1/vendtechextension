@@ -12,5 +12,12 @@ namespace vendtechext.DAL.Models
         public int CountryId { get; set; }
         public int CityId { get; set; }
         public string Address { get; set; }
+        public string UpdatedBy { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public bool Deleted { get; set; }
+        public string PinCode { get; set; }
+        public string DeviceToken { get; set; }
+        public bool IsPinNew { get; set; } = true;
+        public string AppVersion { get; set; }
     }
 }

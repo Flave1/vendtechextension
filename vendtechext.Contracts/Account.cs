@@ -117,7 +117,7 @@ namespace vendtechext.Contracts
 
     public class VendorAccount
     {
-        public int Id;
+        public string Id;
         public string PosId { get; set; }
         public string UserId;
         public int AgencyId { get; set; }
@@ -158,4 +158,51 @@ namespace vendtechext.Contracts
         public string ImagwUrl { get; set; }
     }
 
+    public class PinLoginRequest
+    {
+        public string PinCode { get; set; }
+        public string DeviceToken { get; set; }
+        public string AppVersion { get; set; }
+    }
+
+    public class PinLoginResponse
+    {
+        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
+        public string UserId { get; set; }
+        public string UserName { get; set; }
+        public bool IsNewPin { get; set; }
+    }
+
+    public class DeviceTokenModel
+    {
+        public string UserId { get; set; }
+        public string DeviceToken { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    public class SetPinRequest
+    {
+        public string PinCode { get; set; }
+        public string DeviceToken { get; set; }
+        public string Email { get; set; }
+    }
+
+    public class RecoverPinRequest
+    {
+        public string Email { get; set; }
+    }
+
+    public class ValidatePinTokenRequest
+    {
+        public string Token { get; set; }
+        public string Email { get; set; }
+    }
+
+    public class RecoverPinResponse
+    {
+        public string Message { get; set; }
+        public bool Success { get; set; }
+    }
 }

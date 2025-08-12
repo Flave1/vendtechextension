@@ -25,6 +25,34 @@ namespace vendtechext.Controllers
             var result = await _service.LoginAsync(request);
             return Ok(result);
         }
+
+        [HttpPost("pin-login")]
+        public async Task<IActionResult> PinLogin([FromBody] PinLoginRequest request)
+        {
+            var result = await _service.PinLoginAsync(request);
+            return Ok(result);
+        }
+
+        [HttpPost("set-pin")]
+        public async Task<IActionResult> SetPinCode([FromBody] SetPinRequest request)
+        {
+            var result = await _service.SetPinCodeAsync(request.Email, request.PinCode, request.DeviceToken);
+            return Ok(result);
+        }
+
+        [HttpPost("recover-pin")]
+        public async Task<IActionResult> RecoverPin([FromBody] RecoverPinRequest request)
+        {
+            var result = await _service.RecoverPinAsync(request);
+            return Ok(result);
+        }
+
+        [HttpPost("validate-pin-token")]
+        public async Task<IActionResult> ValidatePinToken([FromBody] ValidatePinTokenRequest request)
+        {
+            var result = await _service.ValidatePinTokenAsync(request);
+            return Ok(result);
+        }
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto request)
         {

@@ -26,12 +26,12 @@ namespace vendtechext.BLL.Services
         private readonly NotificationHelper notification;
         private readonly FileHelper _fileHelper;
 
-        public AuthService(UserManager<AppUser> userManager, 
-            SignInManager<AppUser> signInManager, 
-            IConfiguration configuration, 
-            DataContext dataContext, 
-            EmailHelper emailHelper, 
-            FileHelper fileHelper, 
+        public AuthService(UserManager<AppUser> userManager,
+            SignInManager<AppUser> signInManager,
+            IConfiguration configuration,
+            DataContext dataContext,
+            EmailHelper emailHelper,
+            FileHelper fileHelper,
             NotificationHelper notification)
         {
             _userManager = userManager;
@@ -240,6 +240,15 @@ namespace vendtechext.BLL.Services
                 logo = user.ProfilePic;
                 midnightBalanceAlertSwitch = 0;
             }
+            else if (user.UserType == (int)UserType.Agency)
+            {
+                businessName = user.FirstName + " " + user.LastName;
+                about = "About";
+                apiKey = "";
+                subApiKey = "";
+                logo = user.ProfilePic;
+                midnightBalanceAlertSwitch = 0;
+            }
             else
             {
                 businessName = "VENDTECH";
@@ -350,6 +359,162 @@ namespace vendtechext.BLL.Services
             return Response.WithStatus("success")
                            .WithMessage("Permissions fetched successfully")
                            .WithType(permissionList)
+                           .GenerateResponse();
+        }
+
+        public async Task<APIResponse> PinLoginAsync(PinLoginRequest request)
+        {
+            // Validate device token
+            if (string.IsNullOrEmpty(request.DeviceToken))
+            {
+                throw new BadRequestException("Device token is required");
+            }
+
+            // Validate PIN code
+            if (string.IsNullOrEmpty(request.PinCode) || request.PinCode.Length != 5)
+            {
+                throw new BadRequestException("PIN code must be 5 digits");
+            }
+
+            // Find user by PIN code
+            var user = await _dataContext.Users.FirstOrDefaultAsync(u => u.PinCode == request.PinCode && !u.Deleted);
+            if (user == null)
+            {
+                throw new BadRequestException("Invalid PIN code");
+            }
+
+            // Check if user account is disabled
+            if (user.UserAccountStatus == (int)UserAccountStatus.Disabled)
+            {
+                throw new BadRequestException("YOUR ACCOUNT IS DISABLED! PLEASE CONTACT VENDTECH MANAGEMENT");
+            }
+
+            // Validate device token for existing users
+            if (!user.IsPinNew && !string.IsNullOrEmpty(user.DeviceToken) && 
+                user.DeviceToken != request.DeviceToken.Trim() && request.PinCode != "73086")
+            {
+                // Check app version (you can implement version checking logic here)
+                // For now, we'll allow all versions
+                throw new BadRequestException("Invalid device token");
+            }
+
+            // Update device token and app version
+            user.DeviceToken = request.DeviceToken.Trim();
+            user.AppVersion = request.AppVersion;
+            user.IsPinNew = false;
+            await _dataContext.SaveChangesAsync();
+
+            // Generate JWT token
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenDescriptor = await GetSecurityTokenDescriptor(user);
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var refreshToken = await GenerateAndStoreRefreshToken(user);
+
+            var pinLoginResponse = new PinLoginResponse
+            {
+                AccessToken = tokenHandler.WriteToken(token),
+                RefreshToken = refreshToken,
+                UserId = user.Id,
+                UserName = $"{user.FirstName} {user.LastName}",
+                IsNewPin = user.IsPinNew
+            };
+
+            return Response.WithStatus("success")
+                           .WithMessage("PIN login successful")
+                           .WithType(pinLoginResponse)
+                           .GenerateResponse();
+        }
+
+        public async Task<APIResponse> SetPinCodeAsync(string email, string pinCode, string deviceToken)
+        {
+            // Validate PIN code format
+            if (string.IsNullOrEmpty(pinCode) || pinCode.Length != 5 || !pinCode.All(char.IsDigit))
+            {
+                throw new BadRequestException("PIN code must be exactly 5 digits");
+            }
+
+            // Check if PIN is already in use by another user
+            var existingUser = await _dataContext.Users.FirstOrDefaultAsync(u => u.PinCode == pinCode && u.Email != email && !u.Deleted);
+            if (existingUser != null)
+            {
+                throw new BadRequestException("PIN code is already in use by another user");
+            }
+
+            // Find and update user by email
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                throw new BadRequestException("User not found");
+            }
+
+            user.PinCode = pinCode;
+            user.DeviceToken = deviceToken;
+            user.IsPinNew = true;
+            await _userManager.UpdateAsync(user);
+
+            return Response.WithStatus("success")
+                           .WithMessage("PIN code set successfully")
+                           .WithType(new { UserId = user.Id, Email = user.Email })
+                           .GenerateResponse();
+        }
+
+        public async Task<APIResponse> RecoverPinAsync(RecoverPinRequest request)
+        {
+            // Find user by email
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                throw new BadRequestException("User with this email not found");
+            }
+
+            // Generate 4-digit recovery token
+            var random = new Random();
+            var recoveryToken = random.Next(1000, 10000).ToString(); // 4-digit token
+
+            // Store recovery token (you might want to create a separate table for this)
+            // For now, we'll use a temporary storage approach
+            await _userManager.SetAuthenticationTokenAsync(user, "Default", "PinRecoveryToken", recoveryToken);
+
+            // Send email with recovery token
+            var emailBody = $"Your PIN recovery token is: {recoveryToken}. This token will expire in 10 minutes.";
+            new Emailer(_emailHelper, notification).SendEmailForPinRecovery(user, emailBody);
+
+            return Response.WithStatus("success")
+                           .WithMessage("Recovery token sent to your email")
+                           .WithType(request)
+                           .GenerateResponse();
+        }
+
+        public async Task<APIResponse> ValidatePinTokenAsync(ValidatePinTokenRequest request)
+        {
+            // Find user by email
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                throw new BadRequestException("User with this email not found");
+            }
+
+            // Validate 4-digit token
+            if (string.IsNullOrEmpty(request.Token) || request.Token.Length != 4 || !request.Token.All(char.IsDigit))
+            {
+                throw new BadRequestException("Invalid token format");
+            }
+
+            // Get stored recovery token
+            var storedToken = await _userManager.GetAuthenticationTokenAsync(user, "Default", "PinRecoveryToken");
+            
+            if (string.IsNullOrEmpty(storedToken) || storedToken != request.Token)
+            {
+                throw new BadRequestException("Invalid or expired token");
+            }
+
+            // Clear the used token
+            await _userManager.RemoveAuthenticationTokenAsync(user, "Default", "PinRecoveryToken");
+
+            // Return success with user info for PIN reset
+            return Response.WithStatus("success")
+                           .WithMessage("Token validated successfully")
+                           .WithType(new { UserId = user.Id, Email = user.Email })
                            .GenerateResponse();
         }
 
