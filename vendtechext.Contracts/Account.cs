@@ -205,4 +205,12 @@ namespace vendtechext.Contracts
         public string Message { get; set; }
         public bool Success { get; set; }
     }
+
+    public class UpdatePasscode
+    {
+        public string Passcode { get; set; }
+        public string UserId { get; set; }
+        public string CellPhone { get; set; }
+        public string Email { get; set; }
+    }
 }

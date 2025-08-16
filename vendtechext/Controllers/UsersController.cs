@@ -22,7 +22,7 @@ namespace vendtechext.Controllers
             var result = await _service.CreateAgencyAccount(request);
             return Ok(result);
         }
-        [HttpPut("update-agency-account/{userId}")]
+        [HttpPost("update-agency-account/{userId}")]
         public async Task<IActionResult> UpdateAgencyAccount(string userId, [FromForm] AgencyAccount request)
         {
             var result = await _service.UpdateAgencyAccount(userId, request);
@@ -42,7 +42,7 @@ namespace vendtechext.Controllers
             var result = await _service.CreateVendorAccount(request);
             return Ok(result);
         }
-        [HttpPut("update-vendor-account/{userId}")]
+        [HttpPost("update-vendor-account/{userId}")]
         public async Task<IActionResult> UpdateVendorAccount(string userId, [FromForm] VendorAccount request)
         {
             var result = await _service.UpdateVendorAccount(userId, request);
@@ -66,6 +66,13 @@ namespace vendtechext.Controllers
         public async Task<IActionResult> GetVendorAccount()
         {
             var result = await _service.GetUserAccounts(UserType.Vendor);
+            return Ok(result);
+        }
+
+        [HttpPost("update-vendor-passcode")]
+        public async Task<IActionResult> UpdatePasscode([FromBody] UpdatePasscode request)
+        {
+            var result = await _service.UpdatePasscode(request);
             return Ok(result);
         }
     }

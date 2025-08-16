@@ -199,20 +199,27 @@ namespace vendtechext.BLL.Services
                     
                 }, imgPath, APP_ROLES.Vendor);
 
-                var vendor = new VendorAccount
-                {
-                    UserId = userAccount.Id,
-                    AgencyId = model.AgencyId,
-                    PosId = model.PosId,
-                    Status = (int)UserAccountStatus.Active,
-                    PosNumber = model.PosNumber,
-                    CommissionLevelId = model.CommissionLevelId,
-                    VendorName = model.VendorName,
 
-                };
 
-                APIResponse<VendorAccount> response = await _httpService.PostAsync<APIResponse<VendorAccount>, VendorAccount>(
-                    "/vconsumer/vendor/v1/create", vendor
+                APIResponse<VendorAccount> response = await _httpService.PostAsync<APIResponse<VendorAccount>, VendorCommand>(
+                    "/vconsumer/vendor/v1/create-vendor-account", 
+                    new VendorCommand 
+                    {
+                        UserId = userAccount.Id,
+                        AgencyId = model.AgencyId,
+                        PosId = model.PosId,
+                        Status = (int)UserAccountStatus.Active,
+                        PosNumber = model.PosNumber,
+                        CommissionLevelId = model.CommissionLevelId,
+                        VendorName = model.VendorName,
+                        //firstName = model.FirstName,
+                        //lastName = model.LastName,
+                        //email = model.Email,
+                        //phone = model.Phone,
+                        //countryId = model.CountryId,
+                        //cityId = model.CityId,
+                        //address = model.Address
+                    }
                 );
 
                 if (response == null || response.status != "success")
@@ -222,18 +229,13 @@ namespace vendtechext.BLL.Services
                 }
 
                 await transaction.CommitAsync();
-                await _cacheService.RemoveAsync(CacheKeys.AgencyUsers);
+                await _cacheService.RemoveAsync(CacheKeys.VendorUsers);
 
                 return Response
                     .WithStatus("success")
-                    .WithMessage("Successfully created agency")
+                    .WithMessage("Successfully created vendor")
                     .WithType(model)
                     .GenerateResponse();
-            }
-            catch (BadRequestException)
-            {
-                await transaction.RollbackAsync();
-                throw;
             }
             catch (Exception ex)
             {
@@ -279,18 +281,25 @@ namespace vendtechext.BLL.Services
                         PosNumber = model.PosNumber,
                         CommissionLevelId = model.CommissionLevelId,
                         VendorName = model.VendorName,
+                        //firstName = model.FirstName,
+                        //lastName = model.LastName,
+                        //email = model.Email,
+                        //phone = model.Phone,
+                        //countryId = model.CountryId,
+                        //cityId = model.CityId,
+                        //address = model.Address
                     };
 
-                    APIResponse<VendorAccount> response = await _httpService.PutAsync<APIResponse<VendorAccount>, VendorCommand>($"/vconsumer/vendor/v1/update/{userid}", vendor);
+                    APIResponse<VendorAccount> response = await _httpService.PutAsync<APIResponse<VendorAccount>, VendorCommand>($"/vconsumer/vendor/v1/update-vendor-account/{userid}", vendor);
                     if (response == null || response.status != "success")
                     {
                         await transaction.RollbackAsync();
-                        throw new BadRequestException(response?.message ?? "Unepected error occurred!");
+                        throw new BadRequestException(response?.message ?? "Unexpected error occurred!");
                     }
                     await transaction.CommitAsync();
 
                     await _cacheService.RemoveAsync(CacheKeys.VendorUsers);
-                    return Response.WithStatus("success").WithMessage("Successfully created agency").WithType(model).GenerateResponse();
+                    return Response.WithStatus("success").WithMessage("Successfully updated vendor").WithType(model).GenerateResponse();
 
                 }
                 catch(JsonReaderException ex)
@@ -308,7 +317,7 @@ namespace vendtechext.BLL.Services
 
         public async Task<APIResponse> GetVendorAccountById(string id)
         {
-            string endpoint = $"/vconsumer/vendor/v1/{id}";
+            string endpoint = $"/vconsumer/vendor/v1/get-vendor-account/{id}";
             AppUser userAccount = await _authService.FindUserById(id);
 
             APIResponse response = await _httpService.GetAsync<APIResponse>(endpoint);
@@ -336,10 +345,11 @@ namespace vendtechext.BLL.Services
                 Address = userAccount.Address,
                 CityId = userAccount.CityId,
                 CountryId = userAccount.CountryId,
+                Status = userAccount.UserAccountStatus
             };
 
             return Response.WithStatus("success")
-                           .WithMessage("Agency fetched successfully")
+                           .WithMessage("Vendor fetched successfully")
                            .WithType(agency)
                            .GenerateResponse();
         }
@@ -450,6 +460,18 @@ namespace vendtechext.BLL.Services
                           .WithMessage("Fetched successfully")
                           .WithType(accounts)
                           .GenerateResponse();
+        }
+
+
+        async Task<APIResponse> IUsersService.UpdatePasscode(UpdatePasscode model)
+        {
+            AppUser userAccount = await _authService.FindUserById(model.UserId);
+
+            if (userAccount == null)
+                throw new BadRequestException("Agency User Account does not already exist");
+
+            await _authService.SetPinCodeAsync(userAccount.Email, model.Passcode, userAccount.DeviceToken);
+            return Response.WithStatus("success").WithMessage("Successfully updated agency").WithType(model).GenerateResponse();
         }
 
     }

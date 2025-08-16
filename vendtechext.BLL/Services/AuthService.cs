@@ -434,7 +434,7 @@ namespace vendtechext.BLL.Services
             }
 
             // Check if PIN is already in use by another user
-            var existingUser = await _dataContext.Users.FirstOrDefaultAsync(u => u.PinCode == pinCode && u.Email != email && !u.Deleted);
+            var existingUser = await _dataContext.Users.FirstOrDefaultAsync(u => u.PinCode == pinCode && u.DeviceToken == pinCode && !u.Deleted);
             if (existingUser != null)
             {
                 throw new BadRequestException("PIN code is already in use by another user");

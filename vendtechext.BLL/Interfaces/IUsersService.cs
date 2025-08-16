@@ -12,5 +12,6 @@ namespace vendtechext.BLL.Interfaces
         Task<APIResponse> UpdateVendorAccount(string userid, VendorAccount model);
         Task<APIResponse> GetVendorAccountById(string id);
         Task<APIResponse> GetUserAccounts(UserType type);
+        Task<APIResponse> UpdatePasscode(UpdatePasscode model);
     }
 }
