@@ -3,6 +3,7 @@ using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
+using System.Net.Http;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
@@ -110,6 +111,27 @@ namespace vendtechext.BLL.Services
                         Phone = model.Phone,
                         image = model.image
                     }, userid);
+
+                    var agency = new AgencyAccount
+                    {
+                        AgencyName = model.AgencyName,
+                        UserId = userAccount.Id,
+                        Description = model.Description,
+                        Status = (int)UserAccountStatus.Active,
+                        PosNumber = model.PosNumber,
+                        CommissionLevelId = model.CommissionLevelId,
+                        PosId = model.PosId,
+                    };
+
+                    APIResponse<AgencyAccount> response = await _httpService.PostAsync<APIResponse<AgencyAccount>, AgencyAccount>($"/vconsumer/agency/v1/update", agency);
+                    if (response == null || response.status != "success")
+                    {
+                        await transaction.RollbackAsync();
+                        throw new BadRequestException(response?.message ?? "An unexpected error occurred.");
+                    }
+                    await transaction.CommitAsync();
+                    await _cacheService.RemoveAsync(CacheKeys.AgencyUsers);
+                    return Response.WithStatus("success").WithMessage("Successfully updated agency").WithType(model).GenerateResponse();
                 }
                 catch (Exception)
                 {
@@ -117,25 +139,7 @@ namespace vendtechext.BLL.Services
                     throw;
                 }
 
-                var agency = new AgencyAccount
-                {
-                    AgencyName = model.AgencyName,
-                    UserId = userAccount.Id,
-                    Description = model.Description,
-                    Status = (int)UserAccountStatus.Active,
-                    PosNumber = model.PosNumber,
-                    CommissionLevelId = model.CommissionLevelId
-                };
-
-                APIResponse<AgencyAccount> response = await _httpService.PutAsync<APIResponse<AgencyAccount>, AgencyAccount>($"/vconsumer/agency/v1/update/{userid}", agency);
-                if (response == null || response.status != "success")
-                {
-                    await transaction.RollbackAsync();
-                    throw new BadRequestException(response?.message ?? "An unexpected error occurred.");
-                }
-                await transaction.CommitAsync();
-                await _cacheService.RemoveAsync(CacheKeys.AgencyUsers);
-                return Response.WithStatus("success").WithMessage("Successfully updated agency").WithType(model).GenerateResponse();
+                
             }
         }
 
@@ -201,31 +205,45 @@ namespace vendtechext.BLL.Services
 
 
 
-                APIResponse<VendorAccount> response = await _httpService.PostAsync<APIResponse<VendorAccount>, VendorCommand>(
-                    "/vconsumer/vendor/v1/create-vendor-account", 
-                    new VendorCommand 
-                    {
-                        UserId = userAccount.Id,
-                        AgencyId = model.AgencyId,
-                        PosId = model.PosId,
-                        Status = (int)UserAccountStatus.Active,
-                        PosNumber = model.PosNumber,
-                        CommissionLevelId = model.CommissionLevelId,
-                        VendorName = model.VendorName,
-                        //firstName = model.FirstName,
-                        //lastName = model.LastName,
-                        //email = model.Email,
-                        //phone = model.Phone,
-                        //countryId = model.CountryId,
-                        //cityId = model.CityId,
-                        //address = model.Address
-                    }
-                );
+                try
+                {
+                    // Call the API and get the raw response
+                    var rawResponse = await _httpService.PostAsync<APIResponse, VendorCommand>(
+                        "/vconsumer/vendor/v1/create-vendor-account", 
+                        new VendorCommand 
+                        {
+                            UserId = userAccount.Id,
+                            AgencyId = model.AgencyId,
+                            PosId = model.PosId,
+                            Status = (int)UserAccountStatus.Active,
+                            PosNumber = model.PosNumber,
+                            CommissionLevelId = model.CommissionLevelId,
+                            VendorName = model.VendorName,
+                            //firstName = model.FirstName,
+                            //lastName = model.LastName,
+                            //email = model.Email,
+                            //phone = model.Phone,
+                            //countryId = model.CountryId,
+                            //cityId = model.CityId,
+                            //address = model.Address
+                        }
+                    );
 
-                if (response == null || response.status != "success")
+                    if (rawResponse == null || rawResponse.status != "success")
+                    {
+                        await transaction.RollbackAsync();
+                        throw new BadRequestException(rawResponse?.message ?? "Unexpected error occurred!");
+                    }
+                }
+                catch (HttpRequestException ex)
                 {
                     await transaction.RollbackAsync();
-                    throw new BadRequestException(response?.message ?? "Unexpected error occurred!");
+                    throw new BadRequestException($"API call failed: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw new BadRequestException($"Unexpected error: {ex.Message}");
                 }
 
                 await transaction.CommitAsync();
@@ -290,28 +308,29 @@ namespace vendtechext.BLL.Services
                         //address = model.Address
                     };
 
-                    APIResponse<VendorAccount> response = await _httpService.PutAsync<APIResponse<VendorAccount>, VendorCommand>($"/vconsumer/vendor/v1/update-vendor-account/{userid}", vendor);
-                    if (response == null || response.status != "success")
+                    // Call the API and get the raw response
+                    var rawResponse = await _httpService.PostAsync<APIResponse, VendorCommand>($"/vconsumer/vendor/v1/update-vendor-account", vendor);
+                    if (rawResponse == null || rawResponse.status != "success")
                     {
                         await transaction.RollbackAsync();
-                        throw new BadRequestException(response?.message ?? "Unexpected error occurred!");
+                        throw new BadRequestException(rawResponse?.message ?? "Unexpected error occurred!");
                     }
+
+                    // Manually map the response to VendorAccount if needed
+                    // The API returns Vendor entity, but we're working with VendorAccount in this service
+                    // Since we're only checking success status, we don't need to map the full response
                     await transaction.CommitAsync();
 
                     await _cacheService.RemoveAsync(CacheKeys.VendorUsers);
                     return Response.WithStatus("success").WithMessage("Successfully updated vendor").WithType(model).GenerateResponse();
 
                 }
-                catch(JsonReaderException ex)
-                {
-                    await transaction.RollbackAsync();
-                    throw new BadRequestException(ex.Message);
-                }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    throw new BadRequestException(ex.Message);
+                    throw new BadRequestException($"Unexpected error: {ex.Message}");
                 }
+
             }
         }
 
