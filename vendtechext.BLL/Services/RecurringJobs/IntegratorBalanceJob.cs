@@ -21,7 +21,12 @@ namespace vendtechext.BLL.Services.RecurringJobs
                             .Include(d => d.Integrator)
                             .ThenInclude(d => d.AppUser).ToListAsync();
 
-                        var notification = new NotificationHelper(db);
+                        var channels = new List<INotificationChannel>
+                        {
+                            new EmailNotificationChannel(),
+                         };
+
+                        var notification = new NotificationService(channels);
                         for (int i = 0; i < wallets.Count; i++)
                         {
                             if (wallets[i].MidnightBalanceAlertSwitch == (int)SwitchEnum.ON)
@@ -46,7 +51,12 @@ namespace vendtechext.BLL.Services.RecurringJobs
                             .Include(d => d.Integrator)
                             .ThenInclude(d => d.AppUser).FirstOrDefaultAsync();
 
-                        var notification = new NotificationHelper(db);
+                        var channels = new List<INotificationChannel>
+                        {
+                            new EmailNotificationChannel(),
+                         };
+
+                        var notification = new NotificationService(channels);
                         await Task.Run(() => new Emailer(new EmailHelper(DomainEnvironment.Configuration), notification).SendEmailToIntegratorOnBalanceLow(wallet, wallet.Integrator));
                     }
 

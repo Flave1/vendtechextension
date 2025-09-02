@@ -8,10 +8,14 @@
             UserId = string.Empty;
             Message = string.Empty;
             InCludeEmail = false;
+            IncludeSms = false;
+            NotificationBody = new NotificationDto();
         }
         public string UserId { get; set; }
         public string Message { get; set; }
         public bool InCludeEmail { get; set; }
+        public bool IncludeSms { get; set; }
+        public NotificationDto NotificationBody {  get; set; }
     }
 
     public class APIResponse

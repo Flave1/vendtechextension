@@ -50,13 +50,16 @@ namespace vendtechext.BLL.Services
                 {
                     userAccount = await _authService.RegisterAndReturnUserAsync(new RegisterDto
                     {
-                        Firstname = model.AgencyName,
+                        Firstname = model.FirstName,
                         Email = model.Email,
-                        Lastname = "",
+                        Lastname = model.LastName,
                         Password = CREDENTIALS.AGENCY_PASSWORD,
                         Username = model.Email,
                         UserType = UserType.Agency,
                         Phone = model.Phone,
+                        CountryId = model.CountryId,
+                        CityId = model.CityId,
+                        Address = model.Address,
                     }, imgPath, APP_ROLES.Agency);
                 }
                 catch (Exception)
@@ -72,7 +75,12 @@ namespace vendtechext.BLL.Services
                     Description = model.Description,
                     Status = (int)UserAccountStatus.Active,
                     PosNumber = model.PosNumber,
-                    CommissionLevelId = model.CommissionLevelId
+                    CommissionLevelId = model.CommissionLevelId,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Address = model.Address,
+                    CityId = model.CityId,
+                    CountryId = model.CountryId
                 };
 
                 APIResponse<AgencyAccount> response = await _httpService.PostAsync<APIResponse<AgencyAccount>, AgencyAccount>("/vconsumer/agency/v1/create", agency);
@@ -103,9 +111,12 @@ namespace vendtechext.BLL.Services
                 {
                     userAccount = await _authService.UpdateAndReturnUserAsync(new RegisterDto
                     {
-                        Firstname = model.AgencyName,
+                        Firstname = model.FirstName,  
+                        Lastname = model.LastName,                      
                         Email = model.Email,
-                        Lastname = "",
+                        CountryId = model.CountryId,
+                        CityId = model.CityId,
+                        Address = model.Address,
                         Username = model.Email,
                         UserType = UserType.Agency,
                         Phone = model.Phone,
@@ -121,6 +132,11 @@ namespace vendtechext.BLL.Services
                         PosNumber = model.PosNumber,
                         CommissionLevelId = model.CommissionLevelId,
                         PosId = model.PosId,
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        Address = model.Address,
+                        CityId = model.CityId,
+                        CountryId = model.CountryId
                     };
 
                     APIResponse<AgencyAccount> response = await _httpService.PostAsync<APIResponse<AgencyAccount>, AgencyAccount>($"/vconsumer/agency/v1/update", agency);
@@ -165,7 +181,13 @@ namespace vendtechext.BLL.Services
                 Description = result["description"]?.ToString(),
                 PosNumber = result["posNumber"]?.ToString(),
                 imgUrl = userAccount.ProfilePic,
-                CommissionLevelId = result["commissionLevelId"]
+                CommissionLevelId = result["commissionLevelId"],
+                FirstName = userAccount.FirstName,
+                LastName = userAccount.LastName,
+                Address = userAccount.Address,
+                CityId = userAccount.CityId,
+                CountryId = userAccount.CountryId,
+                Status = userAccount.UserAccountStatus
             };
 
             return Response.WithStatus("success")
@@ -193,14 +215,16 @@ namespace vendtechext.BLL.Services
                     Firstname = model.FirstName,
                     Email = model.Email,
                     Lastname = model.LastName,
-                    Password = CREDENTIALS.VENDOR_PASSWORD,
+                    Password = string.IsNullOrEmpty(model.Password) ? CREDENTIALS.VENDOR_PASSWORD : model.Password,
                     Username = model.Email,
                     UserType = UserType.Vendor,
                     Phone = model.Phone,
                     Address = model.Address,
                     CityId = model.CityId,
                     CountryId = model.CountryId,
-                    
+                    MigrationUniqueId = model.MigrationUniqueId,
+                    IsNewPin = model.IsNewPin,
+                    PinCode = model.PinCode,
                 }, imgPath, APP_ROLES.Vendor);
 
 
@@ -219,13 +243,6 @@ namespace vendtechext.BLL.Services
                             PosNumber = model.PosNumber,
                             CommissionLevelId = model.CommissionLevelId,
                             VendorName = model.VendorName,
-                            //firstName = model.FirstName,
-                            //lastName = model.LastName,
-                            //email = model.Email,
-                            //phone = model.Phone,
-                            //countryId = model.CountryId,
-                            //cityId = model.CityId,
-                            //address = model.Address
                         }
                     );
 
@@ -393,6 +410,21 @@ namespace vendtechext.BLL.Services
             if (string.IsNullOrWhiteSpace(model.Phone))
                 throw new BadRequestException("Phone number is required.");
 
+            if (string.IsNullOrWhiteSpace(model.FirstName))
+                throw new BadRequestException("First Name is required.");
+
+            if (string.IsNullOrWhiteSpace(model.LastName))
+                throw new BadRequestException("Last Name is required.");
+
+            if (string.IsNullOrWhiteSpace(model.Address))
+                throw new BadRequestException("Address is required.");
+
+            if (model.CountryId <= 0)
+                throw new BadRequestException("Country is required.");
+
+            if (model.CityId <= 0)
+                throw new BadRequestException("City is required.");
+
             if (model.CommissionLevelId < 0)
                 throw new BadRequestException("Commission Level must be zero or greater.");
 
@@ -419,6 +451,15 @@ namespace vendtechext.BLL.Services
 
             if (string.IsNullOrWhiteSpace(model.Phone))
                 throw new BadRequestException("Phone number is required.");
+
+            if (string.IsNullOrWhiteSpace(model.Address))
+                throw new BadRequestException("Address is required.");
+
+            if (model.CountryId <= 0)
+                throw new BadRequestException("Country is required.");
+
+            if (model.CityId <= 0)
+                throw new BadRequestException("City is required.");
 
             if (model.AgencyId <= 0)
                 throw new BadRequestException("Agency is required.");

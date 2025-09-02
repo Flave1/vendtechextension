@@ -37,6 +37,7 @@ public partial class DataContext : IdentityDbContext<AppUser>
     public virtual DbSet<Country> Countries { get; set; }
     public virtual DbSet<City> Cities { get; set; }
     public virtual DbSet<Bank> Banks { get; set; }
+    
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

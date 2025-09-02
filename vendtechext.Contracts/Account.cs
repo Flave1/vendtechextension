@@ -19,6 +19,9 @@ namespace vendtechext.Contracts
         public int CountryId { get; set; } = 0;
         public int CityId { get; set; } = 0;
         public string Address { get; set; } = "";
+        public string MigrationUniqueId { get; set; } = "";
+        public string PinCode { get; set; } = "";
+        public bool IsNewPin{ get; set; } = false;
     }
     public class ChangePassword
     {
@@ -96,6 +99,10 @@ namespace vendtechext.Contracts
         public string LastName { get; set; }
         public string Phone { get; set; }
         public string AppUserId { get; set; }
+        public string Address { get; set; }
+        public int CountryId { get; set; }
+        public int CityId { get; set; }
+        public string VendorName { get; set; }
         public IFormFile image { get; set; }
     }
 
@@ -104,6 +111,8 @@ namespace vendtechext.Contracts
         public int Id;
         public Guid PosId;
         public string UserId;
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string AgencyName { get; set; }
         public string Description { get; set; }
         public int Status { get; set; }
@@ -113,6 +122,9 @@ namespace vendtechext.Contracts
         public int CommissionLevelId { get; set; }
         public IFormFile image { get; set; }
         public string imgUrl { get; set; }
+        public int CountryId { get; set; }
+        public int CityId { get; set; }
+        public string Address { get; set; }
     }
 
     public class VendorAccount
@@ -135,6 +147,10 @@ namespace vendtechext.Contracts
         public string Address { get; set; }
         public IFormFile image { get; set; }
         public string imgUrl { get; set; }
+        public string MigrationUniqueId { get; set; } = "";
+        public bool IsNewPin { get; set; } = false;
+        public string PinCode { get; set; } = "";
+        public string Password { get; set; } = "";
     }
 
     public class VendorCommand

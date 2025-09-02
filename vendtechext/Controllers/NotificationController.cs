@@ -15,12 +15,12 @@ namespace vendtechext.Controllers
     [Authorize]
     public class NotificationController : ControllerBase
     {
-        private readonly NotificationHelper _service;
+        private readonly NotificationService _service;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _integratorHubContext;
         private readonly IAuthService _authService;
 
-        public NotificationController(NotificationHelper service, IHttpContextAccessor contextAccessor, IHubContext<CustomNotificationHub, ICustomNotificationHub> integratorHubContext, IAuthService authService)
+        public NotificationController(NotificationService service, IHttpContextAccessor contextAccessor, IHubContext<CustomNotificationHub, ICustomNotificationHub> integratorHubContext, IAuthService authService)
         {
             _service = service;
             _contextAccessor = contextAccessor;
@@ -48,6 +48,33 @@ namespace vendtechext.Controllers
         {
             var nots = _service.GetNotification(id);
             return Ok(nots);
+        }
+
+        [HttpPost("create-notification")]
+        public IActionResult CreateNotification([FromBody] NotificationRequest urequest)
+        {
+            var channels = new List<INotificationChannel>
+            {
+                new SmsNotificationChannel(),
+                new EmailNotificationChannel(),
+                new PushNotificationChannel(),
+                new DatabaseNotificationChannel()
+             };
+
+            var service = new NotificationService(channels);
+
+            var request = new NotificationRequest
+            {
+                UserId = "123",
+                Message = "General message for all channels",
+                SmsMessage = "Short SMS text only",
+                SendSms = false,
+                SendEmail = false,
+                SaveToDatabase = true
+            };
+
+            service.SendNotification(request);
+            return Ok();
         }
 
         [HttpPost("success")]

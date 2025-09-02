@@ -18,7 +18,7 @@ namespace vendtechext.BLL.Services
         private readonly WalletRepository _walletRepository;
         private readonly EmailHelper _emailHelper;
         private readonly IAuthService _authService;
-        private readonly NotificationHelper notification;
+        private readonly NotificationService notification;
         private readonly IBackgroundJobClient _backgroundJobClient;
         private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _integratorHubContext;
 
@@ -27,7 +27,7 @@ namespace vendtechext.BLL.Services
             WalletRepository walletRepository,
             EmailHelper emailHelper,
             IAuthService authService,
-            NotificationHelper notification,
+            NotificationService notification,
             IBackgroundJobClient backgroundJobClient,
             IHubContext<CustomNotificationHub, ICustomNotificationHub> integratorHubContext)
         {

@@ -19,5 +19,6 @@ namespace vendtechext.DAL.Models
         public string DeviceToken { get; set; }
         public bool IsPinNew { get; set; } = true;
         public string AppVersion { get; set; }
+        public string MigrationUniqueId { get; set; }
     }
 }

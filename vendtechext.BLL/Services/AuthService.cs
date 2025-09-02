@@ -2,8 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using MimeKit.Encodings;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text;
 using vendtechext.BLL.Exceptions;
@@ -23,7 +25,7 @@ namespace vendtechext.BLL.Services
         private readonly IConfiguration _configuration;
         private readonly DataContext _dataContext;
         private readonly EmailHelper _emailHelper;
-        private readonly NotificationHelper notification;
+        private readonly NotificationService notification;
         private readonly FileHelper _fileHelper;
 
         public AuthService(UserManager<AppUser> userManager,
@@ -32,7 +34,7 @@ namespace vendtechext.BLL.Services
             DataContext dataContext,
             EmailHelper emailHelper,
             FileHelper fileHelper,
-            NotificationHelper notification)
+            NotificationService notification)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -88,6 +90,9 @@ namespace vendtechext.BLL.Services
                 Address = registerDto.Address,
                 CityId = registerDto.CityId,
                 CountryId = registerDto.CountryId,
+                MigrationUniqueId = registerDto.MigrationUniqueId,
+                PinCode = registerDto.PinCode,
+                IsPinNew = registerDto.IsNewPin
             };
 
             IdentityResult result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -111,7 +116,7 @@ namespace vendtechext.BLL.Services
             user.Email = registerDto.Email;
             user.FirstName = registerDto.Firstname;
             user.LastName = registerDto.Lastname;
-            user.UserType = (int)registerDto.UserType;
+            //user.UserType = (int)registerDto.UserType;
             user.PhoneNumber = registerDto.Phone;
             user.ProfilePic = img;
             user.Address = registerDto.Address;
@@ -320,6 +325,10 @@ namespace vendtechext.BLL.Services
                 UserType = UserType.Internal,
                 Phone = model.Phone,
                 image = model.image,
+                Address = model.Address,
+                CountryId = model.CountryId,
+                CityId = model.CityId,
+                VendorName = model.VendorName
             }, model.AppUserId);
 
             return Response.WithStatus("success").WithMessage("Updated Successfully").GenerateResponse();

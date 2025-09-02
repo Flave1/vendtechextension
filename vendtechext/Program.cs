@@ -165,13 +165,14 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RequestExecutionContext>();
 builder.Services.AddScoped<TransactionIdGenerator>();
 builder.Services.AddScoped<TransactionRepository>();
-builder.Services.AddScoped<NotificationHelper>();
+builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<HttpRequestService>();
 builder.Services.AddScoped<TransactionUpdate>();
 builder.Services.AddScoped<WalletRepository>();
 builder.Services.AddScoped<AppConfiguration>();
 builder.Services.AddScoped<EmailHelper>();
 builder.Services.AddScoped<LogService>();
+
 builder.Services.AddScoped<FileHelper>();
 
 

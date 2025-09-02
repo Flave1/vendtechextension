@@ -13,8 +13,8 @@ namespace vendtechext.BLL.Services
         private readonly string _connectionString;
         private readonly IBackgroundJobClient _backgroundJobClient;
         private readonly EmailHelper _emailHelper;
-        private readonly NotificationHelper _notificationHelper;
-        public VendtechReconcillationService(IBackgroundJobClient backgroundJobClient, EmailHelper emailHelper, NotificationHelper notificationHelper)
+        private readonly NotificationService _notificationHelper;
+        public VendtechReconcillationService(IBackgroundJobClient backgroundJobClient, EmailHelper emailHelper, NotificationService notificationHelper)
         {
             _connectionString = "Server=92.205.181.48;Database=VENDTECH_MAIN;User Id=vendtech_main;Password=85236580@Ve;MultipleActiveResultSets=True;TrustServerCertificate=true;";
             _backgroundJobClient = backgroundJobClient;

@@ -20,9 +20,9 @@ namespace vendtechext.BLL.Services
         private readonly WalletRepository _walletRepository;
         private readonly FileHelper _fileHelper;
         private readonly IBackgroundJobClient _backgroundJobClient;
-        private readonly NotificationHelper notification;
+        private readonly NotificationService notification;
         private readonly EmailHelper _emailHelper;
-        public IntegratorService(DataContext dbcxt, IAuthService authService, WalletRepository walletRepository, FileHelper fileHelper, IBackgroundJobClient backgroundJobClient, NotificationHelper notification, EmailHelper emailHelper)
+        public IntegratorService(DataContext dbcxt, IAuthService authService, WalletRepository walletRepository, FileHelper fileHelper, IBackgroundJobClient backgroundJobClient, NotificationService notification, EmailHelper emailHelper)
         {
             this._dbcxt = dbcxt;
             _authService = authService;

@@ -126,8 +126,8 @@ namespace vendtechext.Helper
     public class Emailer
     {
         private readonly EmailHelper helper;
-        public readonly NotificationHelper notificationHelper;
-        public Emailer(EmailHelper helper, NotificationHelper notificationHelper)
+        public readonly NotificationService notificationHelper;
+        public Emailer(EmailHelper helper, NotificationService notificationHelper)
         {
             this.helper = helper;
             this.notificationHelper = notificationHelper;
