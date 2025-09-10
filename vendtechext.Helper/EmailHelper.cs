@@ -13,7 +13,7 @@ namespace vendtechext.Helper
     public class EmailHelper
     {
         public readonly IConfiguration _configuration;
-        public static bool SendNotification = false;
+        public static bool SendNotification = true;
         private readonly string _dir;
         public EmailHelper(IConfiguration configuration)
         {
@@ -132,6 +132,14 @@ namespace vendtechext.Helper
             this.helper = helper;
             this.notificationHelper = notificationHelper;
         }
+
+        private void Log(Exception ex)
+        {
+            using (var db = new DataContext())
+            {
+                new LogService(db).Log(LogType.Error, ex.Message, ex);
+            }
+        }
         public void SendEmailToAdminOnPendingDeposits(string WALLET_ID, string BusinessName, int CommissionId, decimal Amount, Guid DepositId, DateTime CreatedAt, AppUser user)
         {
             try
@@ -154,8 +162,9 @@ namespace vendtechext.Helper
                 //
                 helper.SendEmail(user.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }
@@ -180,8 +189,9 @@ namespace vendtechext.Helper
                 //
                 helper.SendEmail(user.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }
@@ -204,8 +214,9 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[body]", msg);
                 helper.SendEmail(user.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }
@@ -223,8 +234,9 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[password]", CREDENTIALS.INTEGRATOR_PASSWORD);
                 helper.SendEmail(user.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }
@@ -237,8 +249,9 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[reset_link]", callbackUrl);
                 helper.SendEmail(user.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }
@@ -253,8 +266,9 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[body]", body);
                 helper.SendEmail(user.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }
@@ -269,8 +283,9 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[body]", body);
                 helper.SendEmail(user.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }
@@ -292,8 +307,9 @@ namespace vendtechext.Helper
                 helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
                 helper.SendEmail(integrator.AppUser.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }
@@ -315,8 +331,9 @@ namespace vendtechext.Helper
                 helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
                 helper.SendEmail(integrator.AppUser.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }
@@ -327,15 +344,15 @@ namespace vendtechext.Helper
             try
             {
                 string msg = $@"
-        <p>A new API key has been successfully generated for your account. Please review the details below:</p>
-        <p><strong>API Key:</strong> <code>{key}</code></p>
-        <p><strong>Important Information:</strong></p>
-        <ul>
-            <li><strong>Activation Required:</strong> This API key is <strong> not yet active.</strong> Ensure you complete the necessary steps to activate it.</li>
-            <li>If you did not request this key or suspect any unauthorized activity, please contact our support team immediately.</li>
-        </ul>
-        <p>Once you are ready to go live, integrate this key into your system accordingly.</p>
-        ";
+                    <p>A new API key has been successfully generated for your account. Please review the details below:</p>
+                    <p><strong>API Key:</strong> <code>{key}</code></p>
+                    <p><strong>Important Information:</strong></p>
+                    <ul>
+                        <li><strong>Activation Required:</strong> This API key is <strong> not yet active.</strong> Ensure you complete the necessary steps to activate it.</li>
+                        <li>If you did not request this key or suspect any unauthorized activity, please contact our support team immediately.</li>
+                    </ul>
+                    <p>Once you are ready to go live, integrate this key into your system accordingly.</p>
+                    ";
 
                 string subject = "Action Required: Your New API Key Has Been Generated";
                 string emailBody = helper.GetEmailTemplate("simple");
@@ -343,8 +360,9 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[body]", msg);
                 helper.SendEmail(integrator.AppUser.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }
@@ -353,14 +371,14 @@ namespace vendtechext.Helper
             try
             {
                 string msg = $@"
-        <p>Your API key has been successfully associated with your account and is <strong>now ready for use</strong>.</p>
-        <p><strong>API Key:</strong> <code>{key}</code></p>
-        <p><strong>Next Steps:</strong></p>
-        <ul>
-            <li>Ensure your system is correctly configured to use this API key.</li>
-            <li>If you experience any issues or did not authorize this change, contact our support team immediately.</li>
-        </ul>
-        ";
+                <p>Your API key has been successfully associated with your account and is <strong>now ready for use</strong>.</p>
+                <p><strong>API Key:</strong> <code>{key}</code></p>
+                <p><strong>Next Steps:</strong></p>
+                <ul>
+                    <li>Ensure your system is correctly configured to use this API key.</li>
+                    <li>If you experience any issues or did not authorize this change, contact our support team immediately.</li>
+                </ul>
+                ";
 
                 string subject = "Confirmation: Your API Key Has Been Successfully Associated";
                 string emailBody = helper.GetEmailTemplate("simple");
@@ -368,8 +386,9 @@ namespace vendtechext.Helper
                 emailBody = emailBody.Replace("[body]", msg);
                 helper.SendEmail(integrator.AppUser.Email, subject, emailBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log(ex);
                 return;
             }
         }

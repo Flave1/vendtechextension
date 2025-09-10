@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
@@ -29,7 +30,8 @@ namespace vendtechext.BLL.Services.RecurringJobs
                         var notification = new NotificationService(channels);
                         for (int i = 0; i < wallets.Count; i++)
                         {
-                            if (wallets[i].MidnightBalanceAlertSwitch == (int)SwitchEnum.ON)
+                            if (wallets[i].MidnightBalanceAlertSwitch == (int)SwitchEnum.ON 
+                                && wallets[i].Integrator.AppUser.UserAccountStatus == (int)UserAccountStatus.Active)
                                 new Emailer(new EmailHelper(DomainEnvironment.Configuration), notification).SendEmailToIntegratorOnBalanceAlert(wallets[i], wallets[i].Integrator);
                         }
                     }
@@ -56,8 +58,16 @@ namespace vendtechext.BLL.Services.RecurringJobs
                             new EmailNotificationChannel(),
                          };
 
-                        var notification = new NotificationService(channels);
-                        await Task.Run(() => new Emailer(new EmailHelper(DomainEnvironment.Configuration), notification).SendEmailToIntegratorOnBalanceLow(wallet, wallet.Integrator));
+                        if(wallet.Integrator.AppUser.UserAccountStatus == (int)UserAccountStatus.Active)
+                        {
+                            var notification = new NotificationService(channels);
+                            await Task.Run(() => new Emailer(new EmailHelper(DomainEnvironment.Configuration), notification).SendEmailToIntegratorOnBalanceLow(wallet, wallet.Integrator));
+                        }
+                        else
+                        {
+                            string jobId = "BALANCE_LOW_" + wallet.WALLET_ID;
+                            RecurringJob.RemoveIfExists(jobId);
+                        }
                     }
 
                 }

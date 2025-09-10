@@ -535,7 +535,7 @@ namespace vendtechext.BLL.Services
             {
                 if (wallet.MinThreshold >= wallet.Balance)
                 {
-                    string jobId = "balance_low" + wallet.WALLET_ID;
+                    string jobId = "BALANCE_LOW_" + wallet.WALLET_ID;
                     if (!wallet.IsBalanceLowReminderSent)
                     {
                         _walletReo.UpdateBalanceLowReminder(

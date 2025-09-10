@@ -205,14 +205,23 @@ namespace vendtechext.BLL.Services
 
         private async Task<List<RoleInfoDto>> GetUserRoleNamesAsync(AppUser user)
         {
-            return await (from ur in _dataContext.UserRoles
-                          join r in _dataContext.Roles on ur.RoleId equals r.Id
-                          where ur.UserId == user.Id
-                          select new RoleInfoDto
-                          {
-                              Name = r.Name,
-                              Type = ((AppRole)r).Type
-                          }).ToListAsync();
+            try
+            {
+                     return await (from ur in _dataContext.UserRoles
+                              join r in _dataContext.Roles on ur.RoleId equals r.Id
+                              where ur.UserId == user.Id
+                              select new RoleInfoDto
+                              {
+                                  Name = r.Name,
+                                  Type = ((AppRole)r).Type
+                              }).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+           
         }
         public async Task<APIResponse> GetProfileAsync(string userId)
         {
