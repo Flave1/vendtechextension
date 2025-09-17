@@ -87,6 +87,24 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = "vendtech", // Ensure this matches the audience claim in the token
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
     };
+    
+    // Configure JWT for SignalR
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            
+            // If the request is for our hub
+            var path = context.HttpContext.Request.Path;
+            if (path.StartsWithSegments("/notificationHub"))
+            {
+                // Read the token out of the query string
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 // Swagger Configuration
 builder.Services.AddSwaggerGen(c =>
@@ -234,4 +252,6 @@ FirebaseApp.Create(new AppOptions()
     Credential = GoogleCredential.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "fb_private_key.json")),
 });
 app.UseStaticFiles();
+
+ServiceLocator.Services = app.Services;
 app.Run();

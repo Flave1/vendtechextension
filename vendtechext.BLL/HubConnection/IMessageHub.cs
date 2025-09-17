@@ -14,6 +14,7 @@
     public interface ICustomNotificationHub
     {
         Task SuccessNotificationCreated(string message);
+        Task TestMessage(string message);
         Task FailedNotificationCreated(string message);
         Task WarningNotificationCreated(string message);
         Task InfoNotificationCreated(string message);

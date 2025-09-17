@@ -1,12 +1,14 @@
 ﻿using Hangfire;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.HubConnection;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -20,7 +22,7 @@ namespace vendtechext.BLL.Services
         private readonly IAuthService _authService;
         private readonly NotificationService notification;
         private readonly IBackgroundJobClient _backgroundJobClient;
-        private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _integratorHubContext;
+        private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _customHubContext;
 
         public DepositService(
             TransactionRepository transactionRepository,
@@ -29,7 +31,7 @@ namespace vendtechext.BLL.Services
             IAuthService authService,
             NotificationService notification,
             IBackgroundJobClient backgroundJobClient,
-            IHubContext<CustomNotificationHub, ICustomNotificationHub> integratorHubContext)
+            IHubContext<CustomNotificationHub, ICustomNotificationHub> customHubContext)
         {
             _repository = transactionRepository;
             _walletRepository = walletRepository;
@@ -37,7 +39,7 @@ namespace vendtechext.BLL.Services
             _authService = authService;
             this.notification = notification;
             _backgroundJobClient = backgroundJobClient;
-            _integratorHubContext = integratorHubContext;
+            _customHubContext = customHubContext;
         }
 
         public async Task<APIResponse> CreateDeposit(DepositRequest request, Guid integratorid)
@@ -83,15 +85,39 @@ namespace vendtechext.BLL.Services
             return Response.WithStatus("success").WithMessage("Successfully Created Deposit.").WithType(request).GenerateResponse();
         }
 
-        
+        //not tested
         public async Task CreateDepositNotification(Wallet wallet, Deposit deposit)
         {
             IList<AppUser> users = await _authService.FindAdminUser();
+            var msg = GenerateContent.EmailToAdminOnPendingDeposits(wallet.WALLET_ID, wallet.Integrator.BusinessName, deposit.CreatedAt, wallet.CommissionId, deposit.Amount);
             for (int i = 0; i < users.Count; i++)
             {
-                new Emailer(_emailHelper, notification).SendEmailToAdminOnPendingDeposits(wallet.WALLET_ID, wallet.Integrator.BusinessName, wallet.CommissionId, deposit.Amount, deposit.Id, wallet.CreatedAt, users[i]);
+                var noTificationRequest = new NotificationRequest
+                {
+                    UserId = users[i].Id,
+                    TargetId = deposit.Id.ToString(),
+                    CreatedAt = wallet.CreatedAt,
+                    Emailtype = EmailTypeEnum.SendEmailToAdminOnPendingDeposits,
+                    Subject = msg.Item1,
+                    Message = msg.Item2,
+                    Email = users[i].Email,
+                    FirstName = users[i].FirstName,
+                    PushMessage = $"{wallet.Integrator.BusinessName} Has Just Depsited {deposit.Amount}",
+                    NotificationType = NotificationType.IntegratorDepositRequested,
+                    SendEmail = true,
+                    SaveToDatabase = true,
+                    SendPush = true
+                };
 
-                await _integratorHubContext.Clients.Group(users[i].Id).SuccessNotificationCreated($"{wallet.Integrator.BusinessName} Initiated A Deposit");
+                var channels = new List<INotificationChannel>
+                {
+                    new EmailNotificationChannel(),
+                    new DatabaseNotificationChannel(),
+                    new PushNotificationChannel()
+                };
+
+                var notification = new NotificationService(channels);
+                notification.SendNotification(noTificationRequest);
             }
             
         }
@@ -108,7 +134,7 @@ namespace vendtechext.BLL.Services
                     notification.UpdateNotificationReadStatus(notificationId.Value, request.ApprovingUserId);
                 }
 
-                await _integratorHubContext.Clients.Group(deposit.Integrator.AppUserId).InfoNotificationCreated($"{deposit.Amount} Was Not Approved");
+                await _customHubContext.Clients.Group(deposit.Integrator.AppUserId).SuccessNotificationCreated($"Deposit Cancelled by VENDTECH");
                 return Response.WithStatus("success").WithMessage("Successfully Cancelled parentDeposit").WithType(request).GenerateResponse();
             }
 
@@ -125,16 +151,43 @@ namespace vendtechext.BLL.Services
             return Response.WithStatus("success").WithMessage("Successfully approved parentDeposit").WithType(request).GenerateResponse();
         }
 
+        //not Tested
         public async Task ApproveDepositNotification(Deposit deposit, int CommissionId, string currentAdminUserId)
         {
+            
+            AppUser user = await _authService.FindUserByIntegratorId(deposit.IntegratorId);
+            var msg = GenerateContent.EmailToIntegratorOnDepositApproval(deposit.Amount, deposit.Id, CommissionId);
+            var notRequest = new NotificationRequest
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                TargetId = deposit.Id.ToString(),
+                Subject = msg.Item1,
+                Message = msg.Item2,
+                Emailtype = EmailTypeEnum.SendEmailToIntegratorOnDepositApproval,
+                PushMessage = $"Deposit Approved by VENDTECH",
+                NotificationType = NotificationType.DepositApproved,
+                SendEmail = true,
+                SaveToDatabase = true,
+                SendPush = true
+
+            };
+            var channels = new List<INotificationChannel>
+                {
+                    new EmailNotificationChannel(),
+                    new DatabaseNotificationChannel(),
+                    new PushNotificationChannel()
+                };
+
+            var notification = new NotificationService(channels);
+            notification.SendNotification(notRequest);
+
             long? notificationId = notification.GetNotificationId(deposit.Id.ToString());
-            if(notificationId != null && notificationId.Value > 0)
+            if (notificationId != null && notificationId.Value > 0)
             {
                 notification.UpdateNotificationReadStatus(notificationId.Value, currentAdminUserId);
             }
-            AppUser user = await _authService.FindUserByIntegratorId(deposit.IntegratorId);
-            await _integratorHubContext.Clients.Group(user.Id).InfoNotificationCreated($"{deposit.Amount} Has Been Approved And Credited Into Your Wallet");
-            new Emailer(_emailHelper, notification).SendEmailToIntegratorOnDepositApproval(deposit.Amount, deposit.Id, CommissionId, user);
         }
 
         private async Task<Deposit> CreateCommision(Deposit deposit, Guid integratorid, Wallet wallet)

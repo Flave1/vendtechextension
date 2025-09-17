@@ -325,7 +325,7 @@ namespace vendtechext.BLL.Services
 
         public void CreateDepositNotification(UserDetail user, TransactionDetail transaction)
         {
-            new Emailer(_emailHelper, _notificationHelper).SendReconcilationEmail(user, transaction);
+            new Emailer(_emailHelper).SendReconcilationEmail(user, transaction);
         }
     }
 

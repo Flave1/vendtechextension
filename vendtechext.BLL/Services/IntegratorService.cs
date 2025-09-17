@@ -301,7 +301,7 @@ namespace vendtechext.BLL.Services
             if (integrator != null)
             {
                 AppUser user = await _authService.FindUserByIntegratorId(integratorId);
-                new Emailer(_emailHelper, notification).SendEmailToIntegratorOnAccountCreation(integrator, user);
+                new Emailer(_emailHelper).SendEmailToIntegratorOnAccountCreation(integrator, user);
             }
         }
 
@@ -324,7 +324,7 @@ namespace vendtechext.BLL.Services
         }
 
         public void SendNotificationOnGenerateApiKey(Integrator integrator) 
-            => new Emailer(_emailHelper, notification).SendApiKeyGenerationEmail(integrator, integrator.SubApiKey);
+            => new Emailer(_emailHelper).SendApiKeyGenerationEmail(integrator, integrator.SubApiKey);
         async Task<APIResponse> IIntegratorService.AssociateApiKey(ApiKeyMgt model)
         {
             var account = _dbcxt.Integrators.Where(d => d.Id == model.IntegratorId).Include(d => d.AppUser).FirstOrDefault();
@@ -346,6 +346,6 @@ namespace vendtechext.BLL.Services
             return Response.WithStatus("success").WithMessage("Successfully generated API key").WithType(model).GenerateResponse();
         }
         public void SendNotificationOnAssociateApiKey(Integrator integrator)
-            => new Emailer(_emailHelper, notification).SendApiKeyAssociationConfirmationEmail(integrator, integrator.ApiKey);
+            => new Emailer(_emailHelper).SendApiKeyAssociationConfirmationEmail(integrator, integrator.ApiKey);
     }
 }

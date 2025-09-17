@@ -1,10 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.X509;
+﻿using FirebaseAdmin.Messaging;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Data;
-using System.Threading.Channels;
+using vendtechext.BLL.HubConnection;
+using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
+using vendtechext.Helper;
 
 namespace vendtechext.BLL.Services
 {
@@ -27,8 +31,24 @@ namespace vendtechext.BLL.Services
     {
         public void Send(NotificationRequest request)
         {
-            string message = request.EmailMessage ?? request.Message;
-            Console.WriteLine($"Sending Email to {request.UserId}: {message}");
+            request.Message = request.EmailMessage ?? request.Message;
+
+            using (var scope = ServiceLocator.Services!.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var _emailHelper = services.GetRequiredService<EmailHelper>();
+                if (request.Emailtype == EmailTypeEnum.SendSimpleEmail)
+                    new Emailer(_emailHelper).SendSimpleEmail(request);
+                else if (request.Emailtype == EmailTypeEnum.SendEmailToIntegratorOnDepositApproval)
+                    new Emailer(_emailHelper).SendEmailToIntegratorOnDepositApproval(request);
+                else if (request.Emailtype == EmailTypeEnum.SendEmailToIntegratorOnBalanceLow)
+                    new Emailer(_emailHelper).SendEmailToIntegratorOnBalanceLow(request);
+                else if (request.Emailtype == EmailTypeEnum.SendEmailToIntegratorOnBalanceAlert)
+                    new Emailer(_emailHelper).SendEmailToIntegratorOnBalanceAlert(request);
+                else if (request.Emailtype == EmailTypeEnum.SendEmailToAdminOnPendingDeposits)
+                    new Emailer(_emailHelper).SendEmailToAdminOnPendingDeposits(request);
+            }
+           
         }
     }
 
@@ -36,8 +56,14 @@ namespace vendtechext.BLL.Services
     {
         public void Send(NotificationRequest request)
         {
-            string message = request.PushMessage ?? request.Message;
-            Console.WriteLine($"Sending Push Notification to {request.UserId}: {message}");
+            using (var scope = ServiceLocator.Services!.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var _integratorHubContext = services.GetRequiredService<IHubContext<CustomNotificationHub, ICustomNotificationHub>>();
+                var _pushService = services.GetRequiredService<IMobilePushService>();
+
+                _integratorHubContext.Clients.Group(request.UserId).SuccessNotificationCreated(request.PushMessage);
+            }
         }
     }
 
@@ -47,15 +73,15 @@ namespace vendtechext.BLL.Services
         {
             using(var _context = new DataContext())
             {
-                var notification = new Notification
+                var notification = new DAL.Models.Notification
                 {
-                    Title = request.Title,
+                    Title = request.Subject,
                     Description = request.Message,
                     Reciver = request.UserId,
                     Read = "",
-                    CreatedAt = DateTime.UtcNow,
-                    Type = request.Type,
-                    TargetId = request.TargetId
+                    Type = (int)request.NotificationType,
+                    TargetId = request.TargetId,
+                    
                 };
 
                 _context.Notifications.Add(notification);
@@ -86,27 +112,6 @@ namespace vendtechext.BLL.Services
 
             if (request.SaveToDatabase)
                 _channels.OfType<DatabaseNotificationChannel>().First().Send(request);
-        }
-
-        // 1. Saves a notification
-        public void SaveNotification(string title, string description, string receiver, NotificationType type, string target)
-        {
-            using(var _context = new DataContext())
-            {
-                var notification = new Notification
-                {
-                    Title = title,
-                    Description = description,
-                    Reciver = receiver,
-                    Read = "",
-                    CreatedAt = DateTime.UtcNow,
-                    Type = (int)type,
-                    TargetId = target
-                };
-
-                _context.Notifications.Add(notification);
-                _context.SaveChanges();
-            }
         }
 
         // 2. Gets notifications

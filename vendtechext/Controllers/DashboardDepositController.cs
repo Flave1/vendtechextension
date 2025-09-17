@@ -15,14 +15,14 @@ namespace vendtechext.Controllers
         private readonly IDepositService _service;
         private readonly IHttpContextAccessor _contextAccessor;
 
-        private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _integratorHubContext;
+        private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _customHubContext;
         public DashboardDepositController(IDepositService depositService, IHttpContextAccessor contextAccessor
-            , IHubContext<CustomNotificationHub, ICustomNotificationHub> integratorHubContext
+            , IHubContext<CustomNotificationHub, ICustomNotificationHub> customHubContext
             )
         {
             _service = depositService;
             _contextAccessor = contextAccessor;
-            _integratorHubContext = integratorHubContext;
+            _customHubContext = customHubContext;
         }
 
         [HttpPost("create")]
@@ -47,15 +47,22 @@ namespace vendtechext.Controllers
         public async Task<IActionResult> Test([FromBody] DepositRequest request)
         {
 
-            var user_id = _contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "user_id")?.Value ?? "";
-            //await _integratorHubContext.Clients.User(user_id).DepositCreated("Deposit has just been created");
-            //await _integratorHubContext.Clients.All.DepositCreated("Deposit has just been created");
-            await _integratorHubContext.Clients.Group(user_id).SuccessNotificationCreated("Deposit has just been created");
-            //await _integratorHubContext.Clients.Group(user_id).FailedNotificationCreated("Deposit has just been created");
-            //await _integratorHubContext.Clients.Group(user_id).WarningNotificationCreated("Deposit has just been created");
-            //await _integratorHubContext.Clients.Group(user_id).InfoNotificationCreated("Deposit has just been created");
+            var user_id = _contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "nameid")?.Value ?? 
+                          _contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "user_id")?.Value ?? "";
+            
+            Console.WriteLine($"Test Alert: User ID = {user_id}");
+            Console.WriteLine($"Available claims: {string.Join(", ", _contextAccessor?.HttpContext?.User?.Claims?.Select(c => $"{c.Type}={c.Value}") ?? new string[0])}");
 
-            return Ok("Alright");
+            // Test with ALL clients first to verify basic connection
+            await _customHubContext.Clients.All.TestMessage("Broadcast test message");
+
+            // Test with TestMessage to group
+            //await _customHubContext.Clients.Group(user_id).TestMessage("Group test message");
+
+            // Then test with SuccessNotificationCreated
+            await _customHubContext.Clients.Group(user_id).SuccessNotificationCreated("Deposit has just been created");
+
+            return Ok($"Test completed for user: {user_id}");
         }
 
     }

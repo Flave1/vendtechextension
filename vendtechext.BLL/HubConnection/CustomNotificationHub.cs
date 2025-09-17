@@ -7,13 +7,21 @@ namespace vendtechext.BLL.HubConnection
         public override async Task OnConnectedAsync()
         {
             var user = Context.User;
-            var userId = user?.FindFirst("user_id")?.Value;
+            var userId = user?.FindFirst("nameid")?.Value ?? user?.FindFirst("user_id")?.Value;
+
+            Console.WriteLine($"OnConnectedAsync called. Connection ID: {Context.ConnectionId}");
+            Console.WriteLine($"User authenticated: {user?.Identity?.IsAuthenticated}");
+            Console.WriteLine($"Available claims: {string.Join(", ", user?.Claims?.Select(c => $"{c.Type}={c.Value}") ?? new string[0])}");
 
             if (!string.IsNullOrEmpty(userId))
             {
                 // Add this connection to the user's group
                 await Groups.AddToGroupAsync(Context.ConnectionId, userId);
-                Console.WriteLine($"User {userId} connected with connection {Context.ConnectionId}");
+                Console.WriteLine($"✅ User {userId} added to group with connection {Context.ConnectionId}");
+            }
+            else
+            {
+                Console.WriteLine($"❌ No user ID found in claims");
             }
 
             await base.OnConnectedAsync();
@@ -22,7 +30,7 @@ namespace vendtechext.BLL.HubConnection
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var user = Context.User;
-            var userId = user?.FindFirst("user_id")?.Value;
+            var userId = user?.FindFirst("nameid")?.Value ?? user?.FindFirst("user_id")?.Value;
 
             if (!string.IsNullOrEmpty(userId))
             {
@@ -32,6 +40,11 @@ namespace vendtechext.BLL.HubConnection
             }
 
             await base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task JoinUserGroup(string userId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, userId);
         }
 
         public Task SuccessNotificationCreated(string user, string message)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -8,7 +9,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using vendtechext.BLL.Exceptions;
+using vendtechext.BLL.HubConnection;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.DAL.Common;
@@ -27,6 +30,7 @@ namespace vendtechext.BLL.Services
         private readonly EmailHelper _emailHelper;
         private readonly NotificationService notification;
         private readonly FileHelper _fileHelper;
+        private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _customHubContext;
 
         public AuthService(UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
@@ -34,7 +38,8 @@ namespace vendtechext.BLL.Services
             DataContext dataContext,
             EmailHelper emailHelper,
             FileHelper fileHelper,
-            NotificationService notification)
+            NotificationService notification,
+            IHubContext<CustomNotificationHub, ICustomNotificationHub> customHubContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -43,6 +48,7 @@ namespace vendtechext.BLL.Services
             _emailHelper = emailHelper;
             _fileHelper = fileHelper;
             this.notification = notification;
+            _customHubContext = customHubContext;
         }
 
         public async Task<IdentityResult> RegisterAsync(RegisterDto registerDto)
@@ -145,6 +151,7 @@ namespace vendtechext.BLL.Services
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var refreshToken = await GenerateAndStoreRefreshToken(user);
+
             AuthResponse authResponse = new AuthResponse
             {
                 AccessToken = tokenHandler.WriteToken(token),
@@ -302,7 +309,7 @@ namespace vendtechext.BLL.Services
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl =$"{DomainEnvironment.DashboardUrl}/change-password?scale={user.Id}&token={token}";
 
-            new Emailer(_emailHelper, notification).SendEmailForPasswordResetLink(user, callbackUrl);
+            new Emailer(_emailHelper).SendEmailForPasswordResetLink(user, callbackUrl);
 
             return Response.WithStatus("success").WithMessage("A link has been sent to your provided email address").GenerateResponse();
         }
@@ -318,7 +325,7 @@ namespace vendtechext.BLL.Services
                 throw new BadRequestException(result.Errors.FirstOrDefault().Description);
 
             string body = $"Your password has been changed successfully";
-            new Emailer(_emailHelper, notification).SendEmailOnPasswordResetSuccess(user, body);
+            new Emailer(_emailHelper).SendEmailOnPasswordResetSuccess(user, body);
 
             return Response.WithStatus("success").WithMessage("Your password has been changed successfully").GenerateResponse();
         }
@@ -495,7 +502,7 @@ namespace vendtechext.BLL.Services
 
             // Send email with recovery token
             var emailBody = $"Your PIN recovery token is: {recoveryToken}. This token will expire in 10 minutes.";
-            new Emailer(_emailHelper, notification).SendEmailForPinRecovery(user, emailBody);
+            new Emailer(_emailHelper).SendEmailForPinRecovery(user, emailBody);
 
             return Response.WithStatus("success")
                            .WithMessage("Recovery token sent to your email")

@@ -2,10 +2,11 @@
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
-using vendtechext.BLL.Services;
+using Org.BouncyCastle.Asn1.X509;
 using vendtechext.Contracts;
 using vendtechext.Contracts.VtchMainModels;
 using vendtechext.DAL.Common;
+using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Helper
@@ -122,15 +123,68 @@ namespace vendtechext.Helper
         }
     }
 
+    public static class GenerateContent
+    {
+        public static (string, string) EmailToAdminOnPendingDeposits(string WALLET_ID, string BusinessName, DateTime CreatedAt, int CommissionId, decimal Amount)
+        {
+            decimal commission = AppConfiguration.ProcessCommsion(Amount, CommissionId);
+            string msg = $@"
+                <p>This is to inform you that there is a deposit awaiting for your approval</p>
+                <strong>Details:</strong>
+                <p>Wallet ID: {WALLET_ID}</p>
+                <p>Integrator: 
+                {BusinessName}</p>
+                <p>Amount: SLE {Utils.FormatAmount(Amount + commission)}</p>
+                <p>request Date: {Utils.formatDate(CreatedAt)}</p>
+                ";
+            string subject = "PENDING DEPOSIT APPROVAL";
+            return (subject, msg);
+        }
+
+        public static (string, string) EmailToIntegratorOnDepositApproval(decimal Amount, Guid DeposiId, int CommissionId)
+        {
+            decimal commission = AppConfiguration.ProcessCommsion(Amount, CommissionId);
+            string msg = $@"
+                <p>This is to inform you that your deposit of SLE: {Utils.FormatAmount(Amount)} has been approved</p>
+                <strong>Details:</strong>
+                <p>Amount: {Utils.FormatAmount(Amount)}</p>
+                <p>Commission: SLE {Utils.FormatAmount(commission)}</p>
+                <p>Total: {Utils.FormatAmount(Amount + commission)}</p>
+                ";
+            string subject = "PENDING DEPOSIT APPROVED";
+            return (subject, msg);
+        }
+
+        public static (string, string) EmailToIntegratorOnBalanceAlert(Wallet wallet, string emailBody)
+        {
+            string subject = "Integrator Balance";
+            emailBody = emailBody.Replace("[BusinessName]", wallet.Integrator.BusinessName);
+            emailBody = emailBody.Replace("[Date]", Utils.formatDate(DateTime.UtcNow).Split(" ")[0]);
+            emailBody = emailBody.Replace("[Time]", Utils.formatDate(DateTime.UtcNow).Split(" ")[1]);
+            emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(wallet.Balance));
+            emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}/deposit_form");
+            emailBody = emailBody.Replace("[email_setting_link]", $"{DomainEnvironment.DashboardUrl}/edit-profile ");
+            return (subject, emailBody);
+        }
+
+        public static (string, string) EmailToIntegratorOnBalanceLow(Wallet wallet, string emailBody)
+        {
+            string subject = "VENDTECH SUPPORT | WALLET BALANCE LOW NOTIFICATION";
+            emailBody = emailBody.Replace("[BusinessName]", wallet.Integrator.BusinessName);
+            emailBody = emailBody.Replace("[Date]", Utils.formatDate(DateTime.UtcNow).Split(" ")[0]);
+            emailBody = emailBody.Replace("[Time]", Utils.formatDate(DateTime.UtcNow).Split(" ")[1]);
+            emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(wallet.Balance));
+            emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}/deposit_form");
+            return (subject, emailBody);
+        }
+    }
 
     public class Emailer
     {
         private readonly EmailHelper helper;
-        public readonly NotificationService notificationHelper;
-        public Emailer(EmailHelper helper, NotificationService notificationHelper)
+        public Emailer(EmailHelper helper)
         {
             this.helper = helper;
-            this.notificationHelper = notificationHelper;
         }
 
         private void Log(Exception ex)
@@ -140,27 +194,14 @@ namespace vendtechext.Helper
                 new LogService(db).Log(LogType.Error, ex.Message, ex);
             }
         }
-        public void SendEmailToAdminOnPendingDeposits(string WALLET_ID, string BusinessName, int CommissionId, decimal Amount, Guid DepositId, DateTime CreatedAt, AppUser user)
+        public void SendEmailToAdminOnPendingDeposits(NotificationRequest request)
         {
             try
             {
-                decimal commission = AppConfiguration.ProcessCommsion(Amount, CommissionId);
-                string msg = $@"
-                <p>This is to inform you that there is a deposit awaiting for your approval</p>
-                <strong>Details:</strong>
-                <p>Wallet ID: {WALLET_ID}</p>
-                <p>Integrator: {BusinessName}</p>
-                <p>Amount: SLE {Utils.FormatAmount(Amount + commission)}</p>
-                <p>request Date: {Utils.formatDate(CreatedAt)}</p>
-                ";
-                string subject = "PENDING DEPOSIT APPROVAL";
                 string emailBody = helper.GetEmailTemplate("simple");
-                emailBody = emailBody.Replace("[recipient]", user.FirstName);
-                emailBody = emailBody.Replace("[body]", msg);
-
-                notificationHelper.SaveNotification(subject, msg, user.Id, NotificationType.IntegratorDepositRequested, DepositId.ToString());
-                //
-                helper.SendEmail(user.Email, subject, emailBody);
+                emailBody = emailBody.Replace("[recipient]", request.FirstName);
+                emailBody = emailBody.Replace("[body]", request.Message);
+                helper.SendEmail(request.Email, request.Subject, emailBody);
             }
             catch (Exception ex)
             {
@@ -169,25 +210,14 @@ namespace vendtechext.Helper
             }
         }
 
-        public void SendEmailToIntegratorOnDepositApproval(decimal Amount, Guid DeposiId, int CommissionId, AppUser user)
+        public void SendEmailToIntegratorOnDepositApproval(NotificationRequest request)
         {
             try
             {
-                decimal commission = AppConfiguration.ProcessCommsion(Amount, CommissionId);
-                string msg = $@"
-                <p>This is to inform you that your deposit of SLE: {Utils.FormatAmount(Amount)} has been approved</p>
-                <strong>Details:</strong>
-                <p>Amount: {Utils.FormatAmount(Amount)}</p>
-                <p>Commission: SLE {Utils.FormatAmount(commission)}</p>
-                <p>Total: {Utils.FormatAmount(Amount + commission)}</p>
-                ";
-                string subject = "PENDING DEPOSIT APPROVED";
                 string emailBody = helper.GetEmailTemplate("simple");
-                emailBody = emailBody.Replace("[recipient]", user.FirstName);
-                emailBody = emailBody.Replace("[body]", msg);
-                notificationHelper.SaveNotification(subject, msg, user.Id, DAL.Common.NotificationType.DepositApproved, DeposiId.ToString());
-                //
-                helper.SendEmail(user.Email, subject, emailBody);
+                emailBody = emailBody.Replace("[recipient]", request.FirstName);
+                emailBody = emailBody.Replace("[body]", request.Message);
+                helper.SendEmail(request.Email, request.Subject, emailBody);
             }
             catch (Exception ex)
             {
@@ -290,22 +320,12 @@ namespace vendtechext.Helper
             }
         }
 
-        public void SendEmailToIntegratorOnBalanceLow(Wallet wallet, Integrator integrator)
+        public void SendEmailToIntegratorOnBalanceLow(NotificationRequest request)
         {
             try
             {
-                string subject = "VENDTECH SUPPORT | WALLET BALANCE LOW NOTIFICATION";
-                string emailBody = helper.GetEmailTemplate("balance_low");
-
-                emailBody = emailBody.Replace("[BusinessName]", integrator.BusinessName);
-                emailBody = emailBody.Replace("[Date]", Utils.formatDate(DateTime.UtcNow).Split(" ")[0]);
-                emailBody = emailBody.Replace("[Time]", Utils.formatDate(DateTime.UtcNow).Split(" ")[1]);
-                emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(wallet.Balance));
-                emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}/deposit_form");
-                notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
-
-                helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
-                helper.SendEmail(integrator.AppUser.Email, subject, emailBody);
+                helper.SendEmail("favouremmanuel433@gmail.com", request.Subject, request.Message);
+                helper.SendEmail(request.Email, request.Subject, request.Message);
             }
             catch (Exception ex)
             {
@@ -313,23 +333,12 @@ namespace vendtechext.Helper
                 return;
             }
         }
-        public void SendEmailToIntegratorOnBalanceAlert(Wallet wallet, Integrator integrator)
+        public void SendEmailToIntegratorOnBalanceAlert(NotificationRequest request)
         {
             try
             {
-                string subject = "Integrator Balance";
-                string emailBody = helper.GetEmailTemplate("midnight_balance");
-
-                emailBody = emailBody.Replace("[BusinessName]", integrator.BusinessName);
-                emailBody = emailBody.Replace("[Date]", Utils.formatDate(DateTime.UtcNow).Split(" ")[0]);
-                emailBody = emailBody.Replace("[Time]", Utils.formatDate(DateTime.UtcNow).Split(" ")[1]);
-                emailBody = emailBody.Replace("[Balance]", Utils.FormatAmount(wallet.Balance));
-                emailBody = emailBody.Replace("[fund_wallet_link]", $"{DomainEnvironment.DashboardUrl}/deposit_form");
-                emailBody = emailBody.Replace("[email_setting_link]", $"{DomainEnvironment.DashboardUrl}/edit-profile ");
-                notificationHelper.SaveNotification(subject, emailBody, integrator.AppUser.Id, DAL.Common.NotificationType.DepositApproved, integrator.Id.ToString());
-
-                helper.SendEmail("favouremmanuel433@gmail.com", subject, emailBody);
-                helper.SendEmail(integrator.AppUser.Email, subject, emailBody);
+                helper.SendEmail("favouremmanuel433@gmail.com", request.Subject, request.Message);
+                helper.SendEmail(request.Email, request.Subject, request.Message);
             }
             catch (Exception ex)
             {
@@ -393,6 +402,22 @@ namespace vendtechext.Helper
             }
         }
 
+        public void SendSimpleEmail(NotificationRequest request)
+        {
+            try
+            {
+                string subject = request.Subject;
+                string emailBody = helper.GetEmailTemplate("simple");
+                emailBody = emailBody.Replace("[recipient]", request.FirstName);
+                emailBody = emailBody.Replace("[body]", request.EmailMessage);
+                helper.SendEmail(request.Email, subject, emailBody);
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+                return;
+            }
+        }
 
     }
 }

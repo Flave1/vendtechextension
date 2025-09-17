@@ -67,7 +67,9 @@ namespace vendtechext.DAL.Common
         IntegratorDepositRequested = 1,
         VendorDepositRequested = 11,
         DepositApproved = 2,
-        Sales = 2,
+        Sales = 3,
+        MidNightBalanceAlert = 4,
+        BalanceLowAlert = 5,
     }
 
     public enum PaymentStatus
@@ -94,5 +96,21 @@ namespace vendtechext.DAL.Common
         Primary = 0,
         Secondary = 1
 
+    }
+
+    public  enum EmailTypeEnum
+    {
+        SendSimpleEmail = 0,
+        SendEmailToIntegratorOnDepositApproval = 1,
+        SendReconcilationEmail = 2,
+        SendEmailToIntegratorOnAccountCreation = 3,
+        SendEmailForPasswordResetLink = 4,
+        SendEmailOnPasswordResetSuccess = 5,
+        SendEmailForPinRecovery = 6,
+        SendEmailToIntegratorOnBalanceLow = 7,
+        SendEmailToIntegratorOnBalanceAlert = 8,
+        SendApiKeyGenerationEmail = 9,
+        SendApiKeyAssociationConfirmationEmail = 10,
+        SendEmailToAdminOnPendingDeposits = 11,
     }
 }

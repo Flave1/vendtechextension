@@ -1,3 +1,4 @@
+using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -19,13 +20,15 @@ namespace vendtechext.Controllers
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _integratorHubContext;
         private readonly IAuthService _authService;
+        private readonly IBackgroundJobClient _backgroundJobClient;
 
-        public NotificationController(NotificationService service, IHttpContextAccessor contextAccessor, IHubContext<CustomNotificationHub, ICustomNotificationHub> integratorHubContext, IAuthService authService)
+        public NotificationController(NotificationService service, IHttpContextAccessor contextAccessor, IHubContext<CustomNotificationHub, ICustomNotificationHub> integratorHubContext, IAuthService authService, IBackgroundJobClient backgroundJobClient)
         {
             _service = service;
             _contextAccessor = contextAccessor;
             _integratorHubContext = integratorHubContext;
             _authService = authService;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         [HttpPost("update")]
@@ -51,7 +54,7 @@ namespace vendtechext.Controllers
         }
 
         [HttpPost("create-notification")]
-        public IActionResult CreateNotification([FromBody] NotificationRequest urequest)
+        public IActionResult CreateNotification([FromBody] NotificationRequest request)
         {
             var channels = new List<INotificationChannel>
             {
@@ -63,17 +66,8 @@ namespace vendtechext.Controllers
 
             var service = new NotificationService(channels);
 
-            var request = new NotificationRequest
-            {
-                UserId = "123",
-                Message = "General message for all channels",
-                SmsMessage = "Short SMS text only",
-                SendSms = false,
-                SendEmail = false,
-                SaveToDatabase = true
-            };
-
-            service.SendNotification(request);
+            _backgroundJobClient.Enqueue(() => service.SendNotification(request));
+            
             return Ok();
         }
 
