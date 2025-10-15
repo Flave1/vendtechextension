@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace vendtechext.DAL.Common
+namespace vendtechext.SDK
 {
     public enum PlatformTypeEnum
     {
@@ -112,5 +112,13 @@ namespace vendtechext.DAL.Common
         SendApiKeyGenerationEmail = 9,
         SendApiKeyAssociationConfirmationEmail = 10,
         SendEmailToAdminOnPendingDeposits = 11,
+    }
+
+    public enum NotificationEvent
+    {
+        SuccessNotificationCreated = 0,
+        JoinUserGroup = 1,
+        PendingDepositCreated = 2,
+        PendingSalesCreated = 3,
     }
 }

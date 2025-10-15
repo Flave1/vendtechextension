@@ -1,16 +1,15 @@
 ﻿using Hangfire;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
 using vendtechext.BLL.Exceptions;
-using vendtechext.BLL.HubConnection;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
+using vendtechext.SDK;
+using vendtechext.SDK.HubConnection;
+using vendtechext.SDK.Models;
 
 namespace vendtechext.BLL.Services
 {
@@ -96,7 +95,6 @@ namespace vendtechext.BLL.Services
                 {
                     UserId = users[i].Id,
                     TargetId = deposit.Id.ToString(),
-                    CreatedAt = wallet.CreatedAt,
                     Emailtype = EmailTypeEnum.SendEmailToAdminOnPendingDeposits,
                     Subject = msg.Item1,
                     Message = msg.Item2,

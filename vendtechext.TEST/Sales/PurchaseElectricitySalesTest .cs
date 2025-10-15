@@ -5,7 +5,6 @@ using System.Net;
 using System.Text;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
 using Xunit;
 
 namespace vendtechext.TEST.Sales

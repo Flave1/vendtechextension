@@ -4,9 +4,9 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using Newtonsoft.Json;
 using vendtechext.BLL.Exceptions;
-using vendtechext.DAL.Common;
 using vendtechext.Helper;
 using vendtechext.Contracts;
+using vendtechext.SDK;
 namespace vendtechext.BLL.Middleware
 {
     public class GlobalExceptionHandlerMiddleware: BaseService

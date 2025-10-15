@@ -1,5 +1,5 @@
 ﻿using vendtechext.Contracts;
-using vendtechext.DAL.Common;
+using vendtechext.SDK;
 
 namespace vendtechext.BLL.Interfaces
 {

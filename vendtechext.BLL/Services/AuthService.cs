@@ -3,21 +3,17 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using MimeKit.Encodings;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
-using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text;
-using System.Text.RegularExpressions;
 using vendtechext.BLL.Exceptions;
-using vendtechext.BLL.HubConnection;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
+using vendtechext.SDK;
+using vendtechext.SDK.HubConnection;
 
 namespace vendtechext.BLL.Services
 {
@@ -338,7 +334,7 @@ namespace vendtechext.BLL.Services
                 Email = model.Email,
                 Lastname = model.LastName,
                 Username = model.Email,
-                UserType = UserType.Internal,
+                UserType = (int)UserType.Internal,
                 Phone = model.Phone,
                 image = model.image,
                 Address = model.Address,

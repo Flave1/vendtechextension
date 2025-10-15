@@ -1,4 +1,6 @@
-﻿namespace vendtechext.Contracts
+﻿using vendtechext.SDK.Models;
+
+namespace vendtechext.Contracts
 {
 
     public class MessageBody

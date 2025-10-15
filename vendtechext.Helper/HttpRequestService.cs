@@ -1,8 +1,5 @@
-﻿using Microsoft.Extensions.Http;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Text;
-using vendtechext.DAL.Common;
-using System.Net.Http;
 
 namespace vendtechext.Helper
 {
@@ -43,7 +40,7 @@ namespace vendtechext.Helper
                 catch (HttpRequestException ex)
                 {
                     attempt++;
-                    _log.Log(LogType.Error, $"HttpRequestException retries {attempt}", ex);
+                    //_log.Log(LogType.Error, $"HttpRequestException retries {attempt}", ex);
                     
                     if (attempt >= MaxRetryAttempts)
                     {
@@ -53,7 +50,7 @@ namespace vendtechext.Helper
                 }
             }
 
-            _log.Log(LogType.Error, $"SendPostAsync InvalidOperationException retries {attempt}");
+            //_log.Log(LogType.Error, $"SendPostAsync InvalidOperationException retries {attempt}");
             throw new InvalidOperationException("Unexpected error in SendPostAsync.");
         }
     }

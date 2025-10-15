@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
-using vendtechext.BLL.HubConnection;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Services;
 using vendtechext.Contracts;
 using vendtechext.DAL.Models;
+using vendtechext.Helper;
+using vendtechext.SDK.HubConnection;
+using vendtechext.SDK.Models;
 
 namespace vendtechext.Controllers
 {
@@ -53,22 +55,47 @@ namespace vendtechext.Controllers
             return Ok(nots);
         }
 
+        [AllowAnonymous]
         [HttpPost("create-notification")]
-        public IActionResult CreateNotification([FromBody] NotificationRequest request)
+        public async Task<IActionResult> CreateNotification([FromBody] NotificationRequest request)
         {
+            if (request is null) return BadRequest("Request body is required.");
+
+            AppUser? user = null;
+
+            if (request.ToAdmin)
+            {
+                var admins = await _authService.FindAdminUser();
+                user = admins.FirstOrDefault();
+                request.UserId = user?.Id;
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Email) && !string.IsNullOrWhiteSpace(request.UserId))
+            {
+                user ??= await _authService.FindUserById(request.UserId);
+                if (user == null)
+                    return BadRequest($"User '{request.UserId}' not found.");
+
+                request.Email = user.Email;
+                if (string.IsNullOrWhiteSpace(request.FirstName))
+                    request.FirstName = user.FirstName;
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return BadRequest("Could not resolve recipient email.");
+
             var channels = new List<INotificationChannel>
             {
                 new SmsNotificationChannel(),
                 new EmailNotificationChannel(),
                 new PushNotificationChannel(),
                 new DatabaseNotificationChannel()
-             };
+            };
 
             var service = new NotificationService(channels);
+            service.SendNotification(request);
 
-            _backgroundJobClient.Enqueue(() => service.SendNotification(request));
-            
-            return Ok();
+            return Ok(new NotificationResponse(true, "Sent"));
         }
 
         [HttpPost("success")]

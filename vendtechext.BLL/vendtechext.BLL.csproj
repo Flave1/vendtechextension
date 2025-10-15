@@ -21,6 +21,7 @@
     <ProjectReference Include="..\vendtechext.Contracts\vendtechext.Contracts.csproj" />
     <ProjectReference Include="..\vendtechext.DAL\vendtechext.DAL.csproj" />
     <ProjectReference Include="..\vendtechext.Helper\vendtechext.Helper.csproj" />
+    <ProjectReference Include="..\vendtechext.SDK\vendtechext.SDK.csproj" />
   </ItemGroup>
 
 </Project>

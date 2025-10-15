@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace vendtechext.BLL.HubConnection
+namespace vendtechext.SDK.HubConnection
 {
     public class CustomersHub : Hub<IMessageHub>
     {
@@ -13,6 +13,7 @@ namespace vendtechext.BLL.HubConnection
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
             await Clients.Group(groupName).AddToGroup($"{Context.ConnectionId} has joined the group {groupName}.");
+           
         }
 
         public async Task RemoveFromGroup(string groupName)

@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
+using vendtechext.Helper;
 using vendtechext.Helper.Configurations;
+using vendtechext.SDK;
 
-namespace vendtechext.Helper
+namespace vendtechext.BLL
 {
     public class RequestExecutionContext : IDisposable
     {
@@ -51,7 +52,7 @@ namespace vendtechext.Helper
                     {
                         // Dispose managed resources
                         _httpResponse?.Dispose();
-                        
+
                         // Clear sensitive data
                         ClearSensitiveData();
                     }

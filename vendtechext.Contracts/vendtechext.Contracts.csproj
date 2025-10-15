@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\vendtechext.DAL\vendtechext.DAL.csproj" />
+    <ProjectReference Include="..\vendtechext.SDK\vendtechext.SDK.csproj" />
   </ItemGroup>
 
 </Project>

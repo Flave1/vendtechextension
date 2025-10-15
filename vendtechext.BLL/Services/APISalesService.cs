@@ -4,9 +4,9 @@ using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.BLL.Services.RecurringJobs;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
+using vendtechext.SDK;
 
 namespace vendtechext.BLL.Services
 {

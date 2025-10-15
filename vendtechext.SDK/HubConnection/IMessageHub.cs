@@ -1,4 +1,4 @@
-﻿namespace vendtechext.BLL.HubConnection
+﻿namespace vendtechext.SDK.HubConnection
 {
     public interface IMessageHub
     {
@@ -19,5 +19,7 @@
         Task WarningNotificationCreated(string message);
         Task InfoNotificationCreated(string message);
         Task NotifyAdmins(string message);
+        Task PendingDepositCreated(string message);
+        Task PendingSalesCreated(string message);
     }
 }

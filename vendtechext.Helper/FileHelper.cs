@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using vendtechext.DAL.Common;
+using vendtechext.SDK;
 
 namespace vendtechext.Helper
 {
@@ -108,7 +108,7 @@ namespace vendtechext.Helper
                 if (File.Exists(filePath))
                     File.Delete(filePath);
             }
-                
+
         }
 
         protected virtual void Dispose(bool disposing)

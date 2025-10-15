@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
+using vendtechext.SDK;
 
 namespace vendtechext.DAL.Seed
 {
@@ -20,7 +20,7 @@ namespace vendtechext.DAL.Seed
                 var roleExist = await roleManager.RoleExistsAsync(roleName);
                 if (!roleExist)
                 {
-                    await roleManager.CreateAsync(new AppRole(roleName, RoleType.Primary));
+                    await roleManager.CreateAsync(new AppRole(roleName, (int)RoleType.Primary));
                 }
             }
 

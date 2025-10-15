@@ -2,16 +2,17 @@
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.Helper;
+using vendtechext.SDK;
 
 namespace vendtechext.BLL.Services
 {
     public class MobilePushService : IMobilePushService
     {
-        private readonly LogService log;
+        private readonly LogService _log;
 
         public MobilePushService(LogService log)
         {
-            this.log = log;
+            _log = log;
         }
 
         public async Task Push(MessageRequest request)
@@ -89,7 +90,7 @@ namespace vendtechext.BLL.Services
                         var result = await messaging.SendAsync(message);
                         if (!string.IsNullOrEmpty(result))
                         {
-                            log.Log(DAL.Common.LogType.Infor, $"push_notification_{requests[i].Id}", result);
+                            _log.Log(LogType.Infor, $"push_notification_{requests[i].Id}", result);
                             Console.WriteLine("message sent successfully!");
                         }
                         else
@@ -100,7 +101,7 @@ namespace vendtechext.BLL.Services
                     catch (FirebaseMessagingException ex)
                     {
                         Console.WriteLine($"Error sending message: {ex.Message}");
-                        log.Log(DAL.Common.LogType.Error, ex.Message, ex);
+                        _log.Log(LogType.Error, ex.Message, ex);
                         Console.WriteLine($"Reason: {ex.ErrorCode}");
                     }
                 }

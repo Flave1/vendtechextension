@@ -1,7 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using vendtechext.DAL.Common;
 using vendtechext.Helper;
 
 namespace vendtechext.BLL.Common

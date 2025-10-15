@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
 using vendtechext.Contracts;
 using vendtechext.Helper.Configurations;
+using vendtechext.SDK;
 
-namespace vendtechext.Helper
+namespace vendtechext.BLL
 {
     public class RTSProperties
     {
@@ -66,24 +67,24 @@ namespace vendtechext.Helper
             _transactionId = transactionId;
             return new
             {
-                Auth = new 
+                Auth = new
                 {
-                    Password = rts.Password,
-                    UserName = rts.UserName
+                    rts.Password,
+                    rts.UserName
                 },
                 Request = "ProcessPrePaidVendingV1",
                 Parameters = new object[]
                                      {
                         new
                         {
-                             Password = rts.Password,
-                             UserName = rts.UserName,
+                             rts.Password,
+                             rts.UserName,
                              System = "SL"
                         }, "apiV1_GetTransactionStatus", _transactionId
                        },
             };
         }
-        
+
         public void DestructureInitialResponse(string resultAsString)
         {
             ReceivedFrom = "rts_init";
@@ -128,12 +129,12 @@ namespace vendtechext.Helper
             {
                 return API_MESSAGE_CONSTANTS.VENDING_DISABLE;
             }
-            if(message == "Insufficient Funds")
+            if (message == "Insufficient Funds")
             {
                 return API_MESSAGE_CONSTANTS.VENDING_DISABLE;
             }
 
-            if (DomainEnvironment.IsSandbox)
+            if (DomainEnvironment.IsExtSandbox)
             {
                 if (message == "Error Occurred! Unable to process request")
                     return API_MESSAGE_CONSTANTS.BAD_REQUEST;

@@ -1,13 +1,13 @@
 ﻿using Newtonsoft.Json;
-using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
+using vendtechext.SDK;
 
 namespace vendtechext.Helper
 {
     public class LogService
     {
         public readonly DataContext _dataContext;
-        
+
         public LogService(DataContext dataContext)
         {
             _dataContext = dataContext;

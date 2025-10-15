@@ -3,8 +3,8 @@ using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Middlewares;
 using vendtechext.Contracts;
 using vendtechext.Controllers.Base;
-using vendtechext.DAL.Common;
 using vendtechext.Helper;
+using vendtechext.SDK;
 
 namespace vendtechext.Controllers
 {
@@ -29,7 +29,7 @@ namespace vendtechext.Controllers
             var integratorName = HttpContext.Items["IntegratorName"] as string;
             APIResponse reponse = new APIResponse();
 
-            if (DomainEnvironment.IsProduction)
+            if (DomainEnvironment.IsExtProduction)
                 reponse = await service.PurchaseElectricity(request, integratorId, integratorName);
             else
                 reponse = await service.PurchaseElectricityForSandbox(request, integratorId, integratorName);
@@ -44,7 +44,7 @@ namespace vendtechext.Controllers
             var integratorName = HttpContext.Items["IntegratorName"] as string;
             APIResponse reponse = new APIResponse();
 
-            if (DomainEnvironment.IsProduction)
+            if (DomainEnvironment.IsExtProduction)
                 reponse = await service.QuerySalesStatus(request, integratorId, integratorName);
             else
                 reponse = await service.QuerySalesStatusForSandbox(request, integratorId, integratorName);

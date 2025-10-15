@@ -9,6 +9,7 @@ using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.Helper;
+using vendtechext.SDK;
 
 namespace vendtechext.BLL.Middlewares
 {

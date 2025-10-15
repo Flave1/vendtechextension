@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 
 namespace vendtechext.Contracts
@@ -12,7 +11,7 @@ namespace vendtechext.Contracts
         public string Phone { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public UserType UserType { get; set; }
+        public int UserType { get; set; }
         public int CommissionLevel { get; set; }
         public IFormFile image { get; set; }
         public string VendorName { get; set; }

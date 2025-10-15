@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
 using vendtechext.DAL.Models;
 
@@ -26,7 +25,7 @@ namespace vendtechext.BLL.Repository
         {
             var wallet = new WalletBuilder()
                 .SetWalletId(UniqueIDGenerator.GenerateAccountNumber("000"))
-                .SetMidnightBalanceAlertSwitch((int)SwitchEnum.ON)
+                .SetMidnightBalanceAlertSwitch((int)SDK.SwitchEnum.ON)
                 .WithMinThreshold(minThreshold)
                 .SetCommission(CommissionLevel)
                 .SetIntegratorId(integratorId)
@@ -101,7 +100,7 @@ namespace vendtechext.BLL.Repository
         public async Task<decimal> GetAdminBalance()
         {
             Transaction lastTransaction = await _context.Transactions
-                .Where(d => d.Deleted == false && d.TransactionStatus == (int)TransactionStatus.Success)
+                .Where(d => d.Deleted == false && d.TransactionStatus == (int)SDK.TransactionStatus.Success)
                 .OrderByDescending(d => d.CreatedAt).FirstOrDefaultAsync();
             if(lastTransaction != null)
             {
@@ -162,8 +161,8 @@ namespace vendtechext.BLL.Repository
             var todaysDate = DateTime.UtcNow.Date;
 
             var res = new TodaysTransaction();
-            res.Deposits = _context.Deposits.Where(d => d.Deleted == false && d.IntegratorId == integratorId && d.CreatedAt.Date == todaysDate && d.Status == (int)DepositStatus.Approved).Sum(g => g.Amount);
-            res.Sales = _context.Transactions.Where(d => d.Deleted == false && d.IntegratorId == integratorId && d.TransactionStatus == (int)TransactionStatus.Success && d.CreatedAt.Date == todaysDate).Sum(g => g.Amount);
+            res.Deposits = _context.Deposits.Where(d => d.Deleted == false && d.IntegratorId == integratorId && d.CreatedAt.Date == todaysDate && d.Status == (int)SDK.DepositStatus.Approved).Sum(g => g.Amount);
+            res.Sales = _context.Transactions.Where(d => d.Deleted == false && d.IntegratorId == integratorId && d.TransactionStatus == (int)SDK.TransactionStatus.Success && d.CreatedAt.Date == todaysDate).Sum(g => g.Amount);
 
             return res;
         }
@@ -173,8 +172,8 @@ namespace vendtechext.BLL.Repository
             var todaysDate = DateTime.UtcNow.Date;
 
             var res = new TodaysTransaction();
-            res.Deposits = _context.Deposits.Where(d => d.Deleted == false && d.CreatedAt.Date == todaysDate && d.Status == (int)DepositStatus.Approved).Sum(g => g.Amount);
-            res.Sales = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == (int)TransactionStatus.Success && d.CreatedAt.Date == todaysDate).Sum(g => g.Amount);
+            res.Deposits = _context.Deposits.Where(d => d.Deleted == false && d.CreatedAt.Date == todaysDate && d.Status == (int)SDK.DepositStatus.Approved).Sum(g => g.Amount);
+            res.Sales = _context.Transactions.Where(d => d.Deleted == false && d.TransactionStatus == (int)SDK.TransactionStatus.Success && d.CreatedAt.Date == todaysDate).Sum(g => g.Amount);
 
             return res;
         }

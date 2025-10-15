@@ -2,7 +2,7 @@
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
 using vendtechext.Controllers.Base;
-using vendtechext.DAL.Common;
+using vendtechext.SDK;
 
 namespace vendtechext.Controllers
 {

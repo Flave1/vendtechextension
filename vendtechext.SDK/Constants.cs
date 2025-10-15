@@ -1,4 +1,4 @@
-﻿namespace vendtechext.Helper
+﻿namespace vendtechext.SDK
 {
     public static class API_MESSAGE_CONSTANTS
     {

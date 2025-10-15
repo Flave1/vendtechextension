@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
 
@@ -143,7 +142,7 @@ namespace vendtechext.BLL.Services
             if (roleExists)
                 throw new BadRequestException("Role already exists.");
 
-            var result = await _roleManager.CreateAsync(new AppRole(roleName, RoleType.Secondary));
+            var result = await _roleManager.CreateAsync(new AppRole(roleName, (int)SDK.RoleType.Secondary));
             if (!result.Succeeded)
                 throw new BadRequestException(result.Errors.FirstOrDefault()?.Description);
 
@@ -177,7 +176,7 @@ namespace vendtechext.BLL.Services
             if (role == null)
                 throw new BadRequestException("Role not found.");
 
-            if(role.Type == (int)RoleType.Primary)
+            if(role.Type == (int)SDK.RoleType.Primary)
                 throw new BadRequestException("Primary Roles can not be deleted.");
 
             var existingRolePermissions = await _context.RolePermissions

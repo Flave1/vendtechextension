@@ -1,9 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using vendtechext.Contracts.VtchMainModels;
-using vendtechext.DAL.Common;
-using vendtechext.DAL.Models;
 
-namespace vendtechext.Contracts
+namespace vendtechext.SDK.Models
 {
     public class NotificationDto
     {
@@ -31,26 +28,39 @@ namespace vendtechext.Contracts
         public string TargetId { get; set; } = string.Empty;
 
         // Optional channel-specific overrides
-        public string? SmsMessage { get; set; }
-        public string? EmailMessage { get; set; }
-        public string? PushMessage { get; set; }
+        public string SmsMessage { get; set; }
+        public string EmailMessage { get; set; }
+        public string PushMessage { get; set; }
 
         // Flags to choose channels
         public bool SendEmail { get; set; }
         public bool SendSms { get; set; }
         public bool SendPush { get; set; }
-        public bool SaveToDatabase { get; set; }       
+        public bool SaveToDatabase { get; set; }
+        public bool ToAdmin { get; set; } = false;
         public EmailTypeEnum Emailtype { get; set; } = 0;
         public NotificationType NotificationType { get; set; }
+        public NotificationEvent NotificationEvent { get; set; } = 0;
 
-        // Additional properties for different email types
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        
+
         // Navigation properties (these would need to be set from the calling code)
-
-
-        public string FirstName { get; set; } 
+        public string FirstName { get; set; }
         public string DeviceToken { get; set; }
         public string Email { get; set; }
+        public string PhoneNo { get; set; }
+    }
+    public record NotificationResponse(bool Success, string Message);
+
+    public class SMSRequest
+    {
+        public SMSRequest()
+        {
+            Authorization = "dnRlY2g6cFhQcnkkR3BuXzVVdndfIQ==";
+            Sender = "VENDTECH";
+        }
+        public string Authorization { get; set; }
+        public string Sender { get; set; }
+        public string Recipient { get; set; }
+        public string Payload { get; set; }
     }
 }

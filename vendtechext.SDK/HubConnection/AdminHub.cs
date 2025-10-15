@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace vendtechext.BLL.HubConnection
+namespace vendtechext.SDK.HubConnection
 {
     public class AdminHub : Hub<IMessageHub>
     {

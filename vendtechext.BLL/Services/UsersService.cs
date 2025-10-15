@@ -1,17 +1,13 @@
 ﻿using Azure;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using System.Net.Http;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
-using System.Text.Json;
-using static Google.Apis.Requests.BatchRequest;
+using vendtechext.SDK;
 
 namespace vendtechext.BLL.Services
 {
@@ -55,7 +51,7 @@ namespace vendtechext.BLL.Services
                         Lastname = model.LastName,
                         Password = CREDENTIALS.AGENCY_PASSWORD,
                         Username = model.Email,
-                        UserType = UserType.Agency,
+                        UserType = (int)UserType.Agency,
                         Phone = model.Phone,
                         CountryId = model.CountryId,
                         CityId = model.CityId,
@@ -118,7 +114,7 @@ namespace vendtechext.BLL.Services
                         CityId = model.CityId,
                         Address = model.Address,
                         Username = model.Email,
-                        UserType = UserType.Agency,
+                        UserType = (int)UserType.Agency,
                         Phone = model.Phone,
                         image = model.image
                     }, userid);
@@ -217,7 +213,7 @@ namespace vendtechext.BLL.Services
                     Lastname = model.LastName,
                     Password = string.IsNullOrEmpty(model.Password) ? CREDENTIALS.VENDOR_PASSWORD : model.Password,
                     Username = model.Email,
-                    UserType = UserType.Vendor,
+                    UserType = (int)UserType.Vendor,
                     Phone = model.Phone,
                     Address = model.Address,
                     CityId = model.CityId,
@@ -299,7 +295,7 @@ namespace vendtechext.BLL.Services
                         Email = model.Email,
                         Lastname = model.LastName,
                         Username = model.Email,
-                        UserType = UserType.Vendor,
+                        UserType = (int)UserType.Vendor,
                         Phone = model.Phone,
                         VendorName = model.VendorName,
                         CountryId = model.CountryId,

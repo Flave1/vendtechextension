@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using vendtechext.BLL.HubConnection;
 using vendtechext.BLL.Interfaces;
 using vendtechext.Contracts;
+using vendtechext.Helper;
+using vendtechext.SDK;
+using vendtechext.SDK.HubConnection;
 
 namespace vendtechext.Controllers
 {
@@ -14,15 +16,17 @@ namespace vendtechext.Controllers
     {
         private readonly IDepositService _service;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly LogService _logService;
 
         private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _customHubContext;
         public DashboardDepositController(IDepositService depositService, IHttpContextAccessor contextAccessor
             , IHubContext<CustomNotificationHub, ICustomNotificationHub> customHubContext
-            )
+, LogService logService)
         {
             _service = depositService;
             _contextAccessor = contextAccessor;
             _customHubContext = customHubContext;
+            _logService = logService;
         }
 
         [HttpPost("create")]
@@ -50,19 +54,16 @@ namespace vendtechext.Controllers
             var user_id = _contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "nameid")?.Value ?? 
                           _contextAccessor?.HttpContext?.User?.FindFirst(r => r.Type == "user_id")?.Value ?? "";
             
-            Console.WriteLine($"Test Alert: User ID = {user_id}");
-            Console.WriteLine($"Available claims: {string.Join(", ", _contextAccessor?.HttpContext?.User?.Claims?.Select(c => $"{c.Type}={c.Value}") ?? new string[0])}");
-
+        
             // Test with ALL clients first to verify basic connection
-            await _customHubContext.Clients.All.TestMessage("Broadcast test message");
-
-            // Test with TestMessage to group
-            //await _customHubContext.Clients.Group(user_id).TestMessage("Group test message");
 
             // Then test with SuccessNotificationCreated
-            await _customHubContext.Clients.Group(user_id).SuccessNotificationCreated("Deposit has just been created");
-
-            return Ok($"Test completed for user: {user_id}");
+            await _customHubContext.Clients.Group(user_id).SuccessNotificationCreated("Private Notification Received");
+            await _customHubContext.Clients.Group(user_id).PendingDepositCreated("Pending Deposit Notification Received");
+            await _customHubContext.Clients.Group(user_id).PendingSalesCreated("Pending Sales Notification Received");
+            await _customHubContext.Clients.All.TestMessage("Broadcast Notification Received");
+            _logService.Log(LogType.Infor, "SuccessNotificationCreated testing :_" + user_id);
+            return Ok(new {message="Tested Service", status=200});
         }
 
     }

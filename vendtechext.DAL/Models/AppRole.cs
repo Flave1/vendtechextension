@@ -1,15 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using vendtechext.DAL.Common;
 
 namespace vendtechext.DAL.Models
 {
     public class AppRole : IdentityRole
     {
-        public AppRole(string name, RoleType type)
+        public AppRole(string name, int type)
         {
             Name = name;
             NormalizedName = name.ToUpper();
-            Type = (int)type;
+            Type = type;
         }
 
         public int Type { get; set; }

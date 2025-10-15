@@ -5,10 +5,10 @@ using Microsoft.Extensions.Configuration;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
+using vendtechext.SDK;
 
 namespace vendtechext.BLL.Repository
 {
@@ -201,7 +201,7 @@ namespace vendtechext.BLL.Repository
             if (settings.DisableElectricitySales)
                 throw new SystemDisabledException("Electricity vending is currently disabled.");
 
-            if (!string.IsNullOrEmpty(request.Simulate) && DomainEnvironment.IsProduction)
+            if (!string.IsNullOrEmpty(request.Simulate) && DomainEnvironment.IsExtProduction)
                 request.Simulate = "";
         }
 

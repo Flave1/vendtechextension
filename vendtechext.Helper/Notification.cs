@@ -1,18 +1,25 @@
-﻿using FirebaseAdmin.Messaging;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System.Data;
-using vendtechext.BLL.HubConnection;
-using vendtechext.BLL.Interfaces;
-using vendtechext.Contracts;
-using vendtechext.DAL.Common;
+using System.Net.Http.Headers;
+using System.Net;
+using System.Text;
+using vendtechext.SDK.HubConnection;
+using vendtechext.SDK.Models;
 using vendtechext.DAL.Models;
-using vendtechext.Helper;
+using vendtechext.SDK;
+using vendtechext.Contracts;
 
-namespace vendtechext.BLL.Services
+namespace vendtechext.Helper
 {
-
+    public interface INotificationService
+    {
+        Task<NotificationDto> GetNotificationAsync(long id);
+        List<NotificationDto> GetNotificationsAsync(string receiver);
+        Task SaveNotificationAsync(string title, string description, string receiver, NotificationType type);
+        Task UpdateNotificationReadStatusAsync(long id, string userId);
+    }
     public interface INotificationChannel
     {
         void Send(NotificationRequest request);
@@ -23,7 +30,28 @@ namespace vendtechext.BLL.Services
         public void Send(NotificationRequest request)
         {
             string message = request.SmsMessage ?? request.Message;
-            Console.WriteLine($"Sending SMS to {request.UserId}: {message}");
+
+            var requestmsg = new SMSRequest
+            {
+                Recipient = $"232{request.PhoneNo}",
+                Payload = message
+            };
+
+            var json = JsonConvert.SerializeObject(requestmsg);
+
+            using (var client = new HttpClient())
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                client.BaseAddress = new Uri(DomainEnvironment.KwikTalkUrl);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/v2/submit");
+                httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var res = client.SendAsync(httpRequest).Result;
+                var stringResult = res.Content.ReadAsStringAsync().Result;
+            }
+
+
         }
     }
 
@@ -48,7 +76,7 @@ namespace vendtechext.BLL.Services
                 else if (request.Emailtype == EmailTypeEnum.SendEmailToAdminOnPendingDeposits)
                     new Emailer(_emailHelper).SendEmailToAdminOnPendingDeposits(request);
             }
-           
+
         }
     }
 
@@ -60,9 +88,21 @@ namespace vendtechext.BLL.Services
             {
                 var services = scope.ServiceProvider;
                 var _integratorHubContext = services.GetRequiredService<IHubContext<CustomNotificationHub, ICustomNotificationHub>>();
-                var _pushService = services.GetRequiredService<IMobilePushService>();
-
-                _integratorHubContext.Clients.Group(request.UserId).SuccessNotificationCreated(request.PushMessage);
+                //var _pushService = services.GetRequiredService<IMobilePushService>();
+                switch (request.NotificationEvent)
+                {   
+                    case NotificationEvent.SuccessNotificationCreated:
+                        _integratorHubContext.Clients.Group(request.UserId).SuccessNotificationCreated(request?.PushMessage ?? "");
+                        break;
+                    case NotificationEvent.PendingDepositCreated:
+                        _integratorHubContext.Clients.Group(request.UserId).PendingDepositCreated(request?.PushMessage ?? "");
+                        break;
+                    case NotificationEvent.PendingSalesCreated:
+                        _integratorHubContext.Clients.Group(request.UserId).PendingSalesCreated(request?.PushMessage ?? "");
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -71,9 +111,9 @@ namespace vendtechext.BLL.Services
     {
         public void Send(NotificationRequest request)
         {
-            using(var _context = new DataContext())
+            using (var _context = new DataContext())
             {
-                var notification = new DAL.Models.Notification
+                var notification = new Notification
                 {
                     Title = request.Subject,
                     Description = request.Message,
@@ -81,12 +121,12 @@ namespace vendtechext.BLL.Services
                     Read = "",
                     Type = (int)request.NotificationType,
                     TargetId = request.TargetId,
-                    
+
                 };
 
                 _context.Notifications.Add(notification);
                 _context.SaveChanges();
-            }            
+            }
         }
     }
 
@@ -117,7 +157,7 @@ namespace vendtechext.BLL.Services
         // 2. Gets notifications
         public NotificationDto GetNotification(long id)
         {
-           using(var _context = new DataContext())
+            using (var _context = new DataContext())
             {
                 var notifications = _context.Notifications
                .Where(n => n.Id == id)
@@ -139,7 +179,7 @@ namespace vendtechext.BLL.Services
 
         public List<NotificationDto> GetNotifications(string receiver)
         {
-            using(var _context = new DataContext())
+            using (var _context = new DataContext())
             {
                 var notifications = _context.Notifications
                 .Where(n => n.Reciver == receiver && n.Deleted == false)
@@ -162,7 +202,7 @@ namespace vendtechext.BLL.Services
 
         public long? GetNotificationId(string targetId)
         {
-            using(var _context = new DataContext())
+            using (var _context = new DataContext())
             {
                 var id = _context.Notifications.Where(n => n.TargetId == targetId).FirstOrDefault()?.Id ?? null;
                 return id;
@@ -172,7 +212,7 @@ namespace vendtechext.BLL.Services
         // 3. Updates notification read status
         public void UpdateNotificationReadStatus(long id, string userId)
         {
-           using(var _context = new DataContext())
+            using (var _context = new DataContext())
             {
                 var notification = _context.Notifications.Find(id);
                 //notification.Deleted = false;

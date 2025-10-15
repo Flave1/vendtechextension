@@ -1,15 +1,14 @@
 ﻿using Hangfire;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Exceptions;
 using vendtechext.BLL.Interfaces;
 using vendtechext.BLL.Repository;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
 using vendtechext.DAL.DomainBuilders;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
+using vendtechext.SDK;
 
 namespace vendtechext.BLL.Services
 {
@@ -79,7 +78,7 @@ namespace vendtechext.BLL.Services
                         Lastname = model.LastName,
                         Password = CREDENTIALS.INTEGRATOR_PASSWORD,
                         Username = model.Email,
-                        UserType = UserType.Integrator,
+                        UserType = (int)UserType.Integrator,
                         Phone = model.Phone,
                     }, imgPath, APP_ROLES.Integrator);
 
@@ -164,7 +163,7 @@ namespace vendtechext.BLL.Services
                         Email = model.Email,
                         Lastname = model.LastName,
                         Username = model.Email,
-                        UserType = UserType.Integrator,
+                        UserType = (int)UserType.Integrator,
                         Phone = model.Phone,
                     }, model.AppUserId);
 

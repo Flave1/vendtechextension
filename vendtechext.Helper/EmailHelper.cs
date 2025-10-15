@@ -2,19 +2,18 @@
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
-using Org.BouncyCastle.Asn1.X509;
 using vendtechext.Contracts;
 using vendtechext.Contracts.VtchMainModels;
-using vendtechext.DAL.Common;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
+using vendtechext.SDK;
+using vendtechext.SDK.Models;
 
 namespace vendtechext.Helper
 {
     public class EmailHelper
     {
         public readonly IConfiguration _configuration;
-        public static bool SendNotification = true;
+        public static bool SendNotification = false;
         private readonly string _dir;
         public EmailHelper(IConfiguration configuration)
         {
@@ -69,7 +68,7 @@ namespace vendtechext.Helper
             }
             catch (Exception ex)
             {
-                using (var db= new DataContext())
+                using (var db = new DataContext())
                 {
                     new LogService(db).Log(LogType.Error, ex.Message, ex);
                 }

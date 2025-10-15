@@ -18,8 +18,10 @@ using Google.Apis.Auth.OAuth2;
 using vendtechext.BLL.Common;
 using vendtechext.BLL.Services.RecurringJobs;
 using vendtechext.DAL.Seed;
-using vendtechext.BLL.HubConnection;
 using Microsoft.AspNetCore.SignalR;
+using vendtechext.SDK;
+using vendtechext.BLL;
+using vendtechext.SDK.HubConnection;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,5 +1,5 @@
-﻿using vendtechext.DAL.Common;
-using vendtechext.DAL.Models;
+﻿using vendtechext.DAL.Models;
+using vendtechext.SDK;
 
 namespace vendtechext.Contracts
 {
@@ -66,7 +66,7 @@ namespace vendtechext.Contracts
             IntegratorName = x?.Integrator?.BusinessName?? "";
             IntegratorId = x.IntegratorId;
             WalletId = x?.Integrator?.Wallet?.WALLET_ID ?? "";
-            if (x.PaymentStatus != (int)PaymentStatus.Deducted && x.TransactionStatus == (int)DAL.Common.TransactionStatus.Success)
+            if (x.PaymentStatus != (int)PaymentStatus.Deducted && x.TransactionStatus == (int)SDK.TransactionStatus.Success)
                 TransactionStatus = 101;
         }
         public TransactionDto()

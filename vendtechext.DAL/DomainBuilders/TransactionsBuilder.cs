@@ -1,5 +1,5 @@
-﻿using vendtechext.DAL.Common;
-using vendtechext.DAL.Models;
+﻿using vendtechext.DAL.Models;
+using vendtechext.SDK;
 
 namespace vendtechext.DAL.DomainBuilders
 {

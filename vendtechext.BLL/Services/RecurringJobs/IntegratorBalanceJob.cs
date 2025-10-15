@@ -1,10 +1,10 @@
 ﻿using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using vendtechext.Contracts;
-using vendtechext.DAL.Common;
-using vendtechext.DAL.Migrations;
 using vendtechext.DAL.Models;
 using vendtechext.Helper;
+using vendtechext.SDK;
+using vendtechext.SDK.Models;
 
 namespace vendtechext.BLL.Services.RecurringJobs
 {
@@ -13,7 +13,7 @@ namespace vendtechext.BLL.Services.RecurringJobs
         //not tested
         public async Task RunMidnight()
         {
-            if (DomainEnvironment.IsProduction)
+            if (DomainEnvironment.IsExtProduction)
             {
                 using (DataContext db = new DataContext())
                 {
@@ -65,7 +65,7 @@ namespace vendtechext.BLL.Services.RecurringJobs
         //not tested
         public async Task SendLowBalanceAlert(Guid id)
         {
-            if (DomainEnvironment.IsProduction)
+            if (DomainEnvironment.IsExtProduction)
             {
                 using (DataContext db = new DataContext())
                 {

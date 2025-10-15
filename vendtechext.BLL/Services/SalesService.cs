@@ -6,7 +6,7 @@ using vendtechext.Helper;
 using vendtechext.DAL.Models;
 using vendtechext.BLL.Exceptions;
 using Newtonsoft.Json;
-using vendtechext.DAL.Common;
+using vendtechext.SDK;
 
 namespace vendtechext.BLL.Services
 {
