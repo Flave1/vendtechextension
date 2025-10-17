@@ -13,13 +13,7 @@ using vendtechext.Contracts;
 
 namespace vendtechext.Helper
 {
-    public interface INotificationService
-    {
-        Task<NotificationDto> GetNotificationAsync(long id);
-        List<NotificationDto> GetNotificationsAsync(string receiver);
-        Task SaveNotificationAsync(string title, string description, string receiver, NotificationType type);
-        Task UpdateNotificationReadStatusAsync(long id, string userId);
-    }
+   
     public interface INotificationChannel
     {
         void Send(NotificationRequest request);
@@ -207,6 +201,16 @@ namespace vendtechext.Helper
                 var id = _context.Notifications.Where(n => n.TargetId == targetId).FirstOrDefault()?.Id ?? null;
                 return id;
             }
+        }
+
+        public long GetNotificationCount(string userId)
+        {
+            int count = 0;
+            using (var _context = new DataContext())
+            {
+                count = _context.Notifications.Count(n => n.Reciver == userId);
+            }
+            return count;
         }
 
         // 3. Updates notification read status

@@ -20,28 +20,30 @@ namespace vendtechext.Controllers
     {
         private readonly NotificationService _service;
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _integratorHubContext;
+        private readonly IHubContext<CustomNotificationHub, ICustomNotificationHub> _customHubContext;
         private readonly IAuthService _authService;
         private readonly IBackgroundJobClient _backgroundJobClient;
+        private readonly IHubContext<CustomNotificationHub> _dynamicHubContext;
 
-        public NotificationController(NotificationService service, IHttpContextAccessor contextAccessor, IHubContext<CustomNotificationHub, ICustomNotificationHub> integratorHubContext, IAuthService authService, IBackgroundJobClient backgroundJobClient)
+        public NotificationController(NotificationService service, IHttpContextAccessor contextAccessor, IHubContext<CustomNotificationHub, ICustomNotificationHub> customHubContext, IAuthService authService, IBackgroundJobClient backgroundJobClient, IHubContext<CustomNotificationHub> dynamicHubContext)
         {
             _service = service;
             _contextAccessor = contextAccessor;
-            _integratorHubContext = integratorHubContext;
+            _customHubContext = customHubContext;
             _authService = authService;
             _backgroundJobClient = backgroundJobClient;
+            _dynamicHubContext = dynamicHubContext;
         }
 
         [HttpPost("update")]
         public IActionResult Create([FromBody] NotificationDtoUpdate request)
         {
-            var receiver = _contextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value?? "";
-           _service.UpdateNotificationReadStatus(request.Id, receiver);
+            var receiver = _contextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            _service.UpdateNotificationReadStatus(request.Id, receiver);
             return Ok(receiver);
         }
         [HttpGet("get")]
-        public  IActionResult Get()
+        public IActionResult Get()
         {
             var receiver = _contextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
             var nots = _service.GetNotifications(receiver);
@@ -53,6 +55,18 @@ namespace vendtechext.Controllers
         {
             var nots = _service.GetNotification(id);
             return Ok(nots);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("create-event")]
+        public async Task<IActionResult> CreateEvent([FromBody] EventRequest request)
+        {
+
+            await _dynamicHubContext.Clients
+                .Group(request.EventReceiver)
+                .SendAsync(request.EventName, request.EventValue);
+
+            return Ok(request);
         }
 
         [AllowAnonymous]
@@ -101,28 +115,28 @@ namespace vendtechext.Controllers
         [HttpPost("success")]
         public async Task<IActionResult> SuccessNotification([FromBody] MessageBody request)
         {
-            await _integratorHubContext.Clients.Group(request.UserId).SuccessNotificationCreated(request.Message);
+            await _customHubContext.Clients.Group(request.UserId).SuccessNotificationCreated(request.Message);
             return Ok();
         }
 
         [HttpPost("failed")]
         public async Task<IActionResult> FailedNotification([FromBody] MessageBody request)
         {
-            await _integratorHubContext.Clients.Group(request.UserId).FailedNotificationCreated(request.Message);
+            await _customHubContext.Clients.Group(request.UserId).FailedNotificationCreated(request.Message);
             return Ok();
         }
 
         [HttpPost("warning")]
         public async Task<IActionResult> WarningNotification([FromBody] MessageBody request)
         {
-            await _integratorHubContext.Clients.Group(request.UserId).WarningNotificationCreated(request.Message);
+            await _customHubContext.Clients.Group(request.UserId).WarningNotificationCreated(request.Message);
             return Ok();
         }
 
         [HttpPost("info")]
         public async Task<IActionResult> InfoNotification([FromBody] MessageBody request)
         {
-            await _integratorHubContext.Clients.Group(request.UserId).InfoNotificationCreated(request.Message);
+            await _customHubContext.Clients.Group(request.UserId).InfoNotificationCreated(request.Message);
             return Ok();
         }
         [HttpPost("notify-admin")]
@@ -131,7 +145,7 @@ namespace vendtechext.Controllers
             IList<AppUser> users = await _authService.FindAdminUser();
             for (int i = 0; i < users.Count; i++)
             {
-                await _integratorHubContext.Clients.Group(users[i].Id).NotifyAdmins(request.Message);
+                await _customHubContext.Clients.Group(users[i].Id).NotifyAdmins(request.Message);
             }
             return Ok();
         }

@@ -12,7 +12,7 @@ namespace vendtechext.Controllers
     {
         private readonly IUsersService _service;
 
-        public UsersController(ILogger<APISalesController> logger, IUsersService service): base(logger)
+        public UsersController(ILogger<UsersController> logger, IUsersService service): base(logger)
         {
             _service = service;
         }

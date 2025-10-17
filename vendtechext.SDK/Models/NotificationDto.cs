@@ -20,6 +20,19 @@ namespace vendtechext.SDK.Models
         public long Id { get; set; }
     }
 
+    public class EventRequest
+    {
+        public string EventName { get; set; }
+        public string EventValue { get; set; }
+        public string EventReceiver { get; set; }
+    }
+
+    public static class Events
+    {
+        public static string SuccessNotificationCreated = "SuccessNotificationCreated";
+        public static string PendingDepositCreated = "PendingDepositCreated";
+        public static string PendingSalesCreated = "PendingSalesCreated";
+    }
     public class NotificationRequest
     {
         public string UserId { get; set; } = string.Empty;
